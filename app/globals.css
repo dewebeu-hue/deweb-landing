@@ -1,0 +1,322 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --background-grid:
+    linear-gradient(90deg, rgba(0, 109, 123, 0.05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(0, 109, 123, 0.04) 1px, transparent 1px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #ffffff;
+  color: #18314f;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background: var(--background-grid);
+  background-size: 58px 58px;
+  mask-image: linear-gradient(180deg, black, transparent 62%);
+}
+
+main section {
+  scroll-margin-top: 88px;
+}
+
+.motion-ready .reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 620ms ease,
+    transform 620ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.motion-ready .reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.motion-card {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.motion-card:hover {
+  border-color: rgba(0, 109, 123, 0.48);
+  box-shadow: 0 18px 42px rgba(8, 42, 61, 0.1);
+  transform: translateY(-3px);
+}
+
+.hero-visual-motion {
+  position: relative;
+}
+
+.hero-visual-motion::before {
+  position: absolute;
+  inset: auto 8% 8% auto;
+  width: 32%;
+  height: 26%;
+  border-radius: 999px;
+  background: rgba(233, 86, 22, 0.1);
+  content: "";
+  filter: blur(32px);
+  transform: rotate(-8deg);
+}
+
+.hero-visual-motion.is-visible .hero-source-card {
+  animation: hero-card-drift 760ms cubic-bezier(0.2, 0.72, 0.18, 1) both;
+  animation-delay: calc(180ms + var(--reveal-delay, 0ms));
+}
+
+.hero-visual-motion.is-visible .hero-flow-line {
+  animation: hero-flow-pulse 1200ms ease 520ms both;
+}
+
+.hero-visual-motion.is-visible .hero-dashboard {
+  animation: hero-dashboard-rise 780ms cubic-bezier(0.2, 0.72, 0.18, 1) 360ms both;
+}
+
+.hero-visual-motion.is-visible .hero-chart-bar {
+  transform-origin: bottom;
+  animation: hero-bar-grow 720ms cubic-bezier(0.2, 0.72, 0.18, 1) both;
+}
+
+.hero-visual-motion.is-visible .hero-chart-bar:nth-child(1) {
+  animation-delay: 780ms;
+}
+
+.hero-visual-motion.is-visible .hero-chart-bar:nth-child(2) {
+  animation-delay: 850ms;
+}
+
+.hero-visual-motion.is-visible .hero-chart-bar:nth-child(3) {
+  animation-delay: 920ms;
+}
+
+.hero-visual-motion.is-visible .hero-chart-bar:nth-child(4) {
+  animation-delay: 990ms;
+}
+
+.hero-visual-motion.is-visible .hero-chart-bar:nth-child(5) {
+  animation-delay: 1060ms;
+}
+
+.hero-visual-motion.is-visible .hero-donut {
+  animation: hero-donut-turn 900ms ease 850ms both;
+}
+
+.process-motion-wrap {
+  box-shadow: 0 10px 34px rgba(8, 42, 61, 0.06);
+}
+
+.process-progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #006d7b, #e95616);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.process-motion-wrap.is-visible .process-progress {
+  animation: process-progress-fill 1200ms ease 260ms forwards;
+}
+
+.process-step {
+  position: relative;
+  z-index: 2;
+}
+
+.process-motion-wrap.is-visible .process-step {
+  animation: process-step-rise 620ms ease both;
+  animation-delay: calc(180ms + var(--reveal-delay, 0ms));
+}
+
+.typing-headline {
+  --typing-color: #081832;
+  display: inline;
+  color: transparent;
+  background-image: linear-gradient(var(--typing-color), var(--typing-color));
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: typing-reveal 3.8s steps(74, end) 0.25s forwards;
+}
+
+.typing-headline::after {
+  display: inline-block;
+  width: 0.09em;
+  height: 0.9em;
+  margin-left: 0.08em;
+  background: #e95616;
+  content: "";
+  vertical-align: -0.08em;
+  animation:
+    typing-caret 720ms steps(1, end) infinite,
+    typing-caret-fade 160ms ease 4.4s forwards;
+}
+
+@keyframes typing-reveal {
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+@keyframes typing-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes typing-caret-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes hero-card-drift {
+  from {
+    opacity: 0;
+    transform: translateX(-18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes hero-dashboard-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes hero-flow-pulse {
+  0% {
+    opacity: 0.25;
+    transform: scaleX(0.35);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scaleX(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes hero-bar-grow {
+  from {
+    transform: scaleY(0.2);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes hero-donut-turn {
+  from {
+    opacity: 0.6;
+    transform: rotate(-24deg) scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+@keyframes process-progress-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes process-step-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .motion-ready .reveal-on-scroll,
+  .process-step,
+  .hero-source-card,
+  .hero-dashboard,
+  .hero-flow-line,
+  .hero-chart-bar,
+  .hero-donut {
+    opacity: 1;
+    transform: none;
+  }
+
+  .process-progress {
+    transform: scaleX(1);
+  }
+
+  .typing-headline {
+    animation: none;
+    background-size: 100% 100%;
+  }
+
+  .typing-headline::after {
+    display: none;
+  }
+}
