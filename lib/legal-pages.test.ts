@@ -34,8 +34,9 @@ test("privacy page states the v1 privacy posture", () => {
 
   assert.match(privacy, /rana landing stranica za deweb/);
   assert.match(privacy, /ne koristimo analitičke ni marketinške kolačiće/i);
-  assert.match(privacy, /kontakt forma još nije spojena/i);
-  assert.match(privacy, /koristit će se samo za odgovor na upit i\s+pripremu prijedloga rješenja/);
+  assert.doesNotMatch(privacy, /kontakt forma još nije spojena/i);
+  assert.match(privacy, /podaci poslani kroz kontakt formu koriste se za obradu upita i komunikaciju s\s+pošiljateljem/i);
+  assert.match(privacy, /koriste se samo za odgovor na upit i pripremu prijedloga rješenja/i);
 });
 
 test("production app does not include tracking or cookie-banner behavior", () => {

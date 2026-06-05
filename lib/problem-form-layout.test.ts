@@ -13,6 +13,9 @@ test("contact form uses shared wrappers and control sizing for aligned fields", 
   assert.match(form, /const controlClass =/);
   assert.match(form, /items-start/);
   assert.match(form, /<Field name="phone" label="Telefon" type="tel" optionalText="opcionalno" \/>/);
+  assert.match(form, /fetch\("\/api\/contact"/);
+  assert.match(form, /Šaljem\.\.\./);
+  assert.match(form, /name="website"/);
   assert.doesNotMatch(form, /<div className="grid gap-2">\s*<label[^>]+htmlFor="phone"/);
   assert.doesNotMatch(form, /<input className="min-h-12[^"]+" id="phone"/);
 });

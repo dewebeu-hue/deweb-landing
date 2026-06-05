@@ -25,12 +25,11 @@ export default function PrivacyPage() {
           ugrađene servise.
         </p>
         <p className="m-0 leading-7 text-muted">
-          Kontakt forma još nije spojena na sustav za zaprimanje upita. Dok zaprimanje nije
-          aktivirano, podaci iz forme neće se slati ni pohranjivati kroz ovu stranicu.
+          Podaci poslani kroz kontakt formu koriste se za obradu upita i komunikaciju s
+          pošiljateljem.
         </p>
         <p className="m-0 leading-7 text-muted">
-          Kada forma bude spojena, poslani podaci koristit će se samo za odgovor na upit i
-          pripremu prijedloga rješenja.
+          Podaci iz obrasca koriste se samo za odgovor na upit i pripremu prijedloga rješenja.
         </p>
         <p className="m-0 font-extrabold text-ink">Operator: deweb j.d.o.o.</p>
       </section>

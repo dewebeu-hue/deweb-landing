@@ -24,7 +24,7 @@ export default function TermsPage() {
           cijena dogovaraju se zasebno nakon razumijevanja konkretnog poslovnog problema.
         </p>
         <p className="m-0 leading-7 text-muted">
-          U ovoj v1 verziji kontakt forma još nije spojena na sustav za zaprimanje upita.
+          Kontakt forma šalje opis problema kroz server-side obradu kako bi se upit mogao obraditi.
         </p>
         <p className="m-0 font-extrabold text-ink">Operator: deweb j.d.o.o.</p>
       </section>

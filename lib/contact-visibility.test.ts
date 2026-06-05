@@ -19,6 +19,8 @@ test("public landing page does not display public email addresses or store submi
     assert.doesNotMatch(contents, /kontakt@deweb\.hr/);
     assert.doesNotMatch(contents, /mailto:/);
     assert.doesNotMatch(contents, /localStorage/);
+    assert.doesNotMatch(contents, /RESEND_API_KEY/);
+    assert.doesNotMatch(contents, /CONTACT_TO_EMAIL/);
   }
 });
 
@@ -33,7 +35,7 @@ test("marketing footer uses only the approved brand, domain, and legal links", (
   assert.match(page, /Pravna obavijest/);
   assert.match(
     readFileSync(join(root, "app", "problem-form.tsx"), "utf8"),
-    /U ovoj verziji forma još nije spojena na sustav za zaprimanje upita\. Podaci se neće slati dok ne aktiviramo zaprimanje\./,
+    /Podatke iz obrasca koristimo isključivo za odgovor na vaš upit i pripremu prijedloga rješenja\./,
   );
   assert.doesNotMatch(page, /Digitalna rješenja za probleme malih poduzetnika\./);
 });

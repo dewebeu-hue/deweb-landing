@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import {
-  prepareProblemSubmission,
   requiredProblemFields,
   successMessage,
   validateProblemForm,
@@ -10,10 +9,11 @@ import {
   type RequiredProblemField,
 } from "../lib/problem-email";
 
-const fieldLabels: Record<RequiredProblemField, string> = {
+const fieldLabels: Record<Exclude<keyof ProblemFormData, "website">, string> = {
   fullName: "Ime i prezime",
   companyName: "Naziv firme",
   email: "Email",
+  phone: "Telefon",
   businessType: "Čime se firma bavi?",
   problem: "Koji problem želite riješiti?",
   currentSolution: "Kako to danas rješavate?",
@@ -42,6 +42,7 @@ function collectProblemFormData(form: HTMLFormElement): ProblemFormData {
     currentSolution: String(formData.get("currentSolution") ?? ""),
     urgency: String(formData.get("urgency") ?? ""),
     solutionType: String(formData.get("solutionType") ?? ""),
+    website: String(formData.get("website") ?? ""),
   };
 }
 
@@ -49,9 +50,15 @@ export function ProblemForm() {
   const [missingFields, setMissingFields] = useState<RequiredProblemField[]>([]);
   const [status, setStatus] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (hasSubmitted || isSubmitting) {
+      return;
+    }
 
     const form = event.currentTarget;
     const data = collectProblemFormData(form);
@@ -68,44 +75,73 @@ export function ProblemForm() {
       return;
     }
 
-    const submission = prepareProblemSubmission(data);
-    // TODO: Connect the real backend/API/email intake here before enabling live inquiry submission.
-    void submission;
-
     setMissingFields([]);
-    setIsSuccess(true);
-    setStatus(successMessage);
+    setIsSuccess(false);
+    setStatus("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      const result = (await response.json().catch(() => null)) as { error?: string; fields?: RequiredProblemField[] } | null;
+
+      if (!response.ok) {
+        setMissingFields(
+          (result?.fields ?? []).filter((field): field is RequiredProblemField =>
+            requiredProblemFields.includes(field),
+          ),
+        );
+        throw new Error(result?.error ?? "Slanje nije uspjelo.");
+      }
+
+      form.reset();
+      setHasSubmitted(true);
+      setIsSuccess(true);
+      setStatus(successMessage);
+    } catch (error) {
+      setIsSuccess(false);
+      setStatus(error instanceof Error ? error.message : "Trenutno ne možemo poslati upit. Molimo pokušajte ponovno za nekoliko trenutaka.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  function hasError(name: RequiredProblemField) {
-    return missingFields.includes(name);
+  function hasError(name: keyof ProblemFormData) {
+    return missingFields.includes(name as RequiredProblemField);
   }
 
   return (
     <div className="grid gap-3">
       <form className="grid items-start gap-4 rounded-lg border border-line bg-white p-5 shadow-soft sm:grid-cols-2 sm:p-6" onSubmit={handleSubmit} noValidate>
+        <div className="hidden" aria-hidden="true">
+          <label htmlFor="website">Website</label>
+          <input id="website" name="website" tabIndex={-1} autoComplete="off" />
+        </div>
         <Field name="fullName" label="Ime i prezime" hasError={hasError("fullName")} />
         <Field name="companyName" label="Naziv firme" hasError={hasError("companyName")} />
         <Field name="email" label="Email" type="email" hasError={hasError("email")} />
         <Field name="phone" label="Telefon" type="tel" optionalText="opcionalno" />
         <Field name="businessType" label="Čime se firma bavi?" hasError={hasError("businessType")} wide />
         <TextArea name="problem" label="Koji problem želite riješiti?" hasError={hasError("problem")} />
-        <TextArea name="currentSolution" label="Kako to danas rješavate?" hasError={hasError("currentSolution")} rows={4} />
+        <TextArea name="currentSolution" label="Kako to danas rješavate?" rows={4} />
         <Select
           name="urgency"
           label="Koliko je hitno?"
-          hasError={hasError("urgency")}
           options={["Nije hitno", "Treba mi uskoro", "Hitno je"]}
         />
         <Select
           name="solutionType"
           label="Kakvo rješenje tražite?"
-          hasError={hasError("solutionType")}
           options={["Samo prijedlog", "Brzi MVP", "Ozbiljniji sustav", "Nisam siguran"]}
         />
         <div className="grid gap-3 sm:col-span-2 sm:flex sm:items-center">
-          <button className="min-h-[52px] rounded-lg bg-orange px-6 py-3 text-base font-extrabold text-white shadow-[0_14px_28px_rgba(233,86,22,0.22)] transition hover:-translate-y-px hover:bg-orange-dark" type="submit">
-            Pošalji problem
+          <button className="min-h-[52px] rounded-lg bg-orange px-6 py-3 text-base font-extrabold text-white shadow-[0_14px_28px_rgba(233,86,22,0.22)] transition hover:-translate-y-px hover:bg-orange-dark disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0" type="submit" disabled={isSubmitting || hasSubmitted}>
+            {isSubmitting ? "Šaljem..." : hasSubmitted ? "Poslano" : "Pošalji problem"}
           </button>
           <p className={`m-0 rounded-lg px-3 py-2 text-sm font-bold ${isSuccess ? "bg-teal-soft text-teal-dark" : "text-muted"}`} role="status" aria-live="polite">
             {status}
@@ -113,7 +149,7 @@ export function ProblemForm() {
         </div>
       </form>
       <p className="m-0 rounded-lg border border-line bg-white px-4 py-3 text-sm font-semibold leading-6 text-muted">
-        U ovoj verziji forma još nije spojena na sustav za zaprimanje upita. Podaci se neće slati dok ne aktiviramo zaprimanje.
+        Podatke iz obrasca koristimo isključivo za odgovor na vaš upit i pripremu prijedloga rješenja.
       </p>
     </div>
   );
