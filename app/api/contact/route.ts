@@ -35,6 +35,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Neispravan zahtjev." }, { status: 400 });
   }
 
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return NextResponse.json({ ok: false, error: "Neispravan zahtjev." }, { status: 400 });
+  }
+
   if (isHoneypotSubmission(data)) {
     return NextResponse.json({ ok: true });
   }
@@ -52,9 +56,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    await sendContactEmail(prepareProblemSubmission(data), getContactEmailConfig());
-  } catch (error) {
-    console.error("Contact form email failed", error);
+    const providerMessageId = await sendContactEmail(prepareProblemSubmission(data), getContactEmailConfig());
+    if (providerMessageId) console.info("Contact form provider message ID:", providerMessageId);
+  } catch {
+    console.error("Contact form email failed");
     return NextResponse.json(
       { ok: false, error: "Trenutno ne možemo poslati upit. Molimo pokušajte ponovno za nekoliko trenutaka." },
       { status: 502 },

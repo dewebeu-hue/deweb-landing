@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Uvjeti korištenja | deweb",
   description: "Osnovni uvjeti korištenja rane landing stranice deweb.",
+  robots: { index: false, follow: true },
 };
 
 export default function TermsPage() {

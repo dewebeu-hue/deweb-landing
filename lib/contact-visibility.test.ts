@@ -28,14 +28,14 @@ test("marketing footer uses only the approved brand, domain, and legal links", (
   const page = readFileSync(join(root, "app", "page.tsx"), "utf8");
 
   assert.doesNotMatch(page, /deweb j\.d\.o\.o\./);
-  assert.match(page, />\s*deweb\s*</);
-  assert.match(page, /deweb\.hr/);
+  assert.match(page, /deweb-logo\.svg/);
+  assert.match(page, /Web-stranice i poslovni alati po mjeri\./);
   assert.match(page, /Privatnost/);
   assert.match(page, /Uvjeti korištenja/);
   assert.match(page, /Pravna obavijest/);
   assert.match(
     readFileSync(join(root, "app", "problem-form.tsx"), "utf8"),
-    /Podatke iz obrasca koristimo isključivo za odgovor na vaš upit i pripremu prijedloga rješenja\./,
+    /Podatke iz obrasca koristimo samo za odgovor na vaš upit i pripremu prijedloga\./,
   );
   assert.doesNotMatch(page, /Digitalna rješenja za probleme malih poduzetnika\./);
 });

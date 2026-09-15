@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pravna obavijest | deweb",
   description: "Pravna obavijest za ranu landing stranicu deweb.",
+  robots: { index: false, follow: true },
 };
 
 export default function LegalNoticePage() {

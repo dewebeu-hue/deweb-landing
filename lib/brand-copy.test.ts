@@ -10,7 +10,6 @@ test('user-facing production copy uses "deweb" lowercase brand style', () => {
     join(root, "app", "layout.tsx"),
     join(root, "app", "page.tsx"),
     join(root, "app", "problem-form.tsx"),
-    join(root, "lib", "problem-email.ts"),
   ];
 
   for (const file of productionFiles) {

@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { deploymentRobots, SITE_ORIGIN } from "../lib/seo-policy";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "deweb — Digitalna rješenja za male poduzetnike",
+  metadataBase: new URL(SITE_ORIGIN),
+  title: "deweb — Web-stranice i poslovne aplikacije po mjeri",
   description:
-    "Opišite poslovni problem. deweb predlaže izvediva digitalna rješenja i izrađuje MVP, interni alat ili custom rješenje za male poduzetnike.",
+    "deweb izrađuje i redizajnira poslovne web-stranice te razvija interne alate i poslovne aplikacije po mjeri.",
+  robots: deploymentRobots(process.env.VERCEL_ENV),
   icons: {
     icon: "/favicon.svg",
   },

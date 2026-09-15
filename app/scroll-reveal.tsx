@@ -8,11 +8,9 @@ export function ScrollReveal() {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const revealItems = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
 
-    root.classList.add("motion-ready");
-
-    if (motionQuery.matches) {
-      revealItems.forEach((item) => item.classList.add("is-visible"));
-      return () => root.classList.remove("motion-ready");
+    // Content remains visible when JavaScript, reduced motion, or IntersectionObserver is unavailable.
+    if (motionQuery.matches || typeof IntersectionObserver !== "function") {
+      return;
     }
 
     const observer = new IntersectionObserver(
@@ -27,12 +25,13 @@ export function ScrollReveal() {
         });
       },
       {
-        rootMargin: "0px 0px -12% 0px",
-        threshold: 0.18,
+        rootMargin: "0px 0px -8% 0px",
+        threshold: 0.12,
       },
     );
 
     revealItems.forEach((item) => observer.observe(item));
+    root.classList.add("motion-ready");
 
     return () => {
       observer.disconnect();

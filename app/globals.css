@@ -41,22 +41,47 @@ main section {
   scroll-margin-top: 88px;
 }
 
+.hero-surface {
+  background:
+    radial-gradient(circle at 82% 18%, rgba(0, 109, 123, 0.11), transparent 32%),
+    radial-gradient(circle at 12% 88%, rgba(233, 86, 22, 0.055), transparent 36%),
+    linear-gradient(145deg, #ffffff, #f4f9fa);
+}
+
+.mobile-menu summary::-webkit-details-marker,
+details.group summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobile-menu summary::marker,
+details.group summary::marker {
+  content: "";
+}
+
+a, button, summary, input, select, textarea {
+  scroll-margin-top: 100px;
+}
+
 .motion-ready .reveal-on-scroll {
   opacity: 0;
-  transform: translateY(22px);
+  transform: translateY(12px);
   transition:
-    opacity 620ms ease,
-    transform 620ms ease,
+    opacity 460ms cubic-bezier(0.2, 0.72, 0.18, 1),
+    transform 460ms cubic-bezier(0.2, 0.72, 0.18, 1),
     border-color 220ms ease,
     box-shadow 220ms ease;
   transition-delay: var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
 }
 
-.motion-ready .reveal-on-scroll.is-visible {
+.motion-ready .reveal-on-scroll.is-visible,
+.motion-ready .reveal-on-scroll:focus-within {
   opacity: 1;
   transform: translateY(0);
 }
+
+.reveal-delay-1 { --reveal-delay: 70ms; }
+.reveal-delay-2 { --reveal-delay: 140ms; }
+.reveal-delay-3 { --reveal-delay: 210ms; }
 
 .motion-card {
   transition:
@@ -65,10 +90,18 @@ main section {
     box-shadow 220ms ease;
 }
 
-.motion-card:hover {
+.motion-card:hover,
+.motion-card:focus-within {
   border-color: rgba(0, 109, 123, 0.48);
   box-shadow: 0 18px 42px rgba(8, 42, 61, 0.1);
   transform: translateY(-3px);
+}
+
+.motion-ready .reveal-on-scroll.is-visible.motion-card:hover,
+.motion-ready .reveal-on-scroll.is-visible.motion-card:focus-within {
+  transform: translateY(-3px);
+  transition-duration: 460ms, 220ms, 220ms, 220ms;
+  transition-delay: 0ms;
 }
 
 .hero-visual-motion {
@@ -297,6 +330,8 @@ main section {
   }
 
   .motion-ready .reveal-on-scroll,
+  .motion-card:hover,
+  .motion-card:focus-within,
   .process-step,
   .hero-source-card,
   .hero-dashboard,
@@ -304,7 +339,7 @@ main section {
   .hero-chart-bar,
   .hero-donut {
     opacity: 1;
-    transform: none;
+    transform: none !important;
   }
 
   .process-progress {

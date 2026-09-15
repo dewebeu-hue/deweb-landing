@@ -1,302 +1,175 @@
 import Image from "next/image";
-import type { CSSProperties } from "react";
+import type { Metadata } from "next";
 import { ProblemForm } from "./problem-form";
+import { ProjectLink } from "./project-link";
+import { MobileMenu } from "./mobile-menu";
 import { ScrollReveal } from "./scroll-reveal";
+import { readProjectSelection, type ProjectSelectionParams } from "../lib/project-selection";
+import { webOfferTerms, webPackages } from "../lib/web-packages";
+import { SITE_ORIGIN } from "../lib/seo-policy";
 
-const problems = [
-  "Upiti dolaze preko WhatsAppa, maila i poziva — i dio se izgubi.",
-  "Klijenti stalno pitaju iste stvari.",
-  "Ponude, dokumenti i statusi se vode ručno.",
-  "Excel je postao glavni sustav firme.",
-  "Nemate pregled tko čeka odgovor, uplatu ili termin.",
-  "Znate da se nešto može automatizirati, ali ne znate odakle krenuti.",
-];
-
-const examples = [
-  "Mini CRM za upite i klijente",
-  "Sustav za termine i podsjetnike",
-  "Portal za klijente i dokumente",
-  "Automatizirano slanje ponuda",
-  "Interni dashboard za posao, statuse i uplate",
-  "AI asistent za česta pitanja i pripremu odgovora",
-  "Evidencija narudžbi, prijevoza, servisa ili terenskog rada",
-  "Jednostavan sustav za prijave, zahtjeve ili rezervacije",
-];
-
-const offers = [
-  {
-    title: "Problem brief",
-    price: "Procjena nakon problema",
-    description: "Kratka analiza problema i prijedlog 2–3 moguća digitalna rješenja.",
-    bestFor: "Kada znate da imate problem, ali ne znate što točno treba izraditi.",
-    output: "Sažetak problema, preporučeni MVP, procjena složenosti i sljedeći koraci.",
+export const metadata: Metadata = {
+  title: "Izrada web-stranica i poslovnih aplikacija | deweb",
+  description: "deweb izrađuje i redizajnira poslovne web-stranice te razvija interne alate i poslovne aplikacije po mjeri. Pogledajte ponudu i opišite svoj projekt.",
+  openGraph: {
+    title: "Izrada web-stranica i poslovnih aplikacija | deweb",
+    description: "Izrada i redizajn poslovnih web-stranica te interni alati i poslovne aplikacije po mjeri.",
+    url: `${SITE_ORIGIN}/`,
+    siteName: "deweb",
+    images: [{ url: "/og-deweb.png", width: 1200, height: 630, alt: "deweb — web-stranice i poslovne aplikacije" }],
+    locale: "hr_HR",
+    type: "website",
   },
-  {
-    title: "Brzi MVP alat",
-    price: "Cijena ovisi o opsegu",
-    description: "Jednostavan alat koji rješava jedan konkretan problem.",
-    bestFor: "Upiti, evidencije, obrasci, statusi, klijenti, podsjetnici, jednostavni dashboardi.",
-    output: "Prva funkcionalna verzija koju možete testirati u stvarnom radu.",
-    featured: true,
-  },
-  {
-    title: "Custom poslovni sustav",
-    price: "Procjena nakon problema",
-    description: "Veći interni sustav ili mini SaaS za specifičan workflow firme.",
-    bestFor: "Kada želite ozbiljniji alat, više korisnika, portal, automatizacije ili integracije.",
-    output: "Planirana izrada u fazama, s mogućnošću održavanja i nadogradnje.",
-  },
-];
+  twitter: { card: "summary_large_image" },
+};
 
-const steps = [
-  "Pošaljete problem",
-  "Postavimo nekoliko dodatnih pitanja",
-  "Dobijete 2–3 moguća rješenja",
-  "Odabiremo MVP",
-  "Izrađujemo i testiramo",
-  "Isporučujemo, održavamo i nadograđujemo po potrebi",
-];
+const frame = "mx-auto w-[min(100%-36px,1160px)]";
+const eyebrow = "text-xs font-black uppercase tracking-[0.16em] text-teal-dark";
+const heading = "text-[2rem] font-black leading-[1.12] tracking-[-0.035em] text-ink sm:text-[2.65rem] lg:text-[3.1rem]";
+const button = "inline-flex min-h-[52px] items-center justify-center rounded-lg bg-teal px-6 py-3 text-center text-sm font-extrabold text-white shadow-[0_12px_25px_rgba(0,77,88,0.17)] transition hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark";
+const outlineButton = "inline-flex min-h-[52px] items-center justify-center rounded-lg border-2 border-teal bg-white px-6 py-3 text-center text-sm font-extrabold text-teal-dark transition hover:bg-teal-soft focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark";
 
-const why = [
-  "Fokus na male poduzetnike",
-  "Prvo problem, zatim tehnologija",
-  "Jednostavna rješenja prije velikih sustava",
-  "MVP pristup: brzo testirati prije velikog ulaganja",
-  "AI i automatizacija samo kad stvarno imaju smisla",
-  "Jasna komunikacija i izvedivi koraci",
-];
+const nav = [
+  ["Web-stranice", "#web-stranice"],
+  ["Interni alati", "#interni-alati"],
+  ["Radovi", "#radovi"],
+  ["Kako radimo", "#proces"],
+  ["Kontakt", "#kontakt"],
+] as const;
 
-function revealDelay(index: number): CSSProperties {
-  return { "--reveal-delay": `${index * 70}ms` } as CSSProperties;
-}
+const toolExamples = [
+  ["Upiti na više mjesta", "Evidencija upita može pokazati tko čeka odgovor i koji je sljedeći korak."],
+  ["Ponude se sastavljaju ručno", "Alat može pomoći pripremiti dosljednu ponudu iz dogovorenih podataka."],
+  ["Status posla nije jasan", "Pregled radnih naloga može povezati odgovorne osobe, korake i rokove."],
+  ["Tim koristi nepovezane tablice", "Interni portal može objediniti podatke i dogovorene pristupe."],
+] as const;
 
-export default function Home() {
+const process = [
+  ["01", "Dogovor i ponuda", "Kratko razgovaramo o cilju, materijalima i opsegu. Dobivate prijedlog, cijenu i rok prije početka."],
+  ["02", "Izrada i dorade", "Pripremamo strukturu i izvedbu. Vi dostavljate materijale, provjeravate točnost i objedinjeno šaljete dorade."],
+  ["03", "Provjera i predaja", "Zajedno pregledamo dogovoreno rješenje. Web objavljujemo nakon prihvata i završnog plaćanja; za poslovne alate predaju definiramo ponudom."],
+] as const;
+
+export default async function Home({ searchParams }: { searchParams: Promise<ProjectSelectionParams> }) {
+  const initialSelection = readProjectSelection(await searchParams);
   return (
     <>
+      <link rel="canonical" href={`${SITE_ORIGIN}/`} />
       <ScrollReveal />
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-line/90 bg-white/95 px-5 py-3 backdrop-blur md:px-12">
-        <a className="flex min-h-11 items-center" href="#top" aria-label="deweb početna">
-          <Image src="/deweb-logo.svg" alt="deweb" width={136} height={31} priority />
-        </a>
-        <nav className="hidden items-center gap-8 text-sm font-extrabold text-muted md:flex" aria-label="Glavna navigacija">
-          <a className="flex min-h-11 items-center hover:text-teal" href="#how-it-works">
-            Kako funkcionira
+      <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
+        <div className={`${frame} flex min-h-[76px] items-center justify-between gap-4`}>
+          <a href="#vrh" aria-label="deweb — na početak" className="inline-flex min-h-11 items-center focus-visible:outline focus-visible:outline-4 focus-visible:outline-orange-dark">
+            <Image src="/deweb-logo.svg" alt="deweb" width={136} height={31} priority />
           </a>
-          <a className="flex min-h-11 items-center hover:text-teal" href="#examples">
-            Primjeri
-          </a>
-          <a className="flex min-h-11 items-center hover:text-teal" href="#offer">
-            Suradnja
-          </a>
-        </nav>
-        <a className="hidden min-h-11 items-center justify-center rounded-lg bg-teal px-5 text-sm font-extrabold text-white shadow-[0_10px_22px_rgba(0,109,123,0.22)] md:inline-flex" href="#problem-form">
-          Pošalji problem
-        </a>
+          <nav className="hidden items-center gap-6 lg:flex" aria-label="Glavna navigacija">
+            {nav.map(([label, href]) => <a key={href} href={href} className="inline-flex min-h-11 items-center text-sm font-bold text-ink hover:text-teal focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">{label}</a>)}
+          </nav>
+          <a href="#kontakt" className={`${button} hidden lg:inline-flex`}>Zatražite ponudu <span aria-hidden="true" className="ml-2">↗</span></a>
+          <MobileMenu links={nav} />
+        </div>
       </header>
 
-      <main id="top">
-        <section className="mx-auto grid w-[min(100%-36px,1120px)] gap-9 py-14 md:py-16 lg:min-h-[calc(100svh-156px)] lg:grid-cols-[1fr_0.88fr] lg:items-center">
-          <div className="reveal-on-scroll" data-reveal>
-            <p className="mb-4 text-sm font-black uppercase text-teal">Digitalna rješenja za male poduzetnike</p>
-            <h1 className="mb-5 max-w-[680px] text-[2.45rem] font-black leading-[1.05] text-ink sm:text-[3.55rem] lg:text-[4.15rem]">
-              <span className="typing-headline">
-                Opišite problem u poslu. Mi predlažemo rješenje i izrađujemo alat.
-              </span>
-            </h1>
-            <p className="mb-7 max-w-[660px] text-[1.03rem] leading-8 text-muted sm:text-[1.15rem] lg:text-[1.22rem]">
-              Ne morate znati trebate li aplikaciju, automatizaciju, AI asistenta ili interni sustav.
-              Vi objasnite problem, a deweb predloži nekoliko izvedivih rješenja.
-            </p>
-            <div className="grid gap-3 sm:flex sm:items-center">
-              <a className="inline-flex min-h-[52px] items-center justify-center rounded-lg bg-orange px-6 py-3 text-base font-extrabold text-white shadow-[0_14px_28px_rgba(233,86,22,0.22)] transition hover:-translate-y-px hover:bg-orange-dark sm:min-w-[190px]" href="#problem-form">
-                Pošalji problem
-              </a>
-              <a className="inline-flex min-h-[52px] items-center justify-center rounded-lg border border-[#b7ccd5] bg-white px-6 py-3 text-base font-extrabold text-teal-dark transition hover:-translate-y-px hover:border-teal sm:min-w-[190px]" href="#how-it-works">
-                Kako funkcionira
-              </a>
+      <main id="vrh">
+        <section className="hero-surface overflow-hidden border-b border-line" aria-labelledby="hero-title">
+          <div className={`${frame} grid gap-10 py-16 md:py-20 lg:min-h-[690px] lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:gap-12`}>
+            <div>
+              <p className={`${eyebrow} mb-6`}>Web-stranice i poslovne aplikacije po mjeri</p>
+              <h1 id="hero-title" className="max-w-[710px] text-[clamp(2.1rem,4.2vw,4rem)] font-black leading-[1.07] tracking-[-0.05em] text-ink">
+                Web koji predstavlja vaš posao. <span className="block text-teal-dark">Alati koji ga pojednostavljuju.</span>
+              </h1>
+              <p className="mt-7 max-w-[650px] text-lg leading-8 text-[#536579] md:text-xl md:leading-9">Izrađujemo i redizajniramo poslovne web-stranice te razvijamo interne alate i poslovne aplikacije po mjeri — od predstavljanja usluga do organizacije upita, ponuda i svakodnevnog rada.</p>
+              <div className="mt-9 grid gap-3 sm:flex sm:flex-wrap">
+                <a href="#web-stranice" className={button}>Trebam web-stranicu <span aria-hidden="true" className="ml-2">↘</span></a>
+                <a href="#interni-alati" className={outlineButton}>Trebam poslovni alat <span aria-hidden="true" className="ml-2">↘</span></a>
+              </div>
+              <p className="mt-5 text-sm font-semibold leading-6 text-muted">Dva različita puta, jedan jasan početak: recite nam što želite postići.</p>
             </div>
-            <p className="mt-5 max-w-[650px] text-sm leading-7 text-muted">
-              Bez velikih obećanja. Prvo razumijemo problem, zatim predlažemo izvediv MVP.
-            </p>
-          </div>
-          <HeroVisual />
-        </section>
-
-        <section className="border-y border-line bg-[#f4f9fb] py-14" aria-labelledby="problem-title">
-          <div className="mx-auto w-[min(100%-36px,1120px)]">
-            <h2 id="problem-title" className="reveal-on-scroll mb-7 max-w-3xl text-[1.9rem] font-black leading-tight text-ink sm:text-[2.5rem] lg:text-[3.05rem]" data-reveal>
-              Prepoznajete li ovo?
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {problems.map((problem, index) => (
-                <article className="motion-card reveal-on-scroll grid grid-cols-[auto_1fr] gap-4 rounded-lg border border-line bg-white p-5" data-reveal style={revealDelay(index)} key={problem}>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal text-xs font-black text-white">{String(index + 1).padStart(2, "0")}</span>
-                  <p className="m-0 font-bold leading-7 text-[#18314f]">{problem}</p>
-                </article>
-              ))}
+            <div className="hero-panels hidden gap-4 md:grid" aria-hidden="true">
+              <div className="rounded-2xl border border-[#bfdce2] bg-white p-5 shadow-[0_24px_55px_rgba(8,42,61,0.1)] sm:p-6">
+                <div className="mb-5 flex items-center justify-between border-b border-line pb-4"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">01 / Predstaviti posao</span><span className="h-3 w-3 rounded-full bg-orange" /></div>
+                <div className="mb-4 h-3 w-2/3 rounded-full bg-[#cbdde4]" /><div className="mb-6 h-3 w-4/5 rounded-full bg-[#e1ebef]" />
+                <div className="grid grid-cols-3 gap-2"><div className="h-20 rounded-lg bg-[#def1f2]" /><div className="h-20 rounded-lg bg-[#f4e9e1]" /><div className="h-20 rounded-lg bg-[#e8eef4]" /></div>
+                <div className="mt-5 h-8 w-28 rounded-lg bg-teal" />
+              </div>
+              <div className="ml-4 rounded-2xl border border-[#bfdce2] bg-[#f8fcfd] p-5 shadow-[0_24px_55px_rgba(8,42,61,0.1)] sm:ml-10 sm:p-6">
+                <div className="mb-5 flex items-center justify-between border-b border-line pb-4"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">02 / Pojednostaviti rad</span><span className="grid h-6 w-6 place-items-center rounded-md bg-teal text-xs font-bold text-white">✓</span></div>
+                {["Upit zaprimljen", "Ponuda u pripremi", "Sljedeći korak dogovoren"].map((item, index) => <div key={item} className="mb-2 flex items-center gap-3 rounded-lg border border-line bg-white px-3 py-2 text-xs font-bold text-ink"><span className="grid h-6 w-6 place-items-center rounded-full bg-teal-soft text-teal-dark">{index + 1}</span>{item}</div>)}
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto grid w-[min(100%-36px,1120px)] gap-8 py-16 lg:grid-cols-[0.88fr_1.12fr]" aria-labelledby="solution-title">
-          <h2 id="solution-title" className="reveal-on-scroll max-w-3xl text-[1.9rem] font-black leading-tight text-ink sm:text-[2.5rem] lg:text-[3.05rem]" data-reveal>
-            Ne prodajemo gotov alat za sve. Slažemo rješenje oko vašeg problema.
-          </h2>
-          <ol className="grid gap-3">
-            {["Vi opišete problem.", "deweb predloži 2–3 rješenja.", "Zajedno biramo najjednostavniji izvediv smjer.", "Izrađujemo MVP ili interni alat.", "Nakon isporuke možemo održavati i nadograđivati."].map((item, index) => (
-              <li className="motion-card reveal-on-scroll grid min-h-14 grid-cols-[32px_1fr] items-center gap-4 rounded-lg border border-line bg-white p-4 font-extrabold text-ink" data-reveal style={revealDelay(index)} key={item}>
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-soft text-xs font-black text-teal-dark">{index + 1}</span>
-                {item}
-              </li>
-            ))}
-          </ol>
+        <section className={`${frame} py-16 md:py-20`} aria-labelledby="paths-title">
+          <div className="mb-9 max-w-2xl"><p className={`${eyebrow} mb-3`}>Odaberite što vam treba</p><h2 id="paths-title" className={heading}>Jasnije predstavljanje ili jednostavniji rad?</h2></div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <article className="motion-card reveal-on-scroll rounded-2xl border border-line bg-white p-7 shadow-[0_14px_38px_rgba(8,42,61,0.06)] md:p-9" data-reveal><span className="mb-6 block text-xs font-black uppercase tracking-widest text-teal-dark">Web-stranice / redizajn</span><h3 className="text-2xl font-black text-ink">Da vas kupci lakše razumiju i kontaktiraju.</h3><p className="mt-4 leading-7 text-muted">Struktura sadržaja, dizajn i izvedba za manju tvrtku ili obrt. Uz jasno definirane web-pakete znate što je uključeno.</p><a href="#web-stranice" className="mt-6 inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4">Pogledajte web-ponudu <span aria-hidden="true" className="ml-2">↗</span></a></article>
+            <article className="motion-card reveal-on-scroll reveal-delay-1 rounded-2xl border border-line bg-white p-7 shadow-[0_14px_38px_rgba(8,42,61,0.06)] md:p-9" data-reveal><span className="mb-6 block text-xs font-black uppercase tracking-widest text-teal-dark">Interni alati / aplikacije</span><h3 className="text-2xl font-black text-ink">Da se svakodnevni posao manje oslanja na improvizaciju.</h3><p className="mt-4 leading-7 text-muted">Ako upite, ponude ili status posla vodite na više mjesta, možemo procijeniti kakav bi alat imao smisla.</p><a href="#interni-alati" className="mt-6 inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4">Pogledajte kako pristupamo alatima <span aria-hidden="true" className="ml-2">↗</span></a></article>
+          </div>
         </section>
 
-        <section id="examples" className="mx-auto w-[min(100%-36px,1120px)] py-16" aria-labelledby="examples-title">
-          <h2 id="examples-title" className="reveal-on-scroll mb-7 text-[1.9rem] font-black leading-tight text-ink sm:text-[2.5rem] lg:text-[3.05rem]" data-reveal>
-            Primjeri rješenja
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {examples.map((example, index) => (
-              <article className="motion-card reveal-on-scroll min-h-32 rounded-lg border border-line bg-gradient-to-b from-white to-[#f9fcfd] p-5" data-reveal style={revealDelay(index)} key={example}>
-                <span className="mb-5 block h-9 w-9 rounded-lg border border-[#b7ccd5] bg-[linear-gradient(#006d7b,#006d7b),linear-gradient(#006d7b,#006d7b),linear-gradient(#006d7b,#006d7b)] bg-[length:18px_2px,13px_2px,20px_2px] bg-[position:9px_10px,9px_18px,9px_26px] bg-no-repeat" />
-                <h3 className="m-0 text-base font-black leading-snug text-ink">{example}</h3>
+        <section id="radovi" className="border-y border-line bg-[#f5f9fa] py-16 md:py-20" aria-labelledby="work-title">
+          <div className={frame}>
+            <div className="reveal-on-scroll" data-reveal><p className={`${eyebrow} mb-3`}>Pogled u rad</p><h2 id="work-title" className={`${heading} max-w-3xl`}>Vlastiti web i alat, jasno označeni.</h2>
+            <p className="mt-4 max-w-3xl leading-8 text-muted">Ovi primjeri pokazuju naš trenutni rad. Nisu klijentske reference ni tvrdnje o rezultatima.</p></div>
+            <div className="mt-8 grid gap-5 lg:grid-cols-2">
+              <article className="reveal-on-scroll overflow-hidden rounded-2xl border border-line bg-white shadow-[0_16px_42px_rgba(8,42,61,0.07)]" data-reveal>
+                <Image src="/work/deweb-landing-lokalno.png" alt="Prikaz lokalno izvedene naslovnice deweb stranice s dvije jasno odvojene usluge" width={1440} height={900} loading="lazy" sizes="(min-width: 1024px) 560px, 100vw" className="h-[250px] w-full border-b border-line object-cover object-top sm:h-[320px]" />
+                <div className="p-6"><p className="text-xs font-black uppercase tracking-widest text-teal-dark">Vlastita stranica · lokalna verzija</p><h3 className="mt-3 text-xl font-black text-ink">deweb landing</h3><p className="mt-3 leading-7 text-muted">U ovoj izvedbi web-ponuda i poslovni alati imaju zasebne puteve, a odabir web-paketa vodi u kontaktni obrazac.</p></div>
               </article>
-            ))}
-          </div>
-        </section>
-
-        <section id="offer" className="border-y border-line bg-[#f4f9fb] py-14" aria-labelledby="offer-title">
-          <div className="mx-auto w-[min(100%-36px,1120px)]">
-            <h2 id="offer-title" className="reveal-on-scroll mb-7 text-[1.9rem] font-black leading-tight text-ink sm:text-[2.5rem] lg:text-[3.05rem]" data-reveal>
-              Tri razine suradnje
-            </h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              {offers.map((offer, index) => (
-                <article className={`motion-card reveal-on-scroll rounded-lg border bg-white p-6 ${offer.featured ? "border-teal/50 shadow-soft" : "border-line"}`} data-reveal style={revealDelay(index)} key={offer.title}>
-                  <p className="mb-5 inline-flex rounded-full bg-teal-soft px-3 py-1 text-xs font-black text-teal-dark">{offer.price}</p>
-                  <h3 className="mb-3 text-2xl font-black leading-tight text-ink">{offer.title}</h3>
-                  <p className="text-muted">{offer.description}</p>
-                  <h4 className="mb-2 mt-6 text-xs font-black uppercase text-teal-dark">Najbolje za</h4>
-                  <p className="text-muted">{offer.bestFor}</p>
-                  <h4 className="mb-2 mt-6 text-xs font-black uppercase text-teal-dark">Dobivate</h4>
-                  <p className="mb-0 text-muted">{offer.output}</p>
-                </article>
-              ))}
+              <article className="reveal-on-scroll reveal-delay-1 overflow-hidden rounded-2xl border border-line bg-white shadow-[0_16px_42px_rgba(8,42,61,0.07)]" data-reveal>
+                <Image src="/work/kalkulator-u-razvoju.png" alt="Prikaz sučelja vlastitog kalkulatora opsega webshopa u razvoju" width={1440} height={2116} loading="lazy" sizes="(min-width: 1024px) 560px, 100vw" className="h-[250px] w-full border-b border-line object-cover object-top sm:h-[320px]" />
+                <div className="p-6"><p className="text-xs font-black uppercase tracking-widest text-teal-dark">Vlastiti alat · u razvoju</p><h3 className="mt-3 text-xl font-black text-ink">Kalkulator opsega webshopa</h3><p className="mt-3 leading-7 text-muted">Zahtjeve razlaže u razumljiv pregled i sljedeći korak. Prikaz je razvojna verzija; cijene webshopa nisu odobren cjenik.</p></div>
+              </article>
             </div>
           </div>
         </section>
 
-        <section id="how-it-works" className="mx-auto w-[min(100%-36px,1120px)] py-16" aria-labelledby="how-title">
-          <h2 id="how-title" className="reveal-on-scroll mb-7 text-[1.9rem] font-black leading-tight text-ink sm:text-[2.5rem] lg:text-[3.05rem]" data-reveal>
-            Kako funkcionira
-          </h2>
-          <div className="process-motion-wrap reveal-on-scroll relative overflow-hidden rounded-lg border border-line bg-white" data-reveal>
-            <span className="process-progress" aria-hidden="true" />
-            <ol className="grid md:grid-cols-2 lg:grid-cols-3">
-              {steps.map((step, index) => (
-                <li className="process-step grid min-h-20 grid-cols-[42px_1fr] items-center gap-3 border-b border-line bg-white p-4 font-extrabold text-ink last:border-b-0 md:min-h-28 md:border-r lg:[&:nth-child(3n)]:border-r-0" style={revealDelay(index)} key={step}>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-teal text-sm font-black text-white">{index + 1}</span>
-                  {step}
-                </li>
-              ))}
-            </ol>
+        <section id="web-stranice" className={`${frame} py-16 md:py-20`} aria-labelledby="web-title">
+          <div className="reveal-on-scroll grid gap-7 lg:grid-cols-[0.78fr_1.22fr] lg:gap-14" data-reveal><div><p className={`${eyebrow} mb-3`}>Web-stranice i redizajn</p><h2 id="web-title" className={heading}>Web koji jasno kaže što radite.</h2></div><p className="max-w-2xl text-lg leading-8 text-muted">Kroz kratak razgovor utvrđujemo što nudite i kome. Predlažemo raspored, uređujemo vaše informacije i izrađujemo web. Vi provjeravate točnost i odobravate završnu verziju.</p></div>
+          <div className="mt-10 grid gap-5 lg:grid-cols-2">
+            {webPackages.map((item, index) => <article key={item.id} data-reveal className={`motion-card reveal-on-scroll ${index === 1 ? "reveal-delay-1" : ""} flex flex-col rounded-2xl border p-6 md:p-8 ${item.id === "business" ? "border-teal bg-[#f0f8f8] shadow-[0_22px_55px_rgba(0,77,88,0.12)]" : "border-line bg-white"}`}>
+              <div className="mb-5 flex min-h-7 items-center justify-between gap-2"><p className="m-0 text-xs font-black uppercase tracking-widest text-teal-dark">Web-paket {item.id === "simple" ? "01" : "02"}</p>{item.id === "business" && <span className="rounded-full bg-teal px-3 py-1 text-xs font-extrabold text-white">Preporučeni</span>}</div>
+              <h3 className="text-[1.8rem] font-black leading-tight text-ink">{item.name}</h3><p className="mb-1 mt-2 text-4xl font-black tracking-tight text-ink">{item.price.toLocaleString("hr-HR")} €</p><p className="mb-6 text-sm font-semibold text-muted">Cijena izrade web-stranice</p>
+              <p className="border-t border-line pt-5 font-extrabold leading-7 text-ink">{item.scope}</p>
+              <ul className="mb-8 mt-4 grid gap-3 text-sm leading-6 text-muted">{item.features.map(feature => <li key={feature} className="relative pl-6 before:absolute before:left-0 before:top-0 before:font-black before:text-teal-dark before:content-['✓']">{feature}</li>)}</ul>
+              <ProjectLink type="web" packageId={item.id} className={`${item.id === "business" ? button : outlineButton} mt-auto w-full`}>Odaberite {item.name.toLowerCase()} <span aria-hidden="true" className="ml-2">↗</span></ProjectLink>
+            </article>)}
+          </div>
+          <div className="mt-7 grid gap-5 rounded-2xl border border-line bg-[#f5f9fa] p-6 md:grid-cols-2 md:p-8">
+            <div><h3 className="text-lg font-black text-ink">Što nije dio web-paketa</h3><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.exclusions}</p><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.editing}</p></div>
+            <div><h3 className="text-lg font-black text-ink">Troškovi i dogovor</h3><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.external}</p><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.delivery}</p></div>
+          </div>
+          <p className="mt-5 text-sm font-bold leading-6 text-ink">{webOfferTerms.tax}</p>
+        </section>
+
+        <section id="interni-alati" className="border-y border-line bg-[#eaf5f5] py-16 md:py-20" aria-labelledby="tools-title">
+          <div className={frame}>
+            <div className="reveal-on-scroll grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16" data-reveal><div><p className={`${eyebrow} mb-3`}>Interni alati i poslovne aplikacije</p><h2 id="tools-title" className={heading}>Manje ručnog prepisivanja. Bolji pregled posla.</h2></div><div><p className="text-lg leading-8 text-muted">Izrađujemo alate prema stvarnom procesu: od jednostavne evidencije do poslovne aplikacije ili SaaS rješenja kada takav opseg ima smisla. Prvo provjeravamo što treba riješiti i što je izvedivo.</p><p className="mt-5 text-xl font-black text-teal-dark">Ponuda prema opsegu.</p></div></div>
+            <p className="mt-10 text-xs font-black uppercase tracking-widest text-teal-dark">Primjeri mogućih projekata</p>
+            <div className="reveal-on-scroll mt-4 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2" data-reveal>{toolExamples.map(([problem, possibility], i) => <article key={problem} className="bg-white p-6 md:p-7"><span className="text-sm font-black text-orange-dark">0{i + 1}</span><h3 className="mt-3 text-xl font-black text-ink">{problem}</h3><p className="mt-3 leading-7 text-muted">{possibility}</p></article>)}</div>
+            <div className="mt-9 flex flex-wrap items-center gap-5"><ProjectLink type="tool" className={button}>Opišite svoj proces <span aria-hidden="true" className="ml-2">↗</span></ProjectLink><p className="m-0 max-w-lg text-sm leading-6 text-muted">Prvo provjeravamo što treba riješiti, što je izvedivo i koji opseg ima smisla.</p></div>
           </div>
         </section>
 
-        <section className="border-y border-line bg-[#f4f9fb] py-14" aria-labelledby="why-title">
-          <div className="mx-auto grid w-[min(100%-36px,1120px)] gap-8 lg:grid-cols-[0.88fr_1.12fr]">
-            <h2 id="why-title" className="reveal-on-scroll text-[1.9rem] font-black leading-tight text-ink sm:text-[2.5rem] lg:text-[3.05rem]" data-reveal>
-              Zašto deweb?
-            </h2>
-            <ul className="grid gap-3">
-              {why.map((item, index) => (
-                <li className="reveal-on-scroll relative border-b border-line py-4 pl-11 font-extrabold text-ink before:absolute before:left-2 before:top-5 before:h-5 before:w-5 before:rounded-full before:bg-orange after:absolute after:left-[15px] after:top-[23px] after:h-2.5 after:w-1.5 after:rotate-45 after:border-b-2 after:border-r-2 after:border-white" data-reveal style={revealDelay(index)} key={item}>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        <section id="proces" className={`${frame} py-16 md:py-20`} aria-labelledby="process-title"><div className="reveal-on-scroll" data-reveal><p className={`${eyebrow} mb-3`}>Kako radimo</p><h2 id="process-title" className={heading}>Od prvog razgovora do jasne predaje.</h2></div><div className="mt-9 grid gap-4 md:grid-cols-3">{process.map(([num, title, copy], index) => <article key={num} data-reveal className={`reveal-on-scroll ${index === 0 ? "" : `reveal-delay-${index}`} border-t-2 border-teal pt-5`}><span className="text-sm font-black text-teal-dark">{num}</span><h3 className="mt-5 text-xl font-black text-ink">{title}</h3><p className="mt-3 leading-7 text-muted">{copy}</p></article>)}</div></section>
 
-        <section id="problem-form" className="mx-auto grid w-[min(100%-36px,1120px)] gap-8 py-16 lg:grid-cols-[0.88fr_1.12fr]" aria-labelledby="contact-title">
-          <div className="reveal-on-scroll" data-reveal>
-            <h2 id="contact-title" className="mb-3 text-[1.9rem] font-black leading-tight text-ink sm:text-[2.5rem] lg:text-[3.05rem]">
-              Pošaljite problem
-            </h2>
-            <p className="max-w-xl text-lg leading-8 text-muted">
-              Ne morate znati tehničko rješenje. Dovoljno je opisati što vam oduzima vrijeme,
-              novac ili živce.
-            </p>
-          </div>
-          <div className="reveal-on-scroll" data-reveal style={revealDelay(1)}>
-            <ProblemForm />
-          </div>
-        </section>
+        <section id="pitanja" className="border-y border-line bg-[#f5f9fa] py-16 md:py-20" aria-labelledby="faq-title"><div className={`${frame} grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16`}><div className="reveal-on-scroll" data-reveal><p className={`${eyebrow} mb-3`}>Česta pitanja</p><h2 id="faq-title" className={heading}>Prije nego što krenemo.</h2></div><div className="grid gap-3">
+          <Faq q="Moram li imati pripremljene tekstove i fotografije?">Dostavljate informacije i materijale koje imate. Mi ih uređujemo i raspoređujemo u dogovorenom opsegu; vi potvrđujete njihovu točnost.</Faq>
+          <Faq q="Možete li obnoviti postojeću stranicu?">Da, redizajn je moguća polazna točka. Nakon pregleda postojećeg weba i sadržaja predlažemo odgovarajući opseg.</Faq>
+          <Faq q="Mogu li zadržati postojeću domenu?">To ovisi o pristupu i postavkama postojeće domene i hostinga. Provjeravamo ih prije dogovora o objavi.</Faq>
+          <Faq q="Mogu li sam mijenjati sadržaj?">{webOfferTerms.editing} Ne podrazumijevamo CMS bez prethodnog dogovora.</Faq>
+          <Faq q="Koji su dodatni i godišnji troškovi?">{webOfferTerms.external}</Faq>
+          <Faq q="Kako izgleda plaćanje i što se događa nakon objave?">{webOfferTerms.delivery} Održavanje se dogovara zasebno.</Faq>
+        </div></div></section>
+
+        <section id="kontakt" className={`${frame} grid gap-9 py-16 md:py-20 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16`} aria-labelledby="contact-title"><div className="reveal-on-scroll" data-reveal><p className={`${eyebrow} mb-3`}>Kontakt</p><h2 id="contact-title" className={heading}>Recite nam što trebate. Dobit ćete jasan prijedlog.</h2><p className="mt-5 leading-8 text-muted">Odaberite vrstu projekta i kratko opišite potrebu. Nije potrebna opsežna specifikacija ni slanje povjerljivih poslovnih podataka.</p></div><div id="problem-form" className="scroll-mt-28"><ProblemForm initialSelection={initialSelection} /></div></section>
       </main>
 
-      <footer className="grid gap-4 border-t border-line bg-[#f4f9fb] px-5 py-8 md:flex md:items-center md:justify-between md:px-12">
-        <div className="grid gap-2">
-          <p className="m-0 text-sm font-extrabold text-ink">deweb</p>
-          <a className="text-teal-dark underline underline-offset-4" href="https://deweb.hr">
-            deweb.hr
-          </a>
-        </div>
-        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-extrabold text-muted" aria-label="Legalne stranice">
-          <a className="hover:text-teal" href="/privatnost">
-            Privatnost
-          </a>
-          <a className="hover:text-teal" href="/uvjeti">
-            Uvjeti korištenja
-          </a>
-          <a className="hover:text-teal" href="/pravna-obavijest">
-            Pravna obavijest
-          </a>
-        </nav>
-      </footer>
+      <footer className="border-t border-line bg-[#f5f9fa] py-8"><div className={`${frame} flex flex-wrap items-center justify-between gap-6`}><div><Image src="/deweb-logo.svg" alt="deweb" width={110} height={25} /><p className="mt-3 text-sm text-muted">Web-stranice i poslovni alati po mjeri.</p></div><nav aria-label="Pravne stranice" className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-bold text-teal-dark"><a href="/privatnost" className="underline underline-offset-4">Privatnost</a><a href="/uvjeti" className="underline underline-offset-4">Uvjeti korištenja</a><a href="/pravna-obavijest" className="underline underline-offset-4">Pravna obavijest</a></nav></div></footer>
     </>
   );
 }
 
-function HeroVisual() {
-  return (
-    <div className="hero-visual-motion reveal-on-scroll grid min-h-[420px] gap-5 overflow-hidden rounded-lg border border-line bg-[radial-gradient(circle_at_85%_12%,rgba(233,86,22,0.14),transparent_34%),linear-gradient(145deg,rgba(225,244,245,0.92),rgba(255,255,255,0.82))] p-6 shadow-soft md:grid-cols-[0.92fr_34px_1.12fr] md:items-center lg:min-h-[360px]" data-reveal aria-hidden="true">
-      <div className="grid gap-3">
-        {["WhatsApp upiti", "Email i pozivi", "Excel tablice", "Papirnate bilješke"].map((item, index) => (
-          <div className="hero-source-card flex min-h-14 items-center gap-3 rounded-lg border border-line bg-white/95 p-3 font-black text-ink shadow-[0_10px_26px_rgba(8,42,61,0.08)]" style={revealDelay(index)} key={item}>
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-soft text-xs font-black text-teal-dark">{item[0]}</span>
-            {item}
-          </div>
-        ))}
-      </div>
-      <div className="hero-flow-line relative h-9 w-0.5 bg-[repeating-linear-gradient(180deg,#006d7b,#006d7b_6px,transparent_6px,transparent_12px)] md:h-0.5 md:w-9 md:bg-[repeating-linear-gradient(90deg,#006d7b,#006d7b_6px,transparent_6px,transparent_12px)]" />
-      <div className="hero-dashboard rounded-lg border border-line bg-white/95 p-5 shadow-[0_10px_26px_rgba(8,42,61,0.08)]">
-        <div className="mb-6 flex items-center justify-between text-sm font-black text-muted">
-          <span>Pregled posla</span>
-          <span className="rounded-full bg-teal-soft px-3 py-1 text-teal-dark">U redu</span>
-        </div>
-        <div className="mb-5 grid h-24 grid-cols-5 items-end gap-2 border-b border-line px-1">
-          {[34, 58, 46, 74, 88].map((height) => (
-            <span className="hero-chart-bar rounded-t-md bg-gradient-to-b from-[#1f8a97] to-[#c8edf0]" style={{ height: `${height}%` }} key={height} />
-          ))}
-        </div>
-        <div className="mb-4 grid grid-cols-[82px_1fr] items-center gap-4">
-          <span className="hero-donut relative h-20 w-20 rounded-full bg-[conic-gradient(#e95616_0_32%,#006d7b_32%_70%,#dce9ee_70%_100%)] after:absolute after:inset-[18px] after:rounded-full after:bg-white" />
-          <span className="grid gap-3">
-            <span className="h-3 rounded-full bg-[#dce9ee]" />
-            <span className="h-3 w-4/5 rounded-full bg-[#dce9ee]" />
-            <span className="h-3 w-3/5 rounded-full bg-[#dce9ee]" />
-          </span>
-        </div>
-        <div className="flex justify-between border-t border-line py-3">
-          <span>Upiti</span>
-          <strong className="text-xl text-ink">18</strong>
-        </div>
-        <div className="flex justify-between border-t border-line py-3">
-          <span>Čeka odgovor</span>
-          <strong className="text-xl text-ink">4</strong>
-        </div>
-      </div>
-    </div>
-  );
+function Faq({ q, children }: { q: string; children: React.ReactNode }) {
+  return <details className="group rounded-xl border border-line bg-white px-5 py-4"><summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-4 font-extrabold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">{q}<span aria-hidden="true" className="text-xl text-teal-dark group-open:rotate-45">+</span></summary><p className="mb-1 mt-4 border-t border-line pt-4 leading-7 text-muted">{children}</p></details>;
 }

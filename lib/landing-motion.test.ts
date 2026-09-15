@@ -5,16 +5,14 @@ import { join } from "node:path";
 
 const root = process.cwd();
 
-test("landing page includes lightweight motion hooks", () => {
+test("landing page keeps subtle reveal and reduced-motion fallback", () => {
   const page = readFileSync(join(root, "app", "page.tsx"), "utf8");
   const globals = readFileSync(join(root, "app", "globals.css"), "utf8");
 
   assert.match(page, /<ScrollReveal \/>/);
   assert.match(page, /data-reveal/);
-  assert.match(page, /hero-source-card/);
-  assert.match(page, /process-progress/);
+  assert.match(page, /hero-surface/);
   assert.match(globals, /\.reveal-on-scroll/);
-  assert.match(globals, /@keyframes hero-card-drift/);
-  assert.match(globals, /@keyframes process-progress-fill/);
+  assert.match(globals, /\.hero-surface/);
   assert.match(globals, /prefers-reduced-motion: reduce/);
 });

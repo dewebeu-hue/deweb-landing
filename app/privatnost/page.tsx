@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privatnost | deweb",
   description: "Privatnost i obrada podataka za ranu landing stranicu deweb.",
+  robots: { index: false, follow: true },
 };
 
 export default function PrivacyPage() {
