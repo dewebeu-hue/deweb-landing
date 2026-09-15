@@ -18,7 +18,8 @@ test("legal pages exist and are the only place for the legal operator display", 
     const contents = readFileSync(page, "utf8");
 
     assert.match(contents, /Operator: deweb j\.d\.o\.o\./);
-    assert.match(contents, /TODO: Final legal review before production\./);
+    assert.doesNotMatch(contents, /TODO: Final legal review before production\./);
+    assert.doesNotMatch(contents, /rana landing|privremeni okvir|budućeg zaprimanja|server-side obrada|produkcijskog lansiranja/i);
     assert.doesNotMatch(contents, /Deweb/);
     assert.doesNotMatch(contents, /deweb\.eu@gmail\.com/);
     assert.doesNotMatch(contents, /mailto:/);
@@ -29,14 +30,13 @@ test("legal pages exist and are the only place for the legal operator display", 
   assert.doesNotMatch(marketingPage, /deweb j\.d\.o\.o\./);
 });
 
-test("privacy page states the v1 privacy posture", () => {
+test("privacy page states the current form and tracking posture", () => {
   const privacy = readFileSync(join(root, "app", "privatnost", "page.tsx"), "utf8");
 
-  assert.match(privacy, /rana landing stranica za deweb/);
   assert.match(privacy, /ne koristimo analitičke ni marketinške kolačiće/i);
-  assert.doesNotMatch(privacy, /kontakt forma još nije spojena/i);
-  assert.match(privacy, /podaci poslani kroz kontakt formu koriste se za obradu upita i komunikaciju s\s+pošiljateljem/i);
-  assert.match(privacy, /koriste se samo za odgovor na upit i pripremu prijedloga rješenja/i);
+  assert.match(privacy, /ime i prezime, email, vrstu projekta i opis potrebe/i);
+  assert.match(privacy, /putem servisa Resend/i);
+  assert.match(privacy, /obradu upita, odgovor pošiljatelju i pripremu prijedloga rješenja/i);
 });
 
 test("production app does not include tracking or cookie-banner behavior", () => {

@@ -5,7 +5,7 @@ import { join } from "node:path";
 
 const root = process.cwd();
 
-test("public landing page does not display public email addresses or store submissions", () => {
+test("public landing page displays only the approved direct contact and does not store submissions", () => {
   const publicUiFiles = [
     join(root, "app", "page.tsx"),
     join(root, "app", "problem-form.tsx"),
@@ -17,11 +17,14 @@ test("public landing page does not display public email addresses or store submi
 
     assert.doesNotMatch(contents, /deweb\.eu@gmail\.com/);
     assert.doesNotMatch(contents, /kontakt@deweb\.hr/);
-    assert.doesNotMatch(contents, /mailto:/);
     assert.doesNotMatch(contents, /localStorage/);
     assert.doesNotMatch(contents, /RESEND_API_KEY/);
     assert.doesNotMatch(contents, /CONTACT_TO_EMAIL/);
   }
+
+  const landing = readFileSync(join(root, "app", "page.tsx"), "utf8");
+  assert.match(landing, /Dinko Vuković/);
+  assert.match(landing, /mailto:dinko@deweb\.hr/);
 });
 
 test("marketing footer uses only the approved brand, domain, and legal links", () => {

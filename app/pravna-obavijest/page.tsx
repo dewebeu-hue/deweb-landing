@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Pravna obavijest | deweb",
-  description: "Pravna obavijest za ranu landing stranicu deweb.",
+  description: "Informacije o operatoru i sadržaju web-stranice deweb.",
   robots: { index: false, follow: true },
 };
 
 export default function LegalNoticePage() {
   return (
     <main className="mx-auto grid w-[min(100%-36px,880px)] gap-8 py-12 text-ink">
-      {/* TODO: Final legal review before production. */}
       <a className="text-sm font-extrabold text-teal-dark underline underline-offset-4" href="/">
         deweb
       </a>
@@ -17,15 +16,16 @@ export default function LegalNoticePage() {
         <p className="m-0 text-sm font-black uppercase text-teal">Pravna obavijest</p>
         <h1 className="m-0 text-4xl font-black leading-tight">Pravna obavijest</h1>
         <p className="m-0 leading-7 text-muted">
-          Ova pravna obavijest služi kao privremeni okvir za ranu javnu landing stranicu.
+          Web-stranica deweb.hr predstavlja usluge izrade i redizajna poslovnih web-stranica te
+          razvoja internih alata i poslovnih aplikacija.
         </p>
         <p className="m-0 leading-7 text-muted">
-          Informacije na stranici opisuju mogući način suradnje i ne predstavljaju konačan pravni,
-          financijski ili tehnički savjet.
+          Informacije o uslugama i web-paketima opisuju standardni opseg ponude. Konkretan opseg,
+          rok i uvjeti suradnje potvrđuju se ponudom prije početka izrade.
         </p>
         <p className="m-0 leading-7 text-muted">
-          Završni podaci o operatoru, obvezama i pravnim formulacijama trebaju se potvrditi prije
-          produkcijskog lansiranja.
+          Sadržaj stranice služi informiranju o deweb uslugama i ne predstavlja pravni, financijski
+          ni tehnički savjet.
         </p>
         <p className="m-0 font-extrabold text-ink">Operator: deweb j.d.o.o.</p>
       </section>
