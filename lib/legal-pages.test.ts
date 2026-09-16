@@ -11,32 +11,41 @@ const legalPages = [
   join(root, "app", "pravna-obavijest", "page.tsx"),
 ];
 
-test("legal pages exist and are the only place for the legal operator display", () => {
+test("legal pages retain their routes, noindex decision and approved company information", () => {
   for (const page of legalPages) {
     assert.equal(existsSync(page), true);
 
     const contents = readFileSync(page, "utf8");
 
-    assert.match(contents, /Operator: deweb j\.d\.o\.o\./);
+    assert.match(contents, /deweb j\.d\.o\.o\./);
+    assert.match(contents, /robots: \{ index: false, follow: true \}/);
+    assert.match(contents, /alternates: \{ canonical:/);
     assert.doesNotMatch(contents, /TODO: Final legal review before production\./);
     assert.doesNotMatch(contents, /rana landing|privremeni okvir|budućeg zaprimanja|server-side obrada|produkcijskog lansiranja/i);
     assert.doesNotMatch(contents, /Deweb/);
     assert.doesNotMatch(contents, /deweb\.eu@gmail\.com/);
-    assert.doesNotMatch(contents, /mailto:/);
   }
 
-  const marketingPage = readFileSync(join(root, "app", "page.tsx"), "utf8");
-  assert.doesNotMatch(marketingPage, /Operator: deweb j\.d\.o\.o\./);
-  assert.doesNotMatch(marketingPage, /deweb j\.d\.o\.o\./);
+  const company = readFileSync(legalPages[2], "utf8");
+  assert.match(company, /Podaci o društvu/);
+  assert.match(company, /24631103366/);
+  assert.match(company, /030310031/);
+  assert.match(company, /HR9823400091111346962/);
+  assert.match(company, /mailto:dinko@deweb\.hr/);
 });
 
-test("privacy page states the current form and tracking posture", () => {
+test("privacy page describes inquiry processing, approved providers, retention and rights", () => {
   const privacy = readFileSync(join(root, "app", "privatnost", "page.tsx"), "utf8");
 
-  assert.match(privacy, /ne koristimo analitičke ni marketinške kolačiće/i);
-  assert.match(privacy, /ime i prezime, email, vrstu projekta i opis potrebe/i);
-  assert.match(privacy, /putem servisa Resend/i);
-  assert.match(privacy, /obradu upita, odgovor pošiljatelju i pripremu prijedloga rješenja/i);
+  assert.match(privacy, /Voditelj obrade osobnih podataka je deweb j\.d\.o\.o\./);
+  assert.match(privacy, /Vercel, Resend i Google\/Gmail/);
+  assert.match(privacy, /12 mjeseci, nakon čega se brišu/);
+  assert.match(privacy, /prije eventualnog sklapanja ugovora/);
+  assert.match(privacy, /AZOP/);
+  assert.match(privacy, /Prijenosi podataka izvan Europskog gospodarskog prostora/);
+  assert.match(privacy, /Kada je to primjenjivo/);
+  assert.match(privacy, /EU–US Data Privacy Framework i\/ili standardne ugovorne klauzule Europske komisije, ovisno o konkretnom pružatelju i obradi/);
+  assert.doesNotMatch(privacy, /GDPR compliant|Google Workspace|Workspace DPA/);
 });
 
 test("production app does not include tracking or cookie-banner behavior", () => {
@@ -44,6 +53,8 @@ test("production app does not include tracking or cookie-banner behavior", () =>
     join(root, "app", "layout.tsx"),
     join(root, "app", "page.tsx"),
     join(root, "app", "problem-form.tsx"),
+    join(root, "app", "site-footer.tsx"),
+    join(root, "app", "legal-page.tsx"),
     ...legalPages,
   ];
 

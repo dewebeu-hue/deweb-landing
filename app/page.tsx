@@ -7,6 +7,7 @@ import { ScrollReveal } from "./scroll-reveal";
 import { readProjectSelection, type ProjectSelectionParams } from "../lib/project-selection";
 import { webOfferTerms, webPackages } from "../lib/web-packages";
 import { SITE_ORIGIN } from "../lib/seo-policy";
+import { SiteFooter } from "./site-footer";
 
 export const metadata: Metadata = {
   title: "Izrada web-stranica i poslovnih aplikacija | deweb",
@@ -87,9 +88,24 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
             <div className="hero-panels hidden gap-4 md:grid" aria-hidden="true">
               <div className="rounded-2xl border border-[#bfdce2] bg-white p-5 shadow-[0_24px_55px_rgba(8,42,61,0.1)] sm:p-6">
                 <div className="mb-5 flex items-center justify-between border-b border-line pb-4"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">01 / Predstaviti posao</span><span className="h-3 w-3 rounded-full bg-orange" /></div>
-                <div className="mb-4 h-3 w-2/3 rounded-full bg-[#cbdde4]" /><div className="mb-6 h-3 w-4/5 rounded-full bg-[#e1ebef]" />
-                <div className="grid grid-cols-3 gap-2"><div className="h-20 rounded-lg bg-[#def1f2]" /><div className="h-20 rounded-lg bg-[#f4e9e1]" /><div className="h-20 rounded-lg bg-[#e8eef4]" /></div>
-                <div className="mt-5 h-8 w-28 rounded-lg bg-teal" />
+                <div className="mb-5 flex items-center justify-between gap-5">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.16em] text-teal-dark">Poslovni web</span>
+                    <p className="mt-1 text-lg font-black leading-tight tracking-[-0.025em] text-ink sm:text-xl">Vaš posao, jasno.</p>
+                    <p className="mt-1 text-[11px] font-semibold text-muted">Ponuda i primjeri na jednom mjestu.</p>
+                  </div>
+                  <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#bfdce2]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#bfdce2]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-orange" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="min-w-0 rounded-lg border border-[#cce4e7] bg-[#edf8f8] p-3"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-teal-dark">Usluge</span><span className="mt-3 block h-1.5 w-3/4 rounded-full bg-[#7bb9c0]" /><span className="mt-1.5 block h-1.5 w-1/2 rounded-full bg-[#b9d9dc]" /></div>
+                  <div className="min-w-0 rounded-lg border border-[#ead9cc] bg-[#fbf2ec] p-3"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-[#a13c12]">Radovi</span><span className="mt-3 grid grid-cols-2 gap-1"><span className="h-4 rounded bg-[#e6c1a9]" /><span className="h-4 rounded bg-white" /></span></div>
+                  <div className="min-w-0 rounded-lg border border-[#d8e0e9] bg-[#f2f5f8] p-3"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-ink">Kontakt</span><span className="mt-3 block h-1.5 w-full rounded-full bg-[#c3d0dc]" /><span className="mt-1.5 block h-1.5 w-2/3 rounded-full bg-[#d8e1e8]" /></div>
+                </div>
+                <div className="mt-5 flex items-center gap-3"><span className="inline-flex min-h-8 items-center rounded-lg bg-teal px-4 text-[10px] font-black uppercase tracking-[0.1em] text-white">Javi se</span><span className="text-[10px] font-bold text-muted">Pogledaj radove ↗</span></div>
               </div>
               <div className="ml-4 rounded-2xl border border-[#bfdce2] bg-[#f8fcfd] p-5 shadow-[0_24px_55px_rgba(8,42,61,0.1)] sm:ml-10 sm:p-6">
                 <div className="mb-5 flex items-center justify-between border-b border-line pb-4"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">02 / Pojednostaviti rad</span><span className="grid h-6 w-6 place-items-center rounded-md bg-teal text-xs font-bold text-white">✓</span></div>
@@ -168,7 +184,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
         <section id="kontakt" className={`${frame} grid gap-9 py-16 md:py-20 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16`} aria-labelledby="contact-title"><div className="reveal-on-scroll" data-reveal><p className={`${eyebrow} mb-3`}>Kontakt</p><h2 id="contact-title" className={heading}>Recite nam što trebate. Dobit ćete jasan prijedlog.</h2><p className="mt-5 leading-8 text-muted">Odaberite vrstu projekta i kratko opišite potrebu. Nije potrebna opsežna specifikacija ni slanje povjerljivih poslovnih podataka.</p><aside className="mt-7 rounded-xl border border-line bg-[#f5f9fa] p-5" aria-label="Izravni kontakt"><p className="text-sm font-black text-ink">Imate pitanje prije slanja upita?</p><p className="mt-3 font-extrabold text-ink">Dinko Vuković</p><p className="text-sm font-semibold text-muted">deweb</p><a className="mt-3 inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4" href="mailto:dinko@deweb.hr">dinko@deweb.hr</a><p className="mt-3 text-sm leading-6 text-muted">Razgovarat ćete izravno s osobom koja vodi vaš projekt.</p></aside></div><div id="problem-form" className="scroll-mt-28"><ProblemForm initialSelection={initialSelection} /></div></section>
       </main>
 
-      <footer className="border-t border-line bg-[#f5f9fa] py-8"><div className={`${frame} flex flex-wrap items-center justify-between gap-6`}><div><Image src="/deweb-logo.svg" alt="deweb" width={110} height={25} /><p className="mt-3 text-sm text-muted">Web-stranice i poslovni alati po mjeri.</p></div><nav aria-label="Pravne stranice" className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-bold text-teal-dark"><a href="/privatnost" className="underline underline-offset-4">Privatnost</a><a href="/uvjeti" className="underline underline-offset-4">Uvjeti korištenja</a><a href="/pravna-obavijest" className="underline underline-offset-4">Pravna obavijest</a></nav></div></footer>
+      <SiteFooter />
     </>
   );
 }

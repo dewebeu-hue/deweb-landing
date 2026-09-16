@@ -136,7 +136,7 @@ export function ProblemForm({ initialSelection }: { initialSelection: ProjectSel
       <TextField name="problem" label="Kratak opis potrebe *" error={hasError("problem")} help="Barem 20 znakova. Nemojte slati povjerljive poslovne podatke." />
       <div className="grid gap-3 sm:col-span-2 sm:flex sm:items-center"><button className="min-h-[52px] rounded-lg bg-teal px-6 py-3 text-base font-extrabold text-white transition hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={isSubmitting || isSuccess}>{isSubmitting ? "Šaljem..." : isSuccess ? "Poslano" : "Pošaljite upit"}</button><p role="status" aria-live="polite" className={`m-0 rounded-lg px-3 py-2 text-sm font-bold leading-6 ${isSuccess ? "bg-teal-soft text-teal-dark" : errors.length ? "bg-[#fff1e9] text-orange-dark" : "text-muted"}`}>{status}</p></div>
     </form>
-    <p className="m-0 rounded-lg border border-line bg-white px-4 py-3 text-sm leading-6 text-muted">Podatke iz obrasca koristimo samo za odgovor na vaš upit i pripremu prijedloga. <a className="font-bold text-teal-dark underline underline-offset-4" href="/privatnost">Pročitajte pravila privatnosti</a>.</p>
+    <p className="m-0 px-1 text-sm leading-6 text-muted">Slanjem upita potvrđujete da ste upoznati s načinom obrade podataka opisanim u <a className="font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark" href="/privatnost">Politici privatnosti</a>.</p>
   </div>;
 }
 

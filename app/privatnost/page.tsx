@@ -1,39 +1,54 @@
 import type { Metadata } from "next";
+import { LegalPage, legalEmailLink, legalHeading, legalParagraph } from "../legal-page";
 
 export const metadata: Metadata = {
-  title: "Privatnost | deweb",
+  title: "Politika privatnosti | deweb",
   description: "Informacije o privatnosti i obradi podataka na web-stranici deweb.",
+  alternates: { canonical: "/privatnost" },
   robots: { index: false, follow: true },
 };
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto grid w-[min(100%-36px,880px)] gap-8 py-12 text-ink">
-      <a className="text-sm font-extrabold text-teal-dark underline underline-offset-4" href="/">
-        deweb
-      </a>
-      <section className="grid gap-5 rounded-lg border border-line bg-white p-6 shadow-soft">
-        <p className="m-0 text-sm font-black uppercase text-teal">Privatnost</p>
-        <h1 className="m-0 text-4xl font-black leading-tight">Politika privatnosti</h1>
-        <p className="m-0 leading-7 text-muted">
-          Web-stranica deweb služi za predstavljanje usluga i zaprimanje poslovnih upita.
-        </p>
-        <p className="m-0 leading-7 text-muted">
-          Ne koristimo analitičke ni marketinške kolačiće. Ne koristimo
-          Google Analytics, Meta Pixel, Hotjar, chat widgete, marketinške kolačiće ni treće
-          ugrađene servise.
-        </p>
-        <p className="m-0 leading-7 text-muted">
-          Kontaktni obrazac traži ime i prezime, email, vrstu projekta i opis potrebe. Možete
-          dobrovoljno navesti tvrtku ili obrt, telefon, postojeću web-stranicu, željeni paket te
-          dodatne informacije o poslovnom procesu i korisnicima rješenja.
-        </p>
-        <p className="m-0 leading-7 text-muted">
-          Podatke iz obrasca šaljemo putem servisa Resend na deweb email adresu. Koristimo ih samo
-          za obradu upita, odgovor pošiljatelju i pripremu prijedloga rješenja.
-        </p>
-        <p className="m-0 font-extrabold text-ink">Operator: deweb j.d.o.o.</p>
-      </section>
-    </main>
+    <LegalPage title="Politika privatnosti">
+      <p className={legalParagraph}>
+        Voditelj obrade osobnih podataka je deweb j.d.o.o., Prvča 58, Prvča, kontakt: <a className={legalEmailLink} href="mailto:dinko@deweb.hr">dinko@deweb.hr</a>.
+      </p>
+      <h2 className={legalHeading}>Kontaktni upiti</h2>
+      <p className={legalParagraph}>
+        Kada nam pošaljete upit putem obrasca, obrađujemo podatke koje ste sami unijeli kako bismo odgovorili na vaš upit, razumjeli projekt i prema potrebi pripremili ponudu.
+      </p>
+      <p className={legalParagraph}>
+        Podaci mogu uključivati ime, kontaktne podatke, naziv tvrtke, postojeću web-stranicu, vrstu projekta i sadržaj poruke.
+      </p>
+      <p className={legalParagraph}>
+        Podatke obrađujemo radi odgovora na vaš upit te, kada je upit povezan s mogućim ugovaranjem usluge, radi poduzimanja radnji na vaš zahtjev prije eventualnog sklapanja ugovora.
+      </p>
+      <h2 className={legalHeading}>Pružatelji usluga</h2>
+      <p className={legalParagraph}>
+        Za tehničku obradu i dostavu kontaktnih upita koristimo pružatelje usluga potrebne za rad stranice i elektroničke pošte, uključujući Vercel, Resend i Google/Gmail, u opsegu potrebnom za pružanje tih usluga.
+      </p>
+      <h2 className={legalHeading}>Prijenosi podataka izvan Europskog gospodarskog prostora</h2>
+      <p className={legalParagraph}>
+        Pojedini pružatelji usluga koje koristimo za hosting, dostavu kontaktnih upita i elektroničku poštu mogu obrađivati osobne podatke izvan Europskog gospodarskog prostora, uključujući Sjedinjene Američke Države. Kada je to primjenjivo, takvi prijenosi temelje se na odgovarajućim mehanizmima zaštite podataka, uključujući odluke o primjerenosti, EU–US Data Privacy Framework i/ili standardne ugovorne klauzule Europske komisije, ovisno o konkretnom pružatelju i obradi.
+      </p>
+      <h2 className={legalHeading}>Koliko dugo čuvamo podatke?</h2>
+      <p className={legalParagraph}>
+        Kontaktni upiti koji ne rezultiraju poslovnom suradnjom čuvaju se 12 mjeseci, nakon čega se brišu.
+      </p>
+      <p className={legalParagraph}>
+        Ako postanete klijent, ugovorna i računovodstvena dokumentacija čuva se prema zakonskim rokovima koji vrijede za tu vrstu dokumentacije.
+      </p>
+      <h2 className={legalHeading}>Vaša prava</h2>
+      <p className={legalParagraph}>
+        Možete zatražiti pristup svojim podacima, ispravak, brisanje, ograničenje obrade ili ostvariti druga prava koja vam pripadaju prema primjenjivim propisima.
+      </p>
+      <p className={legalParagraph}>
+        Za zahtjeve obratite se na: <a className={legalEmailLink} href="mailto:dinko@deweb.hr">dinko@deweb.hr</a>.
+      </p>
+      <p className={legalParagraph}>
+        Također imate pravo podnijeti pritužbu Agenciji za zaštitu osobnih podataka (AZOP).
+      </p>
+    </LegalPage>
   );
 }
