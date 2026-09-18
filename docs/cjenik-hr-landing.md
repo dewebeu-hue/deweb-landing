@@ -4,8 +4,10 @@
 
 - Javna ruta: `/cjenik-hr`
 - Stranica potvrde: `/cjenik-hr/hvala?paket=plugin|setup|other`
-- API za upit: `POST /api/cjenik-hr`
-- Status proizvoda: `prelaunch`
+- API za upit/narudžbu: `POST /api/cjenik-hr`
+- Status proizvoda: `release_candidate_ready`
+- Prodajni način: `quote`
+- Billing način: `sandbox` uz fail-closed code gateove
 - Cijena plugina: 39 EUR jednokratno
 - Cijena plugina s postavljanjem: 79 EUR jednokratno
 
@@ -15,9 +17,9 @@ Vrijednosti statusa, verzije i cijena vode se u `lib/cjenik-hr-product.ts`. Stra
 
 Javne tvrdnje i slike izvedene su isključivo iz Git checkpointa Cjenik HR repozitorija:
 
-`f0c3abb60f3701daef0f4e8ddb72decf8a185a53`
+`194783813ee3ae647939ddf5d093b9baffdcec15`
 
-Checkpoint označava verziju 0.6.0 i dovršenu jezgru do faze 6. Lokalni radni direktorij izvornog repozitorija imao je novije necommitane promjene; one nisu korištene kao dokaz niti su mijenjane.
+Checkpoint označava release candidate 1.0.0, schema 7. Finalni distribucijski ZIP ima SHA-256 `8ae3b6ad3834a5bb2bb5c7defb3c63477f5788936e66bdfd1d735a9a267a0898`. Plugin repo čitan je read-only kroz Git objekt; nije mijenjan, rebuildan ni isporučen.
 
 Kopirane slike i izvorni blobovi checkpointa:
 
@@ -37,11 +39,13 @@ Sažeci su provjereni prema službenim tekstovima Narodnih novina:
 
 Landing navodi datum stupanja na snagu 1. listopada 2026., opisuje tehničke obveze sažeto i sadrži vidljivu napomenu da proizvod nije pravni savjet niti samostalno jamstvo usklađenosti.
 
-## Obrazac i email
+## Obrazac, narudžba i email
 
-Obrazac šalje zaseban zahtjev na `/api/cjenik-hr`. Koristi postojeće varijable `RESEND_API_KEY`, `CONTACT_TO_EMAIL` i `CONTACT_FROM_EMAIL`, ali ne mijenja postojeći `/api/contact`.
+Obrazac je dvokoračni. Standardni paketi stvaraju idempotentan trajni Convex order, a `other_system` ostaje postojeći ručni email lead. Postojeći `/api/contact` nije promijenjen.
 
-- Plugin i postavljanje dopušteni su samo uz WordPress `yes` ili `unsure`.
+- Plugin i postavljanje dopušteni su samo uz WordPress `yes` ili `unsure` i hrvatsku adresu kupca.
+- Poslovni kupac daje validan OIB; potrošač ne mora davati OIB.
+- Server ponovno određuje cijenu u centima i ne vjeruje vrijednosti preglednika.
 - Postavljanje traži domenu.
 - Svi odabiri prolaze kroz serverske allowliste.
 - Skriveno `website` polje je honeypot.
@@ -59,7 +63,7 @@ Obrazac šalje zaseban zahtjev na `/api/cjenik-hr`. Koristi postojeće varijable
 
 ## Launch checklist
 
-- [ ] Potvrditi da je status još `prelaunch` ili ga namjerno promijeniti u jednoj konfiguraciji.
+- [x] Status je usklađen na `release_candidate_ready`; nije `available`.
 - [ ] Ponovno potvrditi cijene 39 EUR i 79 EUR.
 - [ ] Provjeriti WordPress/PHP preduvjete na ciljnom sustavu.
 - [ ] Potvrditi raspored i vanjski cron na stvarnom hostingu.

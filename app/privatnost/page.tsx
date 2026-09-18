@@ -24,9 +24,16 @@ export default function PrivacyPage() {
       <p className={legalParagraph}>
         Podatke obrađujemo radi odgovora na vaš upit te, kada je upit povezan s mogućim ugovaranjem usluge, radi poduzimanja radnji na vaš zahtjev prije eventualnog sklapanja ugovora.
       </p>
+      <h2 className={legalHeading}>Zahtjevi za ponudu i narudžbe Cjenik HR</h2>
+      <p className={legalParagraph}>
+        Kada zatražite ponudu za Cjenik HR, obrađujemo podatke potrebne za identifikaciju kupca, pripremu ponude, evidenciju uplate, izdavanje poslovne dokumentacije i isporuku. Ovisno o tome nastupate li kao poslovni ili privatni kupac, to može uključivati ime i prezime, naziv i OIB poslovnog subjekta, adresu, poštanski broj, grad, email, domenu te podatke o odabranom paketu i statusu obrade.
+      </p>
+      <p className={legalParagraph}>
+        Podaci za ponudu i narudžbu čuvaju se u trajnoj poslovnoj evidenciji. Podaci povezani s računovodstvenom dokumentacijom čuvaju se prema rokovima koji vrijede za tu dokumentaciju; neuspjeli ili odustali zahtjevi pregledavaju se i brišu kada više nisu potrebni za svrhu zbog koje su prikupljeni.
+      </p>
       <h2 className={legalHeading}>Pružatelji usluga</h2>
       <p className={legalParagraph}>
-        Za tehničku obradu i dostavu kontaktnih upita koristimo pružatelje usluga potrebne za rad stranice i elektroničke pošte, uključujući Vercel, Resend i Google/Gmail, u opsegu potrebnom za pružanje tih usluga.
+        Za tehničku obradu, trajnu evidenciju zahtjeva, dostavu poruka i elektroničku poštu koristimo pružatelje usluga potrebne za rad stranice, uključujući Vercel, Convex, Resend i Google/Gmail, u opsegu potrebnom za pružanje tih usluga. Podaci se pružateljima naplate, bankovnih informacija ili izdavanja računa šalju samo kada je odgovarajući poslovni tok uključen i kada je to potrebno za obradu.
       </p>
       <h2 className={legalHeading}>Prijenosi podataka izvan Europskog gospodarskog prostora</h2>
       <p className={legalParagraph}>

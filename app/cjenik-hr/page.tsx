@@ -78,11 +78,12 @@ const screenshots = [
 ] as const;
 
 const faq = [
-  ["Je li Cjenik HR gotov proizvod?", `Verzija ${cjenikHrProduct.pluginVersion} ima dovršenu jezgru i provjerene glavne tokove. Proizvod je trenutačno u predprodajnom statusu; prije isporuke provjeravamo vaš WordPress, izvor podataka i očekivani način rada.`],
+  ["Je li Cjenik HR gotov proizvod?", `Verzija ${cjenikHrProduct.pluginVersion} je release candidate s dovršenom jezgrom i provjerenim glavnim tokovima. Prije isporuke provjeravamo vaš WordPress, izvor podataka i očekivani način rada.`],
   ["Moram li imati WooCommerce?", "Ne. Cjenik HR ima vlastiti katalog i bez WooCommercea. WooCommerce povezivanje je dodatna mogućnost za kompatibilne trgovine."],
   ["Povezuje li se izravno sa Synesisom?", "Ne. Podržan je generički uvoz iz CSV, XLSX i podržanog XLS izvoza. Kompatibilnost konkretnog Synesis izvoza provjerava se na uzorku, bez tvrdnje o izravnoj integraciji."],
   ["Hoće li plugin sam osigurati pravnu usklađenost?", "Ne. Plugin daje tehničke alate za evidenciju, objavu i ispis. Trgovac i dalje odgovara za točnost podataka, primjenjive obveze i konačnu pravnu procjenu."],
   ["Što uključuje postavljanje?", "Instalaciju plugina, početno podešavanje i provjeru osnovnog toka na postojećem kompatibilnom WordPressu. Migracija podataka, prilagodba izvoza ili razvoj za drugi sustav procjenjuju se zasebno."],
+  ["Koliko memorije treba veći WooCommerce katalog?", "Za lokalno testirani opseg od 1.000 Woo redaka preporučen je PHP memory limit od najmanje 256 MB. Taj opseg prošao je na 256 MB, dok je test na 128 MB završio nedostatkom memorije; rezultat nije univerzalna tvrdnja za svaki katalog."],
   ["Mogu li koristiti drugi sustav umjesto WordPressa?", "Da, pošaljite upit za drugi sustav. Najprije provjeravamo postojeći izvor podataka i mogućnost zasebnog rješenja; WordPress plugin se ne prodaje kao dodatak za nekompatibilnu platformu."],
 ] as const;
 
@@ -99,7 +100,7 @@ export default function CjenikHrPage() {
             <a href="#kako-radi" className="inline-flex min-h-11 items-center text-sm font-bold text-ink hover:text-teal-dark">Kako radi</a>
             <a href="#cijene" className="inline-flex min-h-11 items-center text-sm font-bold text-ink hover:text-teal-dark">Cijene</a>
           </nav>
-          <a href="#upit" className="inline-flex min-h-11 items-center rounded-lg bg-teal px-4 text-sm font-black text-white hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-orange-dark">Pošaljite upit</a>
+          <a href="#upit" className="inline-flex min-h-11 items-center rounded-lg bg-teal px-4 text-sm font-black text-white hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-orange-dark">Zatražite ponudu</a>
         </div>
       </header>
 
@@ -108,7 +109,7 @@ export default function CjenikHrPage() {
           <div className={`${frame} grid gap-12 py-14 md:py-20 lg:min-h-[690px] lg:grid-cols-[1.03fr_0.97fr] lg:items-center`}>
             <div>
               <div className="mb-6 flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-[#e8c6b4] bg-[#fff5ec] px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#8c390f]">Predprodaja</span>
+                <span className="rounded-full border border-[#e8c6b4] bg-[#fff5ec] px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#8c390f]">Release candidate</span>
                 <span className="text-xs font-bold text-muted">WordPress plugin · verzija {cjenikHrProduct.pluginVersion}</span>
               </div>
               <p className={`${eyebrow} mb-4`}>Cjenik HR</p>
@@ -184,15 +185,15 @@ export default function CjenikHrPage() {
         <section id="cijene" className={`${frame} py-16 md:py-20`} aria-labelledby="pricing-title">
           <div className="grid gap-9 lg:grid-cols-[0.72fr_1.28fr] lg:gap-14"><div><p className={`${eyebrow} mb-3`}>Cijene</p><h2 id="pricing-title" className={heading}>Odaberite koliko pomoći trebate.</h2><p className="mt-5 leading-7 text-muted">Oba paketa su jednokratna. Prije potvrde provjeravamo osnovnu kompatibilnost i jasno navodimo svaku dodatnu prilagodbu.</p></div>
             <div className="grid gap-5 sm:grid-cols-2">
-              <article className="flex flex-col rounded-2xl border border-line bg-white p-6"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">Samo plugin</span><p className="mt-4 text-5xl font-black tracking-tight text-ink">{formatCjenikHrPrice(cjenikHrProduct.pluginPrice)}</p><p className="mt-2 text-sm font-bold text-muted">Jednokratno</p><ul className="my-6 grid gap-3 text-sm leading-6 text-muted"><li>Plugin Cjenik HR {cjenikHrProduct.pluginVersion}</li><li>Dokumentirane funkcije proizvoda</li><li>Provjera osnovne kompatibilnosti prije isporuke</li></ul><a href="#upit" className="mt-auto inline-flex min-h-[50px] items-center justify-center rounded-lg border-2 border-teal px-5 text-sm font-black text-teal-dark hover:bg-teal-soft">Zatražite plugin</a></article>
-              <article className="flex flex-col rounded-2xl border-2 border-teal bg-[#edf8f8] p-6 shadow-[0_22px_55px_rgba(0,77,88,0.12)]"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">Plugin + postavljanje</span><p className="mt-4 text-5xl font-black tracking-tight text-ink">{formatCjenikHrPrice(cjenikHrProduct.setupPrice)}</p><p className="mt-2 text-sm font-bold text-muted">Jednokratno</p><ul className="my-6 grid gap-3 text-sm leading-6 text-muted"><li>Sve iz paketa Plugin</li><li>Instalacija i početno podešavanje</li><li>Provjera osnovnog toka na vašem WordPressu</li></ul><a href="#upit" className={`${button} mt-auto`}>Zatražite postavljanje</a></article>
+              <article className="flex flex-col rounded-2xl border border-line bg-white p-6"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">Samo plugin</span><p className="mt-4 text-5xl font-black tracking-tight text-ink">{formatCjenikHrPrice(cjenikHrProduct.pluginPrice)}</p><p className="mt-2 text-sm font-bold text-muted">Jednokratno · ponuda prije uplate</p><ul className="my-6 grid gap-3 text-sm leading-6 text-muted"><li>Plugin Cjenik HR {cjenikHrProduct.pluginVersion}</li><li>Dokumentirane funkcije proizvoda</li><li>Provjera osnovne kompatibilnosti prije isporuke</li></ul><a href="#upit" className="mt-auto inline-flex min-h-[50px] items-center justify-center rounded-lg border-2 border-teal px-5 text-sm font-black text-teal-dark hover:bg-teal-soft">Zatražite ponudu</a></article>
+              <article className="flex flex-col rounded-2xl border-2 border-teal bg-[#edf8f8] p-6 shadow-[0_22px_55px_rgba(0,77,88,0.12)]"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">Plugin + postavljanje</span><p className="mt-4 text-5xl font-black tracking-tight text-ink">{formatCjenikHrPrice(cjenikHrProduct.setupPrice)}</p><p className="mt-2 text-sm font-bold text-muted">Jednokratno · ponuda prije uplate</p><ul className="my-6 grid gap-3 text-sm leading-6 text-muted"><li>Sve iz paketa Plugin</li><li>Instalacija i početno podešavanje</li><li>Provjera osnovnog toka na vašem WordPressu</li></ul><a href="#upit" className={`${button} mt-auto`}>Zatražite ponudu</a></article>
             </div>
           </div>
           <p className="mt-6 rounded-xl border border-[#ead6c9] bg-[#fff8f3] px-5 py-4 text-sm leading-6 text-muted">Prilagodba datoteka, migracija podataka, posebne teme i razvoj za drugi sustav nisu automatski uključeni. Za njih prvo šaljemo zasebnu procjenu.</p>
         </section>
 
         <section id="upit" className="border-y border-line bg-[#f5f9fa] py-16 md:py-20" aria-labelledby="request-title">
-          <div className={`${frame} grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-14`}><div><p className={`${eyebrow} mb-3`}>Upit bez obveze</p><h2 id="request-title" className={heading}>Provjerimo vaš sustav prije isporuke.</h2><p className="mt-5 leading-8 text-muted">Opišite osnovno okruženje. Odgovorit ćemo što je primjenjivo, treba li provjera izvoza i koji paket ima smisla.</p><div className="mt-7 rounded-xl border border-line bg-white p-5"><p className="text-sm font-black text-ink">Ne trebamo pristupe za prvi razgovor.</p><p className="mt-2 text-sm leading-6 text-muted">Domena i opis sustava su dovoljni. Lozinke i poslovne datoteke razmjenjuju se samo naknadno, ako se dogovori siguran postupak.</p></div></div><CjenikHrRequestForm /></div>
+          <div className={`${frame} grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-14`}><div><p className={`${eyebrow} mb-3`}>Ponuda bez obveze</p><h2 id="request-title" className={heading}>Provjerimo podatke prije uplate.</h2><p className="mt-5 leading-8 text-muted">Za standardni paket pripremamo ponudu s točnim iznosom i podatcima za uplatu. Upiti za drugi sustav ostaju ručna procjena bez automatske naplate.</p><div className="mt-7 rounded-xl border border-line bg-white p-5"><p className="text-sm font-black text-ink">Ne trebamo pristupe za prvi korak.</p><p className="mt-2 text-sm leading-6 text-muted">Domena i opis sustava su dovoljni. Lozinke i poslovne datoteke razmjenjuju se samo naknadno, ako se dogovori siguran postupak.</p></div></div><CjenikHrRequestForm /></div>
         </section>
 
         <section className={`${frame} py-16 md:py-20`} aria-labelledby="faq-title"><div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-14"><div><p className={`${eyebrow} mb-3`}>Česta pitanja</p><h2 id="faq-title" className={heading}>Prije odluke.</h2></div><div className="grid gap-3">{faq.map(([question, answer]) => <details key={question} className="group rounded-xl border border-line bg-white px-5 py-4"><summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-4 font-extrabold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">{question}<span aria-hidden="true" className="text-xl text-teal-dark group-open:rotate-45">+</span></summary><p className="mb-1 mt-4 border-t border-line pt-4 leading-7 text-muted">{answer}</p></details>)}</div></div>

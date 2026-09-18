@@ -38,7 +38,8 @@ test("privacy page describes inquiry processing, approved providers, retention a
   const privacy = readFileSync(join(root, "app", "privatnost", "page.tsx"), "utf8");
 
   assert.match(privacy, /Voditelj obrade osobnih podataka je deweb j\.d\.o\.o\./);
-  assert.match(privacy, /Vercel, Resend i Google\/Gmail/);
+  assert.match(privacy, /Vercel, Convex, Resend i Google\/Gmail/);
+  assert.match(privacy, /Zahtjevi za ponudu i narudžbe Cjenik HR/);
   assert.match(privacy, /12 mjeseci, nakon čega se brišu/);
   assert.match(privacy, /prije eventualnog sklapanja ugovora/);
   assert.match(privacy, /AZOP/);

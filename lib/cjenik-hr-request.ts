@@ -132,10 +132,14 @@ export function buildCjenikHrEmailPayload(data: CjenikHrRequestData, config: Cje
   };
 }
 
-export async function sendCjenikHrEmail(data: CjenikHrRequestData, config: CjenikHrEmailConfig, fetcher: typeof fetch = fetch) {
+export async function sendCjenikHrEmail(data: CjenikHrRequestData, config: CjenikHrEmailConfig, fetcher: typeof fetch = fetch, idempotencyKey?: string) {
   const response = await fetcher("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${config.apiKey}`,
+      "Content-Type": "application/json",
+      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+    },
     body: JSON.stringify(buildCjenikHrEmailPayload(data, config)),
   });
   if (!response.ok) throw new Error(`Email provider failed (${response.status}).`);

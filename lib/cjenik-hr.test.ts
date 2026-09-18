@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { cjenikHrProduct, readCjenikHrPackage } from "./cjenik-hr-product.ts";
+import { cjenikHrCommercialGates, getCjenikHrCommercialReadiness } from "./cjenik-hr-commercial.ts";
+import { canTransitionCjenikHrOrder, isValidCroatianOib, matchCjenikHrPayment, priceCentsForCjenikHrPackage, validateCjenikHrOrder } from "./cjenik-hr-order.ts";
 import {
   buildCjenikHrEmailPayload,
   cjenikHrRequestSubject,
@@ -25,11 +27,64 @@ const validRequest: CjenikHrRequestData = {
   website: "",
 };
 
-test("product config keeps approved prelaunch state, version and prices", () => {
-  assert.equal(cjenikHrProduct.status, "prelaunch");
+test("product config keeps approved release candidate state, artifact and prices", () => {
+  assert.equal(cjenikHrProduct.status, "release_candidate_ready");
+  assert.equal(cjenikHrProduct.salesMode, "quote");
+  assert.equal(cjenikHrProduct.billingMode, "sandbox");
   assert.equal(cjenikHrProduct.pluginPrice, 39);
   assert.equal(cjenikHrProduct.setupPrice, 79);
-  assert.equal(cjenikHrProduct.pluginVersion, "0.6.0");
+  assert.equal(cjenikHrProduct.pluginVersion, "1.0.0");
+  assert.equal(cjenikHrProduct.schemaVersion, 7);
+  assert.equal(cjenikHrProduct.checkpoint, "194783813ee3ae647939ddf5d093b9baffdcec15");
+  assert.equal(cjenikHrProduct.artifactSha256, "8ae3b6ad3834a5bb2bb5c7defb3c63477f5788936e66bdfd1d735a9a267a0898");
+});
+
+test("production billing stays fail-closed even if credentials exist", () => {
+  assert.deepEqual(cjenikHrCommercialGates, {
+    commercialTermsConfirmed: false,
+    billingPolicyConfirmed: false,
+    eposlovanjeProductionEnabled: false,
+    aisProductionEnabled: false,
+    deliveryEnabled: false,
+  });
+  const readiness = getCjenikHrCommercialReadiness({
+    CJENIK_HR_SELLER_NAME: "Test", CJENIK_HR_SELLER_OIB: "50930104221", CJENIK_HR_SELLER_ADDRESS: "Test",
+    CJENIK_HR_PAYMENT_IBAN: "TEST", EPOSLOVANJE_API_KEY: "test", EPOSLOVANJE_COMPANY_OIB: "50930104221",
+    EPOSLOVANJE_AIS_IBAN: "TEST", CJENIK_HR_ARTIFACT_STORAGE_ID: "test",
+  });
+  assert.equal(readiness.productionBillingReady, false);
+  assert.equal(readiness.productionAisReady, false);
+  assert.equal(readiness.deliveryReady, false);
+});
+
+test("standard orders validate Croatian buyer data and keep prices server-authoritative", () => {
+  assert.equal(isValidCroatianOib("50930104221"), true);
+  assert.equal(isValidCroatianOib("50930104220"), false);
+  const order = validateCjenikHrOrder({
+    requestId: "12345678901234567890", requestType: "plugin", customerType: "business", fullName: "Ana Horvat",
+    companyName: "Primjer d.o.o.", companyOib: "50930104221", billingAddress: "Ulica 1", postalCode: "10000",
+    city: "Zagreb", country: "HR", email: "ana@example.hr", wordpressStatus: "yes", woocommerceStatus: "no",
+    currentSystem: "wordpress",
+  });
+  assert.equal(order.valid, true);
+  assert.equal(priceCentsForCjenikHrPackage("plugin"), 3900);
+  assert.equal(priceCentsForCjenikHrPackage("setup"), 7900);
+  assert.equal(validateCjenikHrOrder({ ...order.value, country: "SI" }).valid, false);
+});
+
+test("state machine blocks skipped billing states", () => {
+  assert.equal(canTransitionCjenikHrOrder("quote_pending", "quote_created"), true);
+  assert.equal(canTransitionCjenikHrOrder("awaiting_payment", "invoice_fiscalized"), false);
+  assert.equal(canTransitionCjenikHrOrder("payment_verified", "invoice_review_required"), true);
+  assert.equal(canTransitionCjenikHrOrder("invoice_sent", "setup_pending"), true);
+});
+
+test("AIS matching requires incoming EUR, exact amount and exact unique reference", () => {
+  const orders = [{ orderId: "order-1", amountCents: 3900, currency: "EUR" as const, paymentReference: "CHR-2026-000001", expiresAt: 2_000 }];
+  const matched = matchCjenikHrPayment({ providerTransactionId: "tx-1", type: 0, amountCents: 3900, currency: "EUR", structuredReference: "CHR-2026-000001" }, orders, 1_000);
+  assert.deepEqual(matched, { kind: "match", orderId: "order-1" });
+  assert.deepEqual(matchCjenikHrPayment({ providerTransactionId: "tx-2", type: 0, amountCents: 3901, currency: "EUR", structuredReference: "CHR-2026-000001" }, orders, 1_000), { kind: "review", reason: "amount_mismatch" });
+  assert.deepEqual(matchCjenikHrPayment({ providerTransactionId: "tx-3", type: 0, amountCents: 3900, currency: "EUR" }, orders, 1_000), { kind: "review", reason: "missing_reference" });
 });
 
 test("valid request passes and every select uses an allowlist", () => {
