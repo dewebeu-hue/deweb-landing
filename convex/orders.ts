@@ -7,6 +7,7 @@ import {
   formatSequence,
   nextSequence,
   orderStatusValidator,
+  paymentProviderValidator,
   requireBridgeSecret,
   transitionOrder,
   validateCustomer,
@@ -36,8 +37,13 @@ export const submitOrder = mutation({
     currentSystem: v.string(),
     note: v.optional(v.string()),
     quotedPriceCents: v.number(),
+    paymentProvider: v.optional(paymentProviderValidator),
+    providerSafeId: v.optional(v.string()),
   },
-  returns: v.object({ orderNumber: v.string(), status: orderStatusValidator, deduplicated: v.boolean() }),
+  returns: v.object({
+    orderNumber: v.string(), status: orderStatusValidator, deduplicated: v.boolean(),
+    providerSafeId: v.optional(v.string()),
+  }),
   handler: async (ctx, args) => {
     requireBridgeSecret(args.bridgeSecret);
     if (args.requestType !== "plugin" && args.requestType !== "setup") {
@@ -66,6 +72,10 @@ export const submitOrder = mutation({
     }
     if ((args.companyName?.length ?? 0) > 160) throw new ConvexError({ code: "INTAKE_FIELD_TOO_LONG" });
     const packageType = args.requestType;
+    const paymentProvider = args.paymentProvider ?? "bank_transfer_ais";
+    if (paymentProvider === "stripe" && !/^[A-Za-z0-9_-]{24,96}$/.test(args.providerSafeId ?? "")) {
+      throw new ConvexError({ code: "INVALID_PROVIDER_SAFE_ID" });
+    }
     const customer = {
       type: args.customerType,
       fullName: args.fullName,
@@ -100,7 +110,10 @@ export const submitOrder = mutation({
     if (priorKey) {
       const prior = await ctx.db.get(priorKey.orderId);
       if (!prior) throw new ConvexError({ code: "IDEMPOTENCY_TARGET_MISSING" });
-      return { orderNumber: prior.orderNumber, status: prior.status, deduplicated: true };
+      return {
+        orderNumber: prior.orderNumber, status: prior.status, deduplicated: true,
+        ...(prior.providerSafeId ? { providerSafeId: prior.providerSafeId } : {}),
+      };
     }
 
     const now = Date.now();
@@ -138,25 +151,64 @@ export const submitOrder = mutation({
     const quoteExpiresAt = now + quoteValidityDays * 24 * 60 * 60_000;
     const orderId = await ctx.db.insert("orders", {
       orderNumber, publicTokenHash: args.publicTokenHash.toLowerCase(), requestId: args.requestId,
-      customerId, customerSnapshot, packageType, intakeSnapshot: {
+      customerId, customerSnapshot, packageType, paymentProvider,
+      ...(args.providerSafeId ? { providerSafeId: args.providerSafeId } : {}), intakeSnapshot: {
         ...(args.domain ? { domain: args.domain.trim() } : {}),
         wordpressStatus: args.wordpressStatus,
         woocommerceStatus: args.woocommerceStatus,
         currentSystem: args.currentSystem,
         ...(args.note ? { note: args.note.trim() } : {}),
       }, amountCents, currency: "EUR",
-      paymentReference, status: "quote_pending", quoteExpiresAt, createdAt: now, updatedAt: now,
+      paymentReference, status: paymentProvider === "stripe" ? "awaiting_payment" : "quote_pending",
+      quoteExpiresAt, createdAt: now, updatedAt: now,
     });
     await ctx.db.insert("orderEvents", {
-      orderId, nextStatus: "quote_pending", actor: "order_bridge", reason: "standard_order_submitted", createdAt: now,
+      orderId, nextStatus: paymentProvider === "stripe" ? "awaiting_payment" : "quote_pending",
+      actor: "order_bridge", reason: paymentProvider === "stripe" ? "stripe_order_created" : "standard_order_submitted", createdAt: now,
     });
     await ctx.db.insert("idempotencyKeys", { scopeKey, orderId, createdAt: now });
     await ctx.db.insert("payments", {
-      orderId, provider: "eposlovanje_ais", amountCents, currency: "EUR", reference: paymentReference,
+      orderId, provider: paymentProvider === "bank_transfer_ais" ? "eposlovanje_ais" : paymentProvider,
+      amountCents, currency: "EUR", reference: paymentReference,
       status: "expected", createdAt: now, updatedAt: now,
     });
-    await ctx.scheduler.runAfter(0, internal.quotes.generateQuotePdfInternal, { orderId });
-    return { orderNumber, status: "quote_pending", deduplicated: false };
+    if (paymentProvider === "bank_transfer_ais") {
+      await ctx.scheduler.runAfter(0, internal.quotes.generateQuotePdfInternal, { orderId });
+    }
+    return {
+      orderNumber, status: paymentProvider === "stripe" ? "awaiting_payment" : "quote_pending",
+      deduplicated: false, ...(args.providerSafeId ? { providerSafeId: args.providerSafeId } : {}),
+    };
+  },
+});
+
+export const getCheckoutOrderForBridge = query({
+  args: {
+    bridgeSecret: v.string(),
+    orderNumber: v.optional(v.string()),
+    publicTokenHash: v.optional(v.string()),
+  },
+  returns: v.union(v.null(), v.object({
+    orderId: v.id("orders"), orderNumber: v.string(), providerSafeId: v.string(),
+    status: orderStatusValidator, packageType: v.union(v.literal("plugin"), v.literal("setup")),
+    amountCents: v.number(), currency: v.literal("EUR"), customerEmail: v.string(),
+    quoteExpiresAt: v.number(),
+  })),
+  handler: async (ctx, args) => {
+    requireBridgeSecret(args.bridgeSecret);
+    let order = null;
+    if (args.orderNumber) {
+      order = await ctx.db.query("orders").withIndex("by_order_number", (q) => q.eq("orderNumber", args.orderNumber!)).unique();
+    } else if (args.publicTokenHash) {
+      validateHash(args.publicTokenHash, "publicTokenHash");
+      order = await ctx.db.query("orders").withIndex("by_public_token_hash", (q) => q.eq("publicTokenHash", args.publicTokenHash!.toLowerCase())).unique();
+    }
+    if (!order || order.paymentProvider !== "stripe" || !order.providerSafeId) return null;
+    return {
+      orderId: order._id, orderNumber: order.orderNumber, providerSafeId: order.providerSafeId,
+      status: order.status, packageType: order.packageType, amountCents: order.amountCents,
+      currency: order.currency, customerEmail: order.customerSnapshot.email, quoteExpiresAt: order.quoteExpiresAt,
+    };
   },
 });
 
@@ -197,6 +249,7 @@ export const getPublicStatus = query({
   returns: v.union(v.null(), v.object({
     orderNumber: v.string(), status: orderStatusValidator,
     packageType: v.union(v.literal("plugin"), v.literal("setup")), updatedAt: v.number(),
+    paymentProvider: v.optional(paymentProviderValidator),
   })),
   handler: async (ctx, args) => {
     requireBridgeSecret(args.bridgeSecret);
@@ -206,6 +259,7 @@ export const getPublicStatus = query({
     return order ? {
       orderNumber: order.orderNumber, status: order.status,
       packageType: order.packageType, updatedAt: order.updatedAt,
+      ...(order.paymentProvider ? { paymentProvider: order.paymentProvider } : {}),
     } : null;
   },
 });

@@ -2,13 +2,14 @@
 
 ## Granica sustava
 
-Standardni paketi `plugin` i `setup` prolaze kroz trajni Convex zapis. `other_system` ostaje ručni lead: nema automatske ponude, podataka za uplatu, računa ni downloada. Cijena se uvijek određuje na serveru u centima (`3900` ili `7900`); vrijednost iz preglednika nije izvor istine.
+Standardni paketi `plugin` i `setup` prolaze kroz trajni Convex zapis, a njihov primarni Preview payment provider je Stripe Checkout. Narudžba se zapisuje prije stvaranja Checkout Sessiona i počinje u `awaiting_payment`. `other_system` ostaje ručni lead: nema Checkouta, automatske ponude, računa ni downloada. Cijena se uvijek određuje na serveru u centima (`3900` ili `7900`); vrijednost iz preglednika nije izvor istine.
 
 ## Identitet i numeracija
 
 - `orders._id` je interni identitet.
 - Javni token je 256-bitna slučajna vrijednost; u bazi se čuva samo SHA-256 hash.
 - `requestId` je idempotency ključ jednog slanja obrasca.
+- `providerSafeId` je HMAC-bazirani, neosobni Stripe reconciliation identifikator za `client_reference_id` i metadata.
 - Čitljivi broj narudžbe koristi zasebni transakcijski sequence, primjer `CHR-2026-000001`. Ne koristi se `MAX + 1`.
 - Ponude i računi imaju zasebne sekvence. Produkcijsku numeraciju računa mora odrediti računovodstvena/provider politika.
 
@@ -28,6 +29,8 @@ Svaki prijelaz stvara audit zapis s prethodnim i novim stanjem, vremenom, razlog
 
 - Ponovljeni `requestId` vraća postojeću narudžbu.
 - Provider transaction ID deduplicira AIS događaje.
+- `paymentAttempts` auditira Stripe Checkout pokušaje; aktivna otvorena sesija ponovno se koristi, a istekla dobiva sljedeći attempt broj.
+- Stripe create koristi deterministički idempotency key, a Stripe event ID deduplicira webhook ponavljanja.
 - Ponuda, račun i email imaju vlastiti idempotency ključ.
 - Timeout pri izdavanju računa ne ponavlja slijepo zahtjev: prvo se mora provjeriti postojeći provider status.
 - Neuspjeh invoice providera ostavlja uplatu u `payment_verified`/`invoice_failed`; ne stvara lažni račun ni delivery.

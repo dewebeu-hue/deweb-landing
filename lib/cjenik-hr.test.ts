@@ -43,6 +43,7 @@ test("production billing stays fail-closed even if credentials exist", () => {
   assert.deepEqual(cjenikHrCommercialGates, {
     commercialTermsConfirmed: false,
     billingPolicyConfirmed: false,
+    stripeProductionEnabled: false,
     eposlovanjeProductionEnabled: false,
     aisProductionEnabled: false,
     deliveryEnabled: false,

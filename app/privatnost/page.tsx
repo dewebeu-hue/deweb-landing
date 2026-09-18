@@ -31,6 +31,9 @@ export default function PrivacyPage() {
       <p className={legalParagraph}>
         Podaci za ponudu i narudžbu čuvaju se u trajnoj poslovnoj evidenciji. Podaci povezani s računovodstvenom dokumentacijom čuvaju se prema rokovima koji vrijede za tu dokumentaciju; neuspjeli ili odustali zahtjevi pregledavaju se i brišu kada više nisu potrebni za svrhu zbog koje su prikupljeni.
       </p>
+      <p className={legalParagraph}>
+        Kod kartičnog plaćanja preusmjeravamo vas na Stripe, koji obrađuje podatke o plaćanju. Naš sustav ne prima niti sprema puni broj kartice ili CVC; evidentiramo samo podatke potrebne za povezivanje statusa plaćanja s narudžbom.
+      </p>
       <h2 className={legalHeading}>Pružatelji usluga</h2>
       <p className={legalParagraph}>
         Za tehničku obradu, trajnu evidenciju zahtjeva, dostavu poruka i elektroničku poštu koristimo pružatelje usluga potrebne za rad stranice, uključujući Vercel, Convex, Resend i Google/Gmail, u opsegu potrebnom za pružanje tih usluga. Podaci se pružateljima naplate, bankovnih informacija ili izdavanja računa šalju samo kada je odgovarajući poslovni tok uključen i kada je to potrebno za obradu.

@@ -5,6 +5,9 @@
 - Javna ruta: `/cjenik-hr`
 - Stranica potvrde: `/cjenik-hr/hvala?paket=plugin|setup|other`
 - API za upit/narudžbu: `POST /api/cjenik-hr`
+- Stripe Checkout API za standardni paket: `POST /api/cjenik-hr/checkout`
+- Stripe webhook: `POST /api/cjenik-hr/stripe/webhook`
+- Sigurna status ruta: `/cjenik-hr/narudzba/{public-token}`
 - Status proizvoda: `release_candidate_ready`
 - Prodajni način: `quote`
 - Billing način: `sandbox` uz fail-closed code gateove
@@ -41,7 +44,7 @@ Landing navodi datum stupanja na snagu 1. listopada 2026., opisuje tehničke obv
 
 ## Obrazac, narudžba i email
 
-Obrazac je dvokoračni. Standardni paketi stvaraju idempotentan trajni Convex order, a `other_system` ostaje postojeći ručni email lead. Postojeći `/api/contact` nije promijenjen.
+Obrazac je dvokoračni. Standardni paketi stvaraju idempotentan trajni Convex order pa u Previewu otvaraju Stripe Test Checkout, a `other_system` ostaje postojeći ručni email lead. Postojeći `/api/contact` nije promijenjen. Produkcijski CTA tekst ostaje ponuda dok live, billing i ePoslovanje gateovi nisu odobreni.
 
 - Plugin i postavljanje dopušteni su samo uz WordPress `yes` ili `unsure` i hrvatsku adresu kupca.
 - Poslovni kupac daje validan OIB; potrošač ne mora davati OIB.
@@ -50,7 +53,8 @@ Obrazac je dvokoračni. Standardni paketi stvaraju idempotentan trajni Convex or
 - Svi odabiri prolaze kroz serverske allowliste.
 - Skriveno `website` polje je honeypot.
 - Email je isključivo plain text; korisnički sadržaj ne ulazi u HTML.
-- URL potvrde sadrži samo allowlistani paket i nema osobnih podataka.
+- Status URL sadrži HMAC-bazirani javni token i nema osobnih podataka. Success redirect nije dokaz uplate; status potvrđuje samo webhook.
+- Kartične podatke obrađuje Stripe; aplikacija ne prima niti sprema puni broj kartice ili CVC.
 - Prvi upit izričito ne traži lozinke, kartične podatke ni poslovne dokumente.
 
 ## SEO

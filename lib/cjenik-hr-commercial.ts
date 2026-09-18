@@ -3,6 +3,7 @@ import { cjenikHrProduct } from "./cjenik-hr-product.ts";
 export const cjenikHrCommercialGates = {
   commercialTermsConfirmed: false,
   billingPolicyConfirmed: false,
+  stripeProductionEnabled: false,
   eposlovanjeProductionEnabled: false,
   aisProductionEnabled: false,
   deliveryEnabled: false,
@@ -22,6 +23,7 @@ export function getCjenikHrCommercialReadiness(env: CjenikHrRuntimeEnvironment =
     eposlovanje: Boolean(env.EPOSLOVANJE_API_KEY && env.EPOSLOVANJE_COMPANY_OIB),
     aisAccount: Boolean(env.EPOSLOVANJE_AIS_IBAN),
     artifact: Boolean(env.CJENIK_HR_ARTIFACT_STORAGE_ID),
+    stripeTest: env.STRIPE_MODE === "test" && Boolean(env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET),
   };
 
   const productionBillingReady =

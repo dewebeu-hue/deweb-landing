@@ -37,6 +37,142 @@ function orderInput(index: number, overrides: Record<string, unknown> = {}) {
   };
 }
 
+function stripeOrderInput(index: number, overrides: Record<string, unknown> = {}) {
+  return orderInput(index, {
+    paymentProvider: "stripe",
+    providerSafeId: `stripe_provider_safe_${String(index).padStart(12, "0")}`,
+    ...overrides,
+  });
+}
+
+async function createStripeAttempt(t: ReturnType<typeof convexTest>, index: number, overrides: Record<string, unknown> = {}) {
+  const created = await t.mutation(api.orders.submitOrder, stripeOrderInput(index, overrides));
+  const orderId = await t.query(api.orders.getOrderIdByNumberForBridge, {
+    bridgeSecret: secret, orderNumber: created.orderNumber,
+  });
+  assert.ok(orderId);
+  const attempt = await t.mutation(api.stripePayments.prepareCheckoutAttempt, { bridgeSecret: secret, orderId });
+  const sessionId = `cs_test_${index}`;
+  await t.mutation(api.stripePayments.recordCheckoutSession, {
+    bridgeSecret: secret, attemptId: attempt.attemptId, providerSessionId: sessionId,
+    checkoutUrl: `https://checkout.stripe.com/c/pay/${sessionId}`,
+    expiresAt: Date.now() + 60 * 60_000,
+  });
+  return { created, orderId, attempt, sessionId, providerSafeId: `stripe_provider_safe_${String(index).padStart(12, "0")}` };
+}
+
+function stripeCompletedEvent(index: number, setup: Awaited<ReturnType<typeof createStripeAttempt>>, overrides: Record<string, unknown> = {}) {
+  return {
+    bridgeSecret: secret,
+    providerEventId: `evt_stripe_${index}`,
+    eventType: "checkout.session.completed",
+    livemode: false,
+    objectId: setup.sessionId,
+    createdAt: Date.now(),
+    payloadDigest: hex(`stripe-event-${index}`),
+    providerSessionId: setup.sessionId,
+    providerPaymentId: `pi_test_${index}`,
+    amountCents: 3900,
+    currency: "eur",
+    paymentStatus: "paid",
+    clientReferenceId: setup.providerSafeId,
+    metadataOrderRef: setup.providerSafeId,
+    metadataOrderNumber: setup.created.orderNumber,
+    metadataPackage: "plugin",
+    paymentMethodType: "card",
+    ...overrides,
+  };
+}
+
+test("Stripe order skips quote generation and checkout preparation is idempotent", async () => {
+  const t = convexTest(schema, modules);
+  const setup = await createStripeAttempt(t, 80);
+  assert.equal(setup.created.status, "awaiting_payment");
+  const repeated = await t.mutation(api.stripePayments.prepareCheckoutAttempt, {
+    bridgeSecret: secret, orderId: setup.orderId,
+  });
+  assert.equal(repeated.attemptId, setup.attempt.attemptId);
+  assert.equal(repeated.reused, true);
+  assert.equal(repeated.checkoutUrl, `https://checkout.stripe.com/c/pay/${setup.sessionId}`);
+  const quotes = await t.run(async (ctx) => ctx.db.query("quotes").withIndex("by_order", (q) => q.eq("orderId", setup.orderId)).take(2));
+  assert.equal(quotes.length, 0);
+});
+
+test("verified Stripe Checkout transitions once to invoice review", async () => {
+  const t = convexTest(schema, modules);
+  const setup = await createStripeAttempt(t, 81);
+  const event = stripeCompletedEvent(81, setup);
+  const first = await t.mutation(api.stripePayments.ingestStripeWebhookEvent, event);
+  assert.equal(first.outcome, "verified");
+  const duplicate = await t.mutation(api.stripePayments.ingestStripeWebhookEvent, event);
+  assert.equal(duplicate.duplicate, true);
+  const order = await t.run(async (ctx) => ctx.db.get(setup.orderId));
+  assert.equal(order?.status, "invoice_review_required");
+  const payments = await t.run(async (ctx) => ctx.db.query("payments").withIndex("by_order", (q) => q.eq("orderId", setup.orderId)).take(10));
+  assert.equal(payments.length, 1);
+  assert.equal(payments[0].status, "verified");
+  assert.equal(payments[0].providerSessionId, setup.sessionId);
+  const events = await t.run(async (ctx) => ctx.db.query("orderEvents").withIndex("by_order_created", (q) => q.eq("orderId", setup.orderId)).take(20));
+  assert.equal(events.filter((item) => item.nextStatus === "payment_verified").length, 1);
+  assert.equal(events.filter((item) => item.nextStatus === "invoice_review_required").length, 1);
+});
+
+test.each([
+  [82, { amountCents: 1 }, "amount_mismatch"],
+  [83, { currency: "usd" }, "currency_mismatch"],
+  [84, { metadataOrderRef: "wrong" }, "metadata_order_ref_mismatch"],
+  [85, { livemode: true }, "livemode_not_allowed"],
+])("Stripe mismatch %s is routed to manual review", async (index, override, reason) => {
+  const t = convexTest(schema, modules);
+  const setup = await createStripeAttempt(t, index as number);
+  const result = await t.mutation(api.stripePayments.ingestStripeWebhookEvent, stripeCompletedEvent(index as number, setup, override));
+  assert.equal(result.outcome, "review_required");
+  const order = await t.run(async (ctx) => ctx.db.get(setup.orderId));
+  assert.equal(order?.status, "payment_review_required");
+  const providerEvent = await t.run(async (ctx) => ctx.db.get(result.eventId));
+  assert.match(providerEvent?.matchReason ?? "", new RegExp(reason as string));
+});
+
+test("unknown events are accepted as ignored and unknown sessions remain safe", async () => {
+  const t = convexTest(schema, modules);
+  const ignored = await t.mutation(api.stripePayments.ingestStripeWebhookEvent, {
+    bridgeSecret: secret, providerEventId: "evt_unknown", eventType: "customer.created",
+    livemode: false, objectId: "cus_test", createdAt: Date.now(), payloadDigest: hex("unknown"),
+  });
+  assert.equal(ignored.outcome, "ignored");
+  const unknownSession = await t.mutation(api.stripePayments.ingestStripeWebhookEvent, {
+    bridgeSecret: secret, providerEventId: "evt_unknown_session", eventType: "checkout.session.completed",
+    livemode: false, objectId: "cs_test_unknown", providerSessionId: "cs_test_unknown",
+    createdAt: Date.now(), payloadDigest: hex("unknown-session"), paymentStatus: "paid",
+  });
+  assert.equal(unknownSession.outcome, "review_required");
+});
+
+test("expired Checkout can create a new attempt while a second successful payment cannot fulfill twice", async () => {
+  const t = convexTest(schema, modules);
+  const setup = await createStripeAttempt(t, 86);
+  await t.run(async (ctx) => ctx.db.patch(setup.attempt.attemptId, { expiresAt: Date.now() - 1 }));
+  const retry = await t.mutation(api.stripePayments.prepareCheckoutAttempt, { bridgeSecret: secret, orderId: setup.orderId });
+  assert.equal(retry.attemptNumber, 2);
+  assert.notEqual(retry.attemptId, setup.attempt.attemptId);
+  const retrySession = "cs_test_86_retry";
+  await t.mutation(api.stripePayments.recordCheckoutSession, {
+    bridgeSecret: secret, attemptId: retry.attemptId, providerSessionId: retrySession,
+    checkoutUrl: `https://checkout.stripe.com/c/pay/${retrySession}`, expiresAt: Date.now() + 60_000,
+  });
+  const verified = await t.mutation(api.stripePayments.ingestStripeWebhookEvent, stripeCompletedEvent(86, setup, {
+    providerEventId: "evt_stripe_86_retry", objectId: retrySession, providerSessionId: retrySession,
+    payloadDigest: hex("stripe-event-86-retry"),
+  }));
+  assert.equal(verified.outcome, "verified");
+  const second = await t.mutation(api.stripePayments.ingestStripeWebhookEvent, stripeCompletedEvent(86, setup, {
+    providerEventId: "evt_stripe_86_second", payloadDigest: hex("stripe-event-86-second"),
+  }));
+  assert.equal(second.outcome, "review_required");
+  const order = await t.run(async (ctx) => ctx.db.get(setup.orderId));
+  assert.equal(order?.status, "invoice_review_required");
+});
+
 function enableQuoteSandbox() {
   process.env.CJENIK_HR_BILLING_MODE = "sandbox";
   process.env.CJENIK_HR_PAYMENT_IBAN_IS_TEST = "true";

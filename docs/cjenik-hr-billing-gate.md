@@ -8,13 +8,14 @@
 | --- | --- |
 | `commercialTermsConfirmed` | `false` |
 | `billingPolicyConfirmed` | `false` |
+| `stripeProductionEnabled` | `false` |
 | `eposlovanjeProductionEnabled` | `false` |
 | `aisProductionEnabled` | `false` |
 | `deliveryEnabled` | `false` |
 
-Produkciona tajna, IBAN ili API ključ sami po sebi ne mogu uključiti produkciju. Potrebni su code gate, `billingMode=production` i svi odgovarajući runtime preduvjeti. Trenutačni način je `salesMode=quote`, `billingMode=sandbox`.
+Produkcijska tajna, IBAN ili API ključ sami po sebi ne mogu uključiti produkciju. Stripe je u ovoj fazi strogo testni provider: `STRIPE_MODE=test`, live ključ se odbija i `stripeProductionEnabled=false`. Potrebni budući code gate, `billingMode=production` i svi odgovarajući runtime preduvjeti ostaju zatvoreni. Produkcijski javni način i dalje je `salesMode=quote`, `billingMode=sandbox`.
 
-Ako `billingPolicyConfirmed=false`, `payment_verified` vodi u `invoice_review_required`. Nema `invoice_fiscalized`, računa kupcu ni isporuke.
+Ako `billingPolicyConfirmed=false`, Stripe `payment_verified` vodi u `invoice_review_required`. Nema `invoice_fiscalized`, računa kupcu ni isporuke.
 
 ## Dokumenti u sandboxu
 

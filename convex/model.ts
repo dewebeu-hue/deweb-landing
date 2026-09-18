@@ -43,10 +43,17 @@ export type CustomerInput = {
 };
 
 export const PACKAGE_PRICES_CENTS = { plugin: 3900, setup: 7900 } as const;
+export const paymentProviderValidator = v.union(
+  v.literal("stripe"),
+  v.literal("bank_transfer_ais"),
+  v.literal("mock"),
+);
+export type PaymentProvider = "stripe" | "bank_transfer_ais" | "mock";
 
 export const BACKEND_RELEASE_GATES = {
   commercialTermsConfirmed: false,
   billingPolicyConfirmed: false,
+  stripeProductionEnabled: false,
   eposlovanjeProductionEnabled: false,
   aisProductionEnabled: false,
   deliveryEnabled: false,

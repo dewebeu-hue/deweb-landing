@@ -1,6 +1,12 @@
 # Cjenik HR payment matching
 
-## Izvor transakcija
+## Primarni provider
+
+Stripe Checkout + potpisani webhook primarni je payment flow za standardne pakete. `checkout.session.completed` jedini je kanonski payment događaj u v1 kartičnom toku. Convex provjerava session, test `livemode`, paid status, EUR, iznos, package, metadata i client reference prije `payment_verified`. Detalji su u `docs/cjenik-hr-stripe.md`.
+
+Bank transfer i ePoslovanje AIS ostaju buduća/opcionalna mogućnost. AIS polling je zadan kao isključen i bank transfer nije prikazan kupcu u Stripe v1 sučelju.
+
+## Budući AIS izvor transakcija
 
 PBZ je temeljni bankovni račun, ali integracijski sloj je isključivo ePoslovanje AIS. Nema izravne PBZ XS2A integracije. Službeni AIS ugovor opisuje `POST /api/banking/accounts` i `POST /api/banking/transactions` za testno i produkcijsko okružje:
 

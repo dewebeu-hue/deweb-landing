@@ -19,6 +19,7 @@ import type * as orders from "../orders.js";
 import type * as payments from "../payments.js";
 import type * as quoteRecords from "../quoteRecords.js";
 import type * as quotes from "../quotes.js";
+import type * as stripePayments from "../stripePayments.js";
 
 import type {
   ApiFromModules,
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   payments: typeof payments;
   quoteRecords: typeof quoteRecords;
   quotes: typeof quotes;
+  stripePayments: typeof stripePayments;
 }>;
 
 /**

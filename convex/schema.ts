@@ -28,6 +28,11 @@ const orderStatus = v.union(
 
 const customerType = v.union(v.literal("business"), v.literal("consumer"));
 const packageType = v.union(v.literal("plugin"), v.literal("setup"));
+const paymentProvider = v.union(
+  v.literal("stripe"),
+  v.literal("bank_transfer_ais"),
+  v.literal("mock"),
+);
 
 export default defineSchema({
   customers: defineTable({
@@ -63,6 +68,8 @@ export default defineSchema({
       country: v.literal("HR"),
     }),
     packageType,
+    paymentProvider: v.optional(paymentProvider),
+    providerSafeId: v.optional(v.string()),
     intakeSnapshot: v.optional(v.object({
       domain: v.optional(v.string()),
       wordpressStatus: v.string(),
@@ -79,6 +86,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_order_number", ["orderNumber"])
+    .index("by_provider_safe_id", ["providerSafeId"])
     .index("by_public_token_hash", ["publicTokenHash"])
     .index("by_request_id", ["requestId"])
     .index("by_payment_reference", ["paymentReference"])
@@ -143,7 +151,12 @@ export default defineSchema({
       v.literal("verified"),
       v.literal("refunded"),
     ),
-    verificationMethod: v.optional(v.union(v.literal("ais"), v.literal("manual"))),
+    providerSessionId: v.optional(v.string()),
+    providerEventId: v.optional(v.string()),
+    paidAt: v.optional(v.number()),
+    livemode: v.optional(v.boolean()),
+    paymentMethodType: v.optional(v.string()),
+    verificationMethod: v.optional(v.union(v.literal("ais"), v.literal("manual"), v.literal("stripe"))),
     verifiedBy: v.optional(v.string()),
     verifiedAt: v.optional(v.number()),
     reviewReason: v.optional(v.string()),
@@ -151,11 +164,38 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_order", ["orderId"])
-    .index("by_provider_transaction", ["provider", "providerTransactionId"]),
+    .index("by_provider_transaction", ["provider", "providerTransactionId"])
+    .index("by_provider_session", ["provider", "providerSessionId"]),
+
+  paymentAttempts: defineTable({
+    orderId: v.id("orders"),
+    provider: paymentProvider,
+    attemptNumber: v.number(),
+    idempotencyKey: v.string(),
+    providerSessionId: v.optional(v.string()),
+    checkoutUrl: v.optional(v.string()),
+    expiresAt: v.optional(v.number()),
+    status: v.union(
+      v.literal("creating"),
+      v.literal("open"),
+      v.literal("completed"),
+      v.literal("expired"),
+      v.literal("cancelled"),
+      v.literal("failed"),
+      v.literal("review_required"),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_order", ["orderId"])
+    .index("by_provider_session", ["provider", "providerSessionId"])
+    .index("by_idempotency_key", ["idempotencyKey"]),
 
   paymentProviderEvents: defineTable({
     provider: v.string(),
     providerEventId: v.string(),
+    eventType: v.optional(v.string()),
+    livemode: v.optional(v.boolean()),
     providerTransactionId: v.string(),
     bookedAt: v.number(),
     direction: v.union(v.literal("incoming"), v.literal("outgoing"), v.literal("unknown")),
