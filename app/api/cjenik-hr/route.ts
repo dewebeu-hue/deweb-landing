@@ -65,6 +65,10 @@ export async function POST(request: Request) {
     if (!/^[A-Za-z0-9_-]{20,100}$/.test(requestId) || request.headers.get("idempotency-key") !== requestId) {
       return NextResponse.json({ ok: false, error: "Nedostaje valjan identifikator zahtjeva.", fields: ["requestId"] }, { status: 400 });
     }
+    if (process.env.VERCEL_ENV === "preview" && process.env.CJENIK_HR_LEAD_EMAIL_MODE === "mock") {
+      console.info(JSON.stringify({ event: "cjenik_hr_manual_lead_mocked", status: "manual_review" }));
+      return NextResponse.json({ ok: true, accepted: false, status: "manual_review" });
+    }
     try {
       await sendCjenikHrEmail(prepareCjenikHrRequest(lead), getEmailConfig(), fetch, `cjenik-hr-lead:${requestId}`);
       return NextResponse.json({ ok: true, accepted: false });

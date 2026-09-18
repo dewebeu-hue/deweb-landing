@@ -21,8 +21,8 @@ function orderInput(index: number, overrides: Record<string, unknown> = {}) {
     requestId: `request_${String(index).padStart(16, "0")}`,
     publicTokenHash: hex(`token-${index}`),
     fingerprintHash: hex(`fingerprint-${index}`),
-    requestType: "plugin",
-    customerType: "consumer",
+    requestType: "plugin" as const,
+    customerType: "consumer" as const,
     fullName: "Test Kupac",
     billingAddress: "Testna 1",
     postalCode: "10000",
@@ -94,7 +94,7 @@ test("AIS exact match verifies once; duplicate and amount mismatch remain safe",
   await t.run(async (ctx) => ctx.db.patch(orderId, { status: "awaiting_payment" }));
   const baseEvent = {
     bridgeSecret: secret, provider: "mock_ais", providerEventId: "evt-1",
-    providerTransactionId: "txn-1", bookedAt: Date.now(), direction: "incoming",
+    providerTransactionId: "txn-1", bookedAt: Date.now(), direction: "incoming" as const,
     amountCents: 3900, currency: "EUR", reference: created.orderNumber,
     payloadDigest: hex("evt-1"),
   };
@@ -205,7 +205,7 @@ test("79 EUR test provider flow delivers the plugin and remains setup pending", 
       packageType: "setup", pluginVersion: "1.0.0", schemaVersion: 7,
       checkpoint: "194783813ee3ae647939ddf5d093b9baffdcec15",
       sha256: "8ae3b6ad3834a5bb2bb5c7defb3c63477f5788936e66bdfd1d735a9a267a0898",
-      sizeBytes: 18, storageId, active: true, createdAt: Date.now(),
+      sizeBytes: 18, testArtifact: true, storageId, active: true, createdAt: Date.now(),
     });
   });
   const tokenHash = hex("setup-delivery-token");
@@ -236,7 +236,7 @@ test("delivery token is order-bound and download limits are enforced", async () 
       packageType: "plugin", pluginVersion: "1.0.0", schemaVersion: 7,
       checkpoint: "194783813ee3ae647939ddf5d093b9baffdcec15",
       sha256: "8ae3b6ad3834a5bb2bb5c7defb3c63477f5788936e66bdfd1d735a9a267a0898",
-      sizeBytes: 8, storageId, active: true, createdAt: Date.now(),
+      sizeBytes: 8, testArtifact: true, storageId, active: true, createdAt: Date.now(),
     });
   });
   assert.ok(artifactId);

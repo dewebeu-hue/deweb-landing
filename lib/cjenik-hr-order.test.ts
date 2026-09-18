@@ -70,5 +70,7 @@ test("API limits payload size, hashes identifiers and keeps structured logs free
   assert.match(source, /createHmac\("sha256", config\.publicTokenSecret\)/);
   assert.match(source, /sha256\(publicToken\)/);
   assert.match(source, /fingerprintHash/);
+  assert.match(source, /VERCEL_ENV === "preview" && process\.env\.CJENIK_HR_LEAD_EMAIL_MODE === "mock"/);
+  assert.match(source, /status: "manual_review"/);
   assert.doesNotMatch(source, /console\.(info|error)\([^\n]*(companyOib|billingAddress|email: value\.email)/);
 });

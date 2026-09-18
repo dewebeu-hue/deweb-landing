@@ -1,9 +1,6 @@
 "use node";
 
 import { createHash } from "node:crypto";
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
-import { readFileSync } from "node:fs";
 import fontkit from "@pdf-lib/fontkit";
 import bwipjs from "bwip-js";
 import { PDFDocument, rgb } from "pdf-lib";
@@ -13,6 +10,7 @@ import type { ActionCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { BACKEND_RELEASE_GATES, requireBridgeSecret } from "./model";
+import { notoSansLatinExtWoffBase64 } from "./notoSansLatinExt";
 
 type PaymentCodeInput = {
   amountCents: number;
@@ -74,9 +72,7 @@ function requireSandboxConfig() {
 }
 
 function loadNotoSans() {
-  const require = createRequire(import.meta.url);
-  const packageDirectory = dirname(require.resolve("@fontsource/noto-sans"));
-  return readFileSync(join(packageDirectory, "files", "noto-sans-latin-ext-400-normal.woff"));
+  return Buffer.from(notoSansLatinExtWoffBase64, "base64");
 }
 
 type QuoteResult = { quoteNumber: string; sha256: string; testDocument: true };

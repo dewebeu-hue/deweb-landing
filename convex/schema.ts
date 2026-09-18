@@ -216,6 +216,7 @@ export default defineSchema({
     checkpoint: v.string(),
     sha256: v.string(),
     sizeBytes: v.number(),
+    testArtifact: v.optional(v.boolean()),
     storageId: v.id("_storage"),
     active: v.boolean(),
     createdAt: v.number(),

@@ -33,26 +33,35 @@ export const registerArtifact = mutation({
     bridgeSecret: v.string(), storageId: v.id("_storage"),
     packageType: v.union(v.literal("plugin"), v.literal("setup")),
     pluginVersion: v.string(), schemaVersion: v.number(), checkpoint: v.string(), sha256: v.string(), sizeBytes: v.number(),
+    testArtifact: v.boolean(),
   },
   returns: v.id("deliveryArtifacts"),
   handler: async (ctx, args) => {
     requireBridgeSecret(args.bridgeSecret);
     validateHash(args.sha256, "sha256");
     if (!Number.isInteger(args.sizeBytes) || args.sizeBytes < 1) throw new ConvexError({ code: "INVALID_ARTIFACT_SIZE" });
-    if (args.pluginVersion !== RELEASE.pluginVersion || args.schemaVersion !== RELEASE.schemaVersion ||
-        args.checkpoint !== RELEASE.checkpoint || args.sha256.toLowerCase() !== RELEASE.sha256) {
+    if (args.testArtifact) {
+      if (process.env.CJENIK_HR_DELIVERY_MODE !== "sandbox" ||
+          process.env.CJENIK_HR_DELIVERY_SANDBOX_ENABLED !== "true" ||
+          !args.pluginVersion.startsWith("TEST-") || args.schemaVersion !== 0 ||
+          args.checkpoint !== "synthetic-preview") {
+        throw new ConvexError({ code: "INVALID_TEST_ARTIFACT" });
+      }
+    } else if (args.pluginVersion !== RELEASE.pluginVersion || args.schemaVersion !== RELEASE.schemaVersion ||
+               args.checkpoint !== RELEASE.checkpoint || args.sha256.toLowerCase() !== RELEASE.sha256) {
       throw new ConvexError({ code: "ARTIFACT_METADATA_MISMATCH" });
     }
-    const existing = await ctx.db.query("deliveryArtifacts").withIndex("by_sha256", (q) => q.eq("sha256", RELEASE.sha256)).take(10);
+    const normalizedSha256 = args.sha256.toLowerCase();
+    const existing = await ctx.db.query("deliveryArtifacts").withIndex("by_sha256", (q) => q.eq("sha256", normalizedSha256)).take(10);
     const samePackage = existing.find((item) => item.packageType === args.packageType);
     if (samePackage) return samePackage._id;
     const prior = await ctx.db.query("deliveryArtifacts")
       .withIndex("by_package_active", (q) => q.eq("packageType", args.packageType).eq("active", true)).take(20);
     for (const artifact of prior) await ctx.db.patch(artifact._id, { active: false });
     return await ctx.db.insert("deliveryArtifacts", {
-      packageType: args.packageType, pluginVersion: RELEASE.pluginVersion,
-      schemaVersion: RELEASE.schemaVersion, checkpoint: RELEASE.checkpoint,
-      sha256: RELEASE.sha256, sizeBytes: args.sizeBytes,
+      packageType: args.packageType, pluginVersion: args.pluginVersion,
+      schemaVersion: args.schemaVersion, checkpoint: args.checkpoint,
+      sha256: normalizedSha256, sizeBytes: args.sizeBytes, testArtifact: args.testArtifact,
       storageId: args.storageId, active: true, createdAt: Date.now(),
     });
   },
@@ -124,7 +133,7 @@ export const consumeDelivery = mutation({
       await transitionOrder(ctx, order._id, "setup_pending", "delivery_workflow", "plugin_downloaded_setup_pending");
     }
     return {
-      storageUrl, filename: `cjenik-hr-${artifact.pluginVersion}.zip`, sha256: artifact.sha256,
+      storageUrl, filename: artifact.testArtifact ? "cjenik-hr-preview-test.zip" : `cjenik-hr-${artifact.pluginVersion}.zip`, sha256: artifact.sha256,
       remainingDownloads: delivery.maxDownloads - downloadCount,
     };
   },
