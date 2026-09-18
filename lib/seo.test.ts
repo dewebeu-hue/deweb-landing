@@ -24,9 +24,12 @@ test("production is indexable and Vercel preview/development are not", () => {
   assert.equal(deploymentRobots(), undefined);
 });
 
-test("sitemap contains only the public canonical landing URL", () => {
+test("sitemap contains the public homepage and Cjenik HR canonical URLs", () => {
   assert.equal(SITE_ORIGIN, "https://deweb.hr");
-  assert.deepEqual(sitemap(), [{ url: "https://deweb.hr/" }]);
+  assert.deepEqual(sitemap(), [
+    { url: "https://deweb.hr/" },
+    { url: "https://deweb.hr/cjenik-hr" },
+  ]);
 });
 
 test("robots allows crawlers to see noindex on draft pages", () => {

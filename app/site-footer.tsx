@@ -11,6 +11,8 @@ export function SiteFooter() {
             <a className={footerLink} href="mailto:dinko@deweb.hr">dinko@deweb.hr</a>
           </div>
           <nav aria-label="Pravne i informativne stranice" className="flex flex-wrap items-center gap-x-3 text-sm">
+            <a className={footerLink} href="/cjenik-hr">Cjenik HR</a>
+            <span aria-hidden="true" className="text-muted">·</span>
             <a className={footerLink} href="/privatnost">Politika privatnosti</a>
             <span aria-hidden="true" className="text-muted">·</span>
             <a className={footerLink} href="/uvjeti">Uvjeti korištenja</a>

@@ -123,6 +123,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
           </div>
         </section>
 
+        <aside className="border-y border-[#c9dde0] bg-[#edf8f8]" aria-labelledby="cjenik-hr-teaser-title">
+          <div className={`${frame} flex flex-col gap-6 py-8 md:flex-row md:items-center md:justify-between`}>
+            <div className="max-w-3xl">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-teal-dark">Novo iz deweba · predprodaja</p>
+              <h2 id="cjenik-hr-teaser-title" className="mt-2 text-2xl font-black tracking-[-0.03em] text-ink">Cjenik HR za WordPress</h2>
+              <p className="mt-2 leading-7 text-muted">Sidrene cijene, strojno čitljiv CSV, javna objava i naljepnice u jednom operativnom toku.</p>
+            </div>
+            <a href="/cjenik-hr" className="inline-flex min-h-[50px] shrink-0 items-center justify-center rounded-lg border-2 border-teal bg-white px-5 text-sm font-black text-teal-dark hover:bg-teal-soft focus-visible:outline focus-visible:outline-4 focus-visible:outline-orange-dark">Pogledajte Cjenik HR <span aria-hidden="true" className="ml-2">↗</span></a>
+          </div>
+        </aside>
+
         <section id="radovi" className="border-y border-line bg-[#f5f9fa] py-16 md:py-20" aria-labelledby="work-title">
           <div className={frame}>
             <div className="reveal-on-scroll" data-reveal><p className={`${eyebrow} mb-3`}>Pogled u rad</p><h2 id="work-title" className={`${heading} max-w-3xl`}>Kako web i alat pretvaramo u jasan put za korisnika.</h2>
