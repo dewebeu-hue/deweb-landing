@@ -1,0 +1,4 @@
+Contact: mailto:dinko@deweb.hr
+Expires: 2027-05-01T00:00:00Z
+Canonical: https://deweb.hr/.well-known/security.txt
+Preferred-Languages: hr, en
