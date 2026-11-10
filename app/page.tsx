@@ -9,6 +9,7 @@ import { webOfferTerms, webPackages } from "../lib/web-packages";
 import { SITE_ORIGIN } from "../lib/seo-policy";
 import { SiteFooter } from "./site-footer";
 import { Portfolio } from "./portfolio";
+import { ProjectSpotlight } from "./project-spotlight";
 
 export const metadata: Metadata = {
   title: "Izrada web-stranica i poslovnih aplikacija | deweb",
@@ -32,9 +33,9 @@ const button = "inline-flex min-h-[52px] items-center justify-center rounded-lg 
 const outlineButton = "inline-flex min-h-[52px] items-center justify-center rounded-lg border-2 border-teal bg-white px-6 py-3 text-center text-sm font-extrabold text-teal-dark transition hover:bg-teal-soft focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark";
 
 const nav = [
+  ["Radovi", "#radovi"],
   ["Web-stranice", "#web-stranice"],
   ["Interni alati", "#interni-alati"],
-  ["Radovi", "#radovi"],
   ["Kako radimo", "#proces"],
   ["Kontakt", "#kontakt"],
 ] as const;
@@ -58,7 +59,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
     <>
       <link rel="canonical" href={`${SITE_ORIGIN}/`} />
       <ScrollReveal />
-      <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-30 bg-white">
         <div className={`${frame} flex min-h-[76px] items-center justify-between gap-4`}>
           <a href="#vrh" aria-label="deweb — na početak" className="inline-flex min-h-11 items-center focus-visible:outline focus-visible:outline-4 focus-visible:outline-orange-dark">
             <Image src="/deweb-logo.svg" alt="deweb" width={136} height={31} priority />
@@ -72,55 +73,21 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
       </header>
 
       <main id="vrh">
-        <section className="hero-surface overflow-hidden border-b border-line" aria-labelledby="hero-title">
-          <div className={`${frame} grid gap-10 py-16 md:py-20 lg:min-h-[690px] lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:gap-12`}>
-            <div>
-              <p className={`${eyebrow} mb-6`}>Web-stranice i poslovne aplikacije po mjeri</p>
-              <h1 id="hero-title" className="max-w-[710px] text-[clamp(2.1rem,4.2vw,4rem)] font-black leading-[1.07] tracking-[-0.05em] text-ink">
-                Web koji predstavlja vaš posao. <span className="block text-teal-dark">Alati koji ga pojednostavljuju.</span>
+        <section className="hero-surface" aria-labelledby="hero-title">
+          <div className={`${frame} grid items-center gap-8 py-10 md:py-16 min-[900px]:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:py-20`}>
+            <div className="min-w-0">
+              <h1 id="hero-title" className="max-w-[15ch] text-balance text-[clamp(2.35rem,4.6vw,3.75rem)] font-black leading-[1.05] tracking-[-0.035em] text-ink">
+                Web-stranice i poslovni alati
               </h1>
-              <p className="mt-7 max-w-[650px] text-lg leading-8 text-[#536579] md:text-xl md:leading-9">Izrađujemo i redizajniramo poslovne web-stranice te razvijamo interne alate i poslovne aplikacije po mjeri — od predstavljanja usluga do organizacije upita, ponuda i svakodnevnog rada.</p>
-              <div className="mt-9 grid gap-3 sm:flex sm:flex-wrap">
-                <a href="#web-stranice" className={button}>Trebam web-stranicu <span aria-hidden="true" className="ml-2">↘</span></a>
-                <a href="#interni-alati" className={outlineButton}>Trebam poslovni alat <span aria-hidden="true" className="ml-2">↘</span></a>
-              </div>
-              <p className="mt-5 text-sm font-semibold leading-6 text-muted">Dva različita puta, jedan jasan početak: recite nam što želite postići.</p>
-            </div>
-            <div className="hero-panels hidden gap-4 md:grid" aria-hidden="true">
-              <div className="rounded-2xl border border-[#bfdce2] bg-white p-5 shadow-[0_24px_55px_rgba(8,42,61,0.1)] sm:p-6">
-                <div className="mb-5 flex items-center justify-between border-b border-line pb-4"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">01 / Predstaviti posao</span><span className="h-3 w-3 rounded-full bg-orange" /></div>
-                <div className="mb-5 flex items-center justify-between gap-5">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.16em] text-teal-dark">Poslovni web</span>
-                    <p className="mt-1 text-lg font-black leading-tight tracking-[-0.025em] text-ink sm:text-xl">Vaš posao, jasno.</p>
-                    <p className="mt-1 text-[11px] font-semibold text-muted">Ponuda i primjeri na jednom mjestu.</p>
-                  </div>
-                  <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#bfdce2]" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#bfdce2]" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-orange" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="min-w-0 rounded-lg border border-[#cce4e7] bg-[#edf8f8] p-3"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-teal-dark">Usluge</span><span className="mt-3 block h-1.5 w-3/4 rounded-full bg-[#7bb9c0]" /><span className="mt-1.5 block h-1.5 w-1/2 rounded-full bg-[#b9d9dc]" /></div>
-                  <div className="min-w-0 rounded-lg border border-[#ead9cc] bg-[#fbf2ec] p-3"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-[#a13c12]">Radovi</span><span className="mt-3 grid grid-cols-2 gap-1"><span className="h-4 rounded bg-[#e6c1a9]" /><span className="h-4 rounded bg-white" /></span></div>
-                  <div className="min-w-0 rounded-lg border border-[#d8e0e9] bg-[#f2f5f8] p-3"><span className="block text-[9px] font-black uppercase tracking-[0.12em] text-ink">Kontakt</span><span className="mt-3 block h-1.5 w-full rounded-full bg-[#c3d0dc]" /><span className="mt-1.5 block h-1.5 w-2/3 rounded-full bg-[#d8e1e8]" /></div>
-                </div>
-                <div className="mt-5 flex items-center gap-3"><span className="inline-flex min-h-8 items-center rounded-lg bg-teal px-4 text-[10px] font-black uppercase tracking-[0.1em] text-white">Javi se</span><span className="text-[10px] font-bold text-muted">Pogledaj radove ↗</span></div>
-              </div>
-              <div className="ml-4 rounded-2xl border border-[#bfdce2] bg-[#f8fcfd] p-5 shadow-[0_24px_55px_rgba(8,42,61,0.1)] sm:ml-10 sm:p-6">
-                <div className="mb-5 flex items-center justify-between border-b border-line pb-4"><span className="text-xs font-black uppercase tracking-widest text-teal-dark">02 / Pojednostaviti rad</span><span className="grid h-6 w-6 place-items-center rounded-md bg-teal text-xs font-bold text-white">✓</span></div>
-                {["Upit zaprimljen", "Ponuda u pripremi", "Sljedeći korak dogovoren"].map((item, index) => <div key={item} className="mb-2 flex items-center gap-3 rounded-lg border border-line bg-white px-3 py-2 text-xs font-bold text-ink"><span className="grid h-6 w-6 place-items-center rounded-full bg-teal-soft text-teal-dark">{index + 1}</span>{item}</div>)}
+              <p className="mt-5 max-w-[43ch] text-base leading-7 text-ink md:text-lg md:leading-8">
+                Izrađujemo i redizajniramo poslovne web-stranice te razvijamo alate za upite, ponude i organizaciju posla.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-1">
+                <a href="#kontakt" className="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-teal px-5 py-3 text-sm font-extrabold text-white transition-[background-color,transform] duration-150 hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark active:scale-[.97] motion-reduce:transform-none motion-reduce:transition-none motion-reduce:active:scale-100">Razgovarajmo o projektu</a>
+                <a href="#radovi" className="inline-flex min-h-11 items-center text-sm font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Pogledajte radove</a>
               </div>
             </div>
-          </div>
-        </section>
-
-        <section className={`${frame} py-16 md:py-20`} aria-labelledby="paths-title">
-          <div className="mb-9 max-w-2xl"><p className={`${eyebrow} mb-3`}>Odaberite što vam treba</p><h2 id="paths-title" className={heading}>Jasnije predstavljanje ili jednostavniji rad?</h2></div>
-          <div className="grid gap-5 md:grid-cols-2">
-            <article className="motion-card reveal-on-scroll rounded-2xl border border-line bg-white p-7 shadow-[0_14px_38px_rgba(8,42,61,0.06)] md:p-9" data-reveal><span className="mb-6 block text-xs font-black uppercase tracking-widest text-teal-dark">Web-stranice / redizajn</span><h3 className="text-2xl font-black text-ink">Da vas kupci lakše razumiju i kontaktiraju.</h3><p className="mt-4 leading-7 text-muted">Struktura sadržaja, dizajn i izvedba za manju tvrtku ili obrt. Uz jasno definirane web-pakete znate što je uključeno.</p><a href="#web-stranice" className="mt-6 inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4">Pogledajte web-ponudu <span aria-hidden="true" className="ml-2">↗</span></a></article>
-            <article className="motion-card reveal-on-scroll reveal-delay-1 rounded-2xl border border-line bg-white p-7 shadow-[0_14px_38px_rgba(8,42,61,0.06)] md:p-9" data-reveal><span className="mb-6 block text-xs font-black uppercase tracking-widest text-teal-dark">Interni alati / aplikacije</span><h3 className="text-2xl font-black text-ink">Da se svakodnevni posao manje oslanja na improvizaciju.</h3><p className="mt-4 leading-7 text-muted">Ako upite, ponude ili status posla vodite na više mjesta, možemo procijeniti kakav bi alat imao smisla.</p><a href="#interni-alati" className="mt-6 inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4">Pogledajte kako pristupamo alatima <span aria-hidden="true" className="ml-2">↗</span></a></article>
+            <ProjectSpotlight />
           </div>
         </section>
 

@@ -1,34 +1,5 @@
 import Image from "next/image";
-
-const publishedProjects = [
-  {
-    name: "MOIRA",
-    type: "Webshop",
-    summary: "Razvili smo novo sučelje za trgovinu odjećom i tekstilom te ga povezali s postojećom WooCommerce trgovinom.",
-    domain: "moira-hr.com",
-    href: "https://moira-hr.com/",
-    image: "/work/moira.webp",
-    alt: "Naslovnica MOIRA webshopa s crvenom haljinom i poveznicom na trgovinu",
-  },
-  {
-    name: "iDesh",
-    type: "Vlastita platforma",
-    summary: "Putnička aplikacija za pronalazak prijevoza i slanje upita te zasebno sučelje za prijevoznike.",
-    domain: "idesh.eu",
-    href: "https://www.idesh.eu/",
-    image: "/work/idesh.webp",
-    alt: "Naslovnica iDesha s obrascem za pretragu prijevoza",
-  },
-  {
-    name: "Buvljak",
-    type: "Vlastita platforma · javna beta",
-    summary: "Lokalni oglasnik za prodaju, poklanjanje, razmjenu i potragu u Novoj Gradiški i okolici.",
-    domain: "buvljak.hr",
-    href: "https://buvljak.hr/",
-    image: "/work/buvljak.webp",
-    alt: "Naslovnica Buvljaka s kategorijama i pregledom lokalnih oglasa",
-  },
-] as const;
+import { publishedProjects } from "../lib/portfolio-projects";
 
 const projectsInDevelopment = [
   { name: "Ponude", type: "Pilot", summary: "Poslovna aplikacija za izradu i praćenje ponuda, s katalogom, PDF-om i podsjetnicima." },
@@ -48,10 +19,10 @@ export function Portfolio() {
           <p className="mt-4 max-w-[65ch] leading-7 text-muted">Webshop i vlastite platforme koje možete otvoriti, uz poslovne alate koje razvijamo i testiramo.</p>
         </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
           {publishedProjects.map((project) => (
             <article key={project.name} className="reveal-on-scroll flex flex-col overflow-hidden rounded-xl border border-line bg-white" data-reveal>
-              <Image src={project.image} alt={project.alt} width={1120} height={573} sizes="(min-width: 1196px) 370px, (min-width: 1024px) 31vw, (min-width: 768px) 47vw, calc(100vw - 36px)" className="h-auto w-full border-b border-line" />
+              <Image src={project.image} alt={project.alt} width={1120} height={573} sizes="(min-width: 1196px) 370px, (min-width: 768px) 31vw, calc(100vw - 36px)" className="h-auto w-full border-b border-line" />
               <div className="flex flex-1 flex-col p-6">
                 <h3 className="text-2xl font-black tracking-tight text-ink">{project.name}</h3>
                 <p className="mt-1 text-sm font-bold text-teal-dark">{project.type}</p>
