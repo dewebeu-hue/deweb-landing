@@ -8,11 +8,11 @@ import robots from "../app/robots.ts";
 
 const root = process.cwd();
 
-test("landing metadata describes both web and business tools", () => {
+test("landing metadata describes websites, webshops, and business tools", () => {
   const page = readFileSync(join(root, "app", "page.tsx"), "utf8");
 
-  assert.match(page, /title: "Izrada web-stranica i poslovnih aplikacija \| deweb"/);
-  assert.match(page, /description: "deweb izrađuje i redizajnira poslovne web-stranice te razvija interne alate i poslovne aplikacije po mjeri\./);
+  assert.match(page, /title: "Izrada web-stranica, webshopova i poslovnih alata \| deweb"/);
+  assert.match(page, /description: "deweb izrađuje web-stranice, webshopove i poslovne alate po mjeri\./);
   assert.match(page, /<link rel="canonical" href=\{`\$\{SITE_ORIGIN\}\/`\} \/>/);
   assert.match(page, /url: "\/og-deweb\.png"/);
 });

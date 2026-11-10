@@ -25,6 +25,7 @@ export function ProjectSpotlight() {
               height={573}
               sizes="(min-width: 1196px) 618px, (min-width: 900px) 52vw, calc(100vw - 36px)"
               preload={index === 0}
+              loading={index === 0 ? undefined : "eager"}
               className={styles.image}
             />
             <figcaption className={styles.caption}>

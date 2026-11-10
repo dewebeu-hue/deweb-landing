@@ -12,11 +12,11 @@ import { Portfolio } from "./portfolio";
 import { ProjectSpotlight } from "./project-spotlight";
 
 export const metadata: Metadata = {
-  title: "Izrada web-stranica i poslovnih aplikacija | deweb",
-  description: "deweb izrađuje i redizajnira poslovne web-stranice te razvija interne alate i poslovne aplikacije po mjeri. Pogledajte ponudu i opišite svoj projekt.",
+  title: "Izrada web-stranica, webshopova i poslovnih alata | deweb",
+  description: "deweb izrađuje web-stranice, webshopove i poslovne alate po mjeri. Pogledajte radove i opišite svoj projekt.",
   openGraph: {
-    title: "Izrada web-stranica i poslovnih aplikacija | deweb",
-    description: "Izrada i redizajn poslovnih web-stranica te interni alati i poslovne aplikacije po mjeri.",
+    title: "Izrada web-stranica, webshopova i poslovnih alata | deweb",
+    description: "Izrada web-stranica, webshopova i poslovnih alata po mjeri.",
     url: `${SITE_ORIGIN}/`,
     siteName: "deweb",
     images: [{ url: "/og-deweb.png", width: 1200, height: 630, alt: "deweb — web-stranice i poslovne aplikacije" }],
@@ -31,12 +31,13 @@ const eyebrow = "text-xs font-black uppercase tracking-[0.16em] text-teal-dark";
 const heading = "text-[2rem] font-black leading-[1.12] tracking-[-0.035em] text-ink sm:text-[2.65rem] lg:text-[3.1rem]";
 const button = "inline-flex min-h-[52px] items-center justify-center rounded-lg bg-teal px-6 py-3 text-center text-sm font-extrabold text-white shadow-[0_12px_25px_rgba(0,77,88,0.17)] transition hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark";
 const outlineButton = "inline-flex min-h-[52px] items-center justify-center rounded-lg border-2 border-teal bg-white px-6 py-3 text-center text-sm font-extrabold text-teal-dark transition hover:bg-teal-soft focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark";
+const topAction = "min-h-12 items-center justify-center rounded-lg bg-teal px-5 py-3 text-center text-sm font-extrabold text-white transition-[background-color,transform] duration-150 hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark active:scale-[.97] motion-reduce:transform-none motion-reduce:transition-none motion-reduce:active:scale-100";
 
 const nav = [
   ["Radovi", "#radovi"],
   ["Web-stranice", "#web-stranice"],
-  ["Interni alati", "#interni-alati"],
-  ["Kako radimo", "#proces"],
+  ["Webshopovi", "#webshopovi"],
+  ["Poslovni alati", "#interni-alati"],
   ["Kontakt", "#kontakt"],
 ] as const;
 
@@ -67,7 +68,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
           <nav className="hidden items-center gap-6 lg:flex" aria-label="Glavna navigacija">
             {nav.map(([label, href]) => <a key={href} href={href} className="inline-flex min-h-11 items-center text-sm font-bold text-ink hover:text-teal focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">{label}</a>)}
           </nav>
-          <a href="#kontakt" className={`${button} hidden lg:inline-flex`}>Zatražite ponudu <span aria-hidden="true" className="ml-2">↗</span></a>
+          <a href="#kontakt" className={`${topAction} hidden lg:inline-flex`}>Zatražite ponudu</a>
           <MobileMenu links={nav} />
         </div>
       </header>
@@ -76,14 +77,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
         <section className="hero-surface" aria-labelledby="hero-title">
           <div className={`${frame} grid items-center gap-8 py-10 md:py-16 min-[900px]:grid-cols-[0.9fr_1.1fr] lg:gap-12 lg:py-20`}>
             <div className="min-w-0">
-              <h1 id="hero-title" className="max-w-[15ch] text-balance text-[clamp(2.35rem,4.6vw,3.75rem)] font-black leading-[1.05] tracking-[-0.035em] text-ink">
-                Web-stranice i poslovni alati
+              <h1 id="hero-title" className="text-[clamp(2.05rem,4.15vw,3.5rem)] font-black leading-[1.05] tracking-[-0.035em] text-ink">
+                Web i webshopovi. <span className="block">Poslovni alati.</span>
               </h1>
               <p className="mt-5 max-w-[43ch] text-base leading-7 text-ink md:text-lg md:leading-8">
-                Izrađujemo i redizajniramo poslovne web-stranice te razvijamo alate za upite, ponude i organizaciju posla.
+                Izrađujemo web-stranice, webshopove i alate za upite, ponude i organizaciju posla.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-1">
-                <a href="#kontakt" className="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-teal px-5 py-3 text-sm font-extrabold text-white transition-[background-color,transform] duration-150 hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark active:scale-[.97] motion-reduce:transform-none motion-reduce:transition-none motion-reduce:active:scale-100">Razgovarajmo o projektu</a>
+                <a href="#kontakt" className={`${topAction} inline-flex`}>Razgovarajmo o projektu</a>
                 <a href="#radovi" className="inline-flex min-h-11 items-center text-sm font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Pogledajte radove</a>
               </div>
             </div>
@@ -117,6 +118,19 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
             </div>
             <a href="/tehnicka-provjera-weba" className="inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Tehnička provjera weba</a>
           </aside>
+        </section>
+
+        <section id="webshopovi" className="bg-teal-dark py-14 text-white md:py-20" aria-labelledby="shop-title">
+          <div className={`${frame} grid items-start gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16`}>
+            <h2 id="shop-title" className="text-[clamp(2rem,4vw,3rem)] font-black leading-tight tracking-[-0.035em]">Webshopovi po mjeri</h2>
+            <div>
+              <p className="max-w-[56ch] text-lg leading-8 text-teal-soft">Prije izrade dogovaramo kako ćete voditi katalog, naplaćivati narudžbe i organizirati dostavu. Opseg i cijenu definiramo prema vašoj trgovini i potrebnim integracijama.</p>
+              <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
+                <a href="#kontakt" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-extrabold text-teal-dark hover:bg-teal-soft focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-white">Razgovarajmo o webshopu</a>
+                <a href="/alati/kalkulator-cijene-webshopa" className="inline-flex min-h-11 items-center text-sm font-extrabold text-white underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-white">Isprobajte kalkulator opsega</a>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section id="interni-alati" className="border-y border-line bg-[#eaf5f5] py-16 md:py-20" aria-labelledby="tools-title">

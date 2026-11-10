@@ -90,6 +90,13 @@
   text-underline-offset: .2em;
 }
 
+@media (max-width: 479px) {
+  .caption {
+    display: grid;
+    justify-content: start;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .choice:not(:checked) + .tab:hover {
     background: #20354e;
