@@ -8,6 +8,7 @@ import { readProjectSelection, type ProjectSelectionParams } from "../lib/projec
 import { webOfferTerms, webPackages } from "../lib/web-packages";
 import { SITE_ORIGIN } from "../lib/seo-policy";
 import { SiteFooter } from "./site-footer";
+import { Portfolio } from "./portfolio";
 
 export const metadata: Metadata = {
   title: "Izrada web-stranica i poslovnih aplikacija | deweb",
@@ -123,22 +124,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
           </div>
         </section>
 
-        <section id="radovi" className="border-y border-line bg-[#f5f9fa] py-16 md:py-20" aria-labelledby="work-title">
-          <div className={frame}>
-            <div className="reveal-on-scroll" data-reveal><p className={`${eyebrow} mb-3`}>Pogled u rad</p><h2 id="work-title" className={`${heading} max-w-3xl`}>Kako web i alat pretvaramo u jasan put za korisnika.</h2>
-            <p className="mt-4 max-w-3xl leading-8 text-muted">Ovo su vlastita deweb rješenja koja možete pregledati. Prikazuju način na koji povezujemo sadržaj, dizajn i sljedeći korak; nisu klijentske reference ni tvrdnje o poslovnim rezultatima.</p></div>
-            <div className="mt-8 grid gap-5 lg:grid-cols-2">
-              <article className="reveal-on-scroll overflow-hidden rounded-2xl border border-line bg-white shadow-[0_16px_42px_rgba(8,42,61,0.07)]" data-reveal>
-                <Image src="/work/deweb-landing-lokalno.png" alt="Naslovnica deweb stranice s jasno odvojenom ponudom web-stranica i poslovnih alata" width={1440} height={900} loading="lazy" sizes="(min-width: 1024px) 560px, 100vw" className="h-[250px] w-full border-b border-line object-cover object-top sm:h-[320px]" />
-                <div className="p-6"><p className="text-xs font-black uppercase tracking-widest text-teal-dark">Vlastita web-stranica</p><h3 className="mt-3 text-xl font-black text-ink">deweb.hr — ponuda usluga</h3><p className="mt-3 leading-7 text-muted">Stranicu smo osmislili i izradili kako bi mali poslovni kupac brzo razlikovao web-pakete od internih alata. Odabir fiksnog web-paketa vodi izravno u kontaktni obrazac s već označenom uslugom.</p><a href="#web-stranice" className="mt-5 inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4">Pregledajte web-ponudu <span aria-hidden="true" className="ml-2">↗</span></a></div>
-              </article>
-              <article className="reveal-on-scroll reveal-delay-1 overflow-hidden rounded-2xl border border-line bg-white shadow-[0_16px_42px_rgba(8,42,61,0.07)]" data-reveal>
-                <Image src="/work/kalkulator-u-razvoju.png" alt="Prikaz sučelja vlastitog kalkulatora opsega webshopa u razvoju" width={1440} height={2116} loading="lazy" sizes="(min-width: 1024px) 560px, 100vw" className="h-[250px] w-full border-b border-line object-cover object-top sm:h-[320px]" />
-                <div className="p-6"><p className="text-xs font-black uppercase tracking-widest text-teal-dark">Vlastiti prototip · razvojna verzija</p><h3 className="mt-3 text-xl font-black text-ink">Kalkulator opsega webshopa</h3><p className="mt-3 leading-7 text-muted">Interaktivni prototip pretvara četiri kratka odgovora u strukturirani sažetak zahtjeva. Korisnik može pregledati i kopirati sažetak prije nego što odluči poslati upit.</p><a href="/alati/kalkulator-cijene-webshopa" className="mt-5 inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4">Isprobajte prototip <span aria-hidden="true" className="ml-2">↗</span></a></div>
-              </article>
-            </div>
-          </div>
-        </section>
+        <Portfolio />
 
         <section id="web-stranice" className={`${frame} py-16 md:py-20`} aria-labelledby="web-title">
           <div className="reveal-on-scroll grid gap-7 lg:grid-cols-[0.78fr_1.22fr] lg:gap-14" data-reveal><div><p className={`${eyebrow} mb-3`}>Web-stranice i redizajn</p><h2 id="web-title" className={heading}>Web koji jasno kaže što radite.</h2></div><p className="max-w-2xl text-lg leading-8 text-muted">Kroz kratak razgovor utvrđujemo što nudite i kome. Predlažemo raspored, uređujemo vaše informacije i izrađujemo web. Vi provjeravate točnost i odobravate završnu verziju.</p></div>
@@ -157,6 +143,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
             <div><h3 className="text-lg font-black text-ink">Troškovi i dogovor</h3><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.external}</p><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.delivery}</p></div>
           </div>
           <p className="mt-5 text-sm font-bold leading-6 text-ink">{webOfferTerms.tax}</p>
+          <aside className="mt-9 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-line pt-6" aria-labelledby="technical-review-title">
+            <div>
+              <h3 id="technical-review-title" className="text-lg font-black text-ink">Već imate web-stranicu?</h3>
+              <p className="mt-2 text-sm leading-6 text-muted">Provjeravamo sigurnosne postavke, ažuriranja i rade li ključne funkcije vaše stranice.</p>
+            </div>
+            <a href="/tehnicka-provjera-weba" className="inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Tehnička provjera weba</a>
+          </aside>
         </section>
 
         <section id="interni-alati" className="border-y border-line bg-[#eaf5f5] py-16 md:py-20" aria-labelledby="tools-title">
