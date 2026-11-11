@@ -25,7 +25,7 @@ test("client and server reject missing type, invalid email, short description, a
 });
 
 test("optional fields and all project types are accepted", () => {
-  for (const projectType of ["web", "tool", "saas", "unsure"] as const) {
+  for (const projectType of ["web", "shop", "tool", "saas", "unsure"] as const) {
     assert.equal(validateContactPayload({ ...valid, projectType, selectedPackage: "", companyName: "", phone: "" }).valid, true);
   }
 });
@@ -45,6 +45,10 @@ test("email handoff carries selected web package and business-tool answers", () 
   assert.match(webEmail.text, /Vrsta projekta: Web-stranica/);
   assert.match(webEmail.text, /Odabrani paket: Poslovni web — 1\.290 €/);
   assert.doesNotMatch(webEmail.text, /Trenutni ručni postupak|Korisnici rješenja|Nije navedeno|Zaprimljeno:/);
+  const shopEmail = buildContactEmailPayload({ ...valid, projectType: "shop", selectedPackage: "" }, config);
+  assert.equal(shopEmail.subject, "Novi Deweb upit — Webshop");
+  assert.match(shopEmail.text, /Vrsta projekta: Webshop/);
+  assert.doesNotMatch(shopEmail.text, /Odabrani paket:/);
   const toolEmail = buildContactEmailPayload({ ...valid, projectType: "tool", selectedPackage: "", manualProcess: "Upite unosimo u tri tablice.", solutionUsers: "Prodaja" }, config);
   assert.equal(toolEmail.subject, "Novi Deweb upit — Poslovni alat");
   assert.match(toolEmail.text, /Vrsta projekta: Interni alat ili poslovna aplikacija/);

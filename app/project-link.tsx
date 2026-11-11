@@ -1,10 +1,9 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
+import type { ProjectType } from "../lib/problem-email";
 import { projectSelectionHref } from "../lib/project-selection";
 import type { WebPackageId } from "../lib/web-packages";
-
-export type ProjectType = "web" | "tool" | "saas" | "unsure";
 
 export const projectSelectionEvent = "deweb:project-selection";
 

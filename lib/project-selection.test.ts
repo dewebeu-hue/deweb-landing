@@ -2,11 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { projectSelectionHref, readProjectSelection } from "./project-selection.ts";
 
-test("A/B/C CTA URLs preserve the intended selection without JavaScript", () => {
+test("Service and package links preserve the intended selection without JavaScript", () => {
   const cases = [
     { href: projectSelectionHref("web", "simple"), type: "web", packageId: "simple" },
     { href: projectSelectionHref("web", "business"), type: "web", packageId: "business" },
+    { href: projectSelectionHref("shop"), type: "shop", packageId: "" },
     { href: projectSelectionHref("tool"), type: "tool", packageId: "" },
+    { href: projectSelectionHref("unsure"), type: "unsure", packageId: "" },
   ] as const;
 
   for (const item of cases) {

@@ -1,6 +1,6 @@
 import { webPackages } from "./web-packages.ts";
 
-export const projectTypes = ["web", "tool", "saas", "unsure"] as const;
+export const projectTypes = ["web", "shop", "tool", "saas", "unsure"] as const;
 export type ProjectType = (typeof projectTypes)[number];
 
 export type ProblemFormData = {
@@ -78,7 +78,7 @@ export function prepareProblemSubmission(data: Partial<ProblemFormData>): Proble
 
 function projectTypeLabel(type: ProjectType | "") {
   if (!type) return "Nije navedeno";
-  return { web: "Web-stranica", tool: "Interni alat ili poslovna aplikacija", saas: "SaaS rješenje", unsure: "Nisam još siguran" }[type];
+  return { web: "Web-stranica", shop: "Webshop", tool: "Interni alat ili poslovna aplikacija", saas: "SaaS rješenje", unsure: "Nisam još siguran" }[type];
 }
 
 function subjectDetail(submission: ProblemSubmission) {

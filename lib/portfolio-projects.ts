@@ -2,7 +2,6 @@ export const publishedProjects = [
   {
     name: "MOIRA",
     type: "Webshop",
-    previewCaption: "Webshop etno odjeće i tekstila",
     summary: "Razvili smo novo sučelje za trgovinu odjećom i tekstilom te ga povezali s postojećom WooCommerce trgovinom.",
     domain: "moira-hr.com",
     href: "https://moira-hr.com/",
@@ -12,7 +11,6 @@ export const publishedProjects = [
   {
     name: "iDesh",
     type: "Vlastita platforma",
-    previewCaption: "Aplikacija za pronalazak prijevoza",
     summary: "Putnička aplikacija za pronalazak prijevoza i slanje upita te zasebno sučelje za prijevoznike.",
     domain: "idesh.eu",
     href: "https://www.idesh.eu/",
@@ -22,7 +20,6 @@ export const publishedProjects = [
   {
     name: "Buvljak",
     type: "Vlastita platforma · javna beta",
-    previewCaption: "Lokalni oglasnik za Novu Gradišku",
     summary: "Lokalni oglasnik za prodaju, poklanjanje, razmjenu i potragu u Novoj Gradiški i okolici.",
     domain: "buvljak.hr",
     href: "https://buvljak.hr/",
