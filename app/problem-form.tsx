@@ -48,15 +48,21 @@ function replaceSelectionInUrl(type: ProjectType | "", packageId: string) {
   window.history.replaceState(null, "", url);
 }
 
-export function ProblemForm({ initialSelection }: { initialSelection: ProjectSelection }) {
-  const [projectType, setProjectType] = useState<ProjectType | "">(initialSelection.type);
-  const [selectedPackage, setSelectedPackage] = useState<string>(initialSelection.packageId);
+type ProblemFormProps =
+  | { initialSelection: ProjectSelection; webshopSummary?: never }
+  | { initialSelection?: never; webshopSummary: string | null };
+
+export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormProps) {
+  const isWebshopQuote = webshopSummary !== undefined;
+  const [projectType, setProjectType] = useState<ProjectType | "">(initialSelection?.type ?? "shop");
+  const [selectedPackage, setSelectedPackage] = useState<string>(initialSelection?.packageId ?? "");
   const [errors, setErrors] = useState<Array<keyof ProblemFormData>>([]);
   const [status, setStatus] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    if (isWebshopQuote) return;
     function selectProject(event: Event) {
       const detail = (event as CustomEvent<{ type: ProjectType; packageId: string }>).detail;
       setProjectType(detail.type);
@@ -75,15 +81,20 @@ export function ProblemForm({ initialSelection }: { initialSelection: ProjectSel
       window.removeEventListener(projectSelectionEvent, selectProject);
       window.removeEventListener("popstate", restoreSelection);
     };
-  }, []);
+  }, [isWebshopQuote]);
 
   function hasError(name: keyof ProblemFormData) { return errors.includes(name); }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isSubmitting || isSuccess) return;
+    if (isSubmitting || isSuccess || webshopSummary === null) return;
     const form = event.currentTarget;
     const data = collectProblemFormData(form);
+    if (webshopSummary !== undefined) {
+      const note = data.problem.trim();
+      data.projectType = "shop";
+      data.problem = note ? `${webshopSummary}\n\nNapomena kupca\n${note}` : webshopSummary;
+    }
     const validation = validateProblemForm(data);
     if (!validation.valid) {
       setErrors(validation.errors);
@@ -106,8 +117,8 @@ export function ProblemForm({ initialSelection }: { initialSelection: ProjectSel
         body: JSON.stringify(data),
         signal: controller.signal,
       });
-      const result = (await response.json().catch(() => null)) as { error?: string; fields?: Array<keyof ProblemFormData> } | null;
-      if (!response.ok) {
+      const result = (await response.json().catch(() => null)) as { ok?: boolean; error?: string; fields?: Array<keyof ProblemFormData> } | null;
+      if (!response.ok || result?.ok !== true) {
         setErrors(result?.fields ?? []);
         throw new Error(result?.error ?? "Slanje nije uspjelo. Pokušajte ponovno.");
       }
@@ -123,10 +134,18 @@ export function ProblemForm({ initialSelection }: { initialSelection: ProjectSel
     }
   }
 
+  const formLayout = isWebshopQuote ? "gap-y-3" : "gap-y-2 rounded-2xl border border-line bg-white p-5 shadow-soft sm:p-7";
+
   return <div className="grid gap-3">
-    <form className="grid items-start gap-x-4 gap-y-2 rounded-2xl border border-line bg-white p-5 shadow-soft sm:grid-cols-2 sm:p-7" onSubmit={handleSubmit} noValidate>
+    <form
+      className={`grid items-start gap-x-4 sm:grid-cols-2 ${formLayout}`}
+      aria-labelledby={isWebshopQuote ? "webshop-quote-title" : undefined}
+      method="post"
+      onSubmit={handleSubmit}
+      noValidate
+    >
       <div className="hidden" aria-hidden="true"><label htmlFor="website">Website</label><input id="website" name="website" tabIndex={-1} autoComplete="off" /></div>
-      <div className={`${fieldWrapperClass} sm:col-span-2`}>
+      {!isWebshopQuote && <div className={`${fieldWrapperClass} sm:col-span-2`}>
         <label className={labelClass} htmlFor="projectType">Što vam treba? *</label>
         <select
           id="projectType"
@@ -150,16 +169,31 @@ export function ProblemForm({ initialSelection }: { initialSelection: ProjectSel
           <option value="unsure">Nisam još siguran</option>
         </select>
         <FieldError name="projectType" show={hasError("projectType")} />
+      </div>}
+      {!isWebshopQuote && projectType === "web" && <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor="selectedPackage">Web-paket <span className="font-normal text-muted">(neobavezno)</span></label><select id="selectedPackage" name="selectedPackage" className={controlClass} value={selectedPackage} onChange={event => { setSelectedPackage(event.target.value); replaceSelectionInUrl("web", event.target.value); }} aria-invalid={hasError("selectedPackage") || undefined}><option value="">Još nisam odabrao paket</option>{webPackages.map(item => <option key={item.id} value={item.id}>{item.name} — {item.price.toLocaleString("hr-HR")} €</option>)}</select><FieldError name="selectedPackage" show={hasError("selectedPackage")} /></div>}
+      <Field name="fullName" label="Ime i prezime *" error={hasError("fullName")} wide={isWebshopQuote} />
+      {!isWebshopQuote && <Field name="companyName" label="Tvrtka ili obrt (neobavezno)" />}
+      <Field name="email" label="Email *" type="email" error={hasError("email")} wide={isWebshopQuote} />
+      {isWebshopQuote ? (
+        <TextField name="problem" label="Napomena (neobavezno)" error={hasError("problem")} />
+      ) : (
+        <>
+          <Field name="phone" label="Telefon (neobavezno)" type="tel" />
+          <Field name="currentWebsite" label="Postojeći web (neobavezno)" type="url" wide />
+          {projectType === "tool" || projectType === "saas" ? <><TextField name="manualProcess" label="Što danas radite ručno ili u postojećem sustavu, a željeli biste pojednostaviti?" /><Field name="solutionUsers" label="Tko bi koristio rješenje? (neobavezno)" wide /></> : null}
+          <TextField name="problem" label="Kratak opis potrebe *" error={hasError("problem")} help="Barem 20 znakova. Nemojte slati povjerljive poslovne podatke." />
+        </>
+      )}
+      <div className={`grid gap-3 sm:col-span-2 ${isWebshopQuote ? "" : "sm:flex sm:items-center"}`}>
+        <button
+          className="min-h-[52px] rounded-lg bg-teal px-6 py-3 text-base font-extrabold text-white transition hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark disabled:cursor-not-allowed disabled:opacity-60"
+          type="submit"
+          disabled={isSubmitting || isSuccess || webshopSummary === null}
+        >
+          {isSubmitting ? "Šaljem..." : isSuccess ? "Poslano" : "Pošaljite upit"}
+        </button>
+        <p role="status" aria-live="polite" className={`m-0 rounded-lg text-sm font-bold leading-6 ${status ? "px-3 py-2" : ""} ${isSuccess ? "bg-teal-soft text-teal-dark" : errors.length ? "bg-[#fff1e9] text-orange-dark" : "text-muted"}`}>{status}</p>
       </div>
-      {projectType === "web" && <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor="selectedPackage">Web-paket <span className="font-normal text-muted">(neobavezno)</span></label><select id="selectedPackage" name="selectedPackage" className={controlClass} value={selectedPackage} onChange={event => { setSelectedPackage(event.target.value); replaceSelectionInUrl("web", event.target.value); }} aria-invalid={hasError("selectedPackage") || undefined}><option value="">Još nisam odabrao paket</option>{webPackages.map(item => <option key={item.id} value={item.id}>{item.name} — {item.price.toLocaleString("hr-HR")} €</option>)}</select><FieldError name="selectedPackage" show={hasError("selectedPackage")} /></div>}
-      <Field name="fullName" label="Ime i prezime *" error={hasError("fullName")} />
-      <Field name="companyName" label="Tvrtka ili obrt (neobavezno)" />
-      <Field name="email" label="Email *" type="email" error={hasError("email")} />
-      <Field name="phone" label="Telefon (neobavezno)" type="tel" />
-      <Field name="currentWebsite" label="Postojeći web (neobavezno)" type="url" wide />
-      {projectType === "tool" || projectType === "saas" ? <><TextField name="manualProcess" label="Što danas radite ručno ili u postojećem sustavu, a željeli biste pojednostaviti?" /><Field name="solutionUsers" label="Tko bi koristio rješenje? (neobavezno)" wide /></> : null}
-      <TextField name="problem" label="Kratak opis potrebe *" error={hasError("problem")} help="Barem 20 znakova. Nemojte slati povjerljive poslovne podatke." />
-      <div className="grid gap-3 sm:col-span-2 sm:flex sm:items-center"><button className="min-h-[52px] rounded-lg bg-teal px-6 py-3 text-base font-extrabold text-white transition hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={isSubmitting || isSuccess}>{isSubmitting ? "Šaljem..." : isSuccess ? "Poslano" : "Pošaljite upit"}</button><p role="status" aria-live="polite" className={`m-0 rounded-lg px-3 py-2 text-sm font-bold leading-6 ${isSuccess ? "bg-teal-soft text-teal-dark" : errors.length ? "bg-[#fff1e9] text-orange-dark" : "text-muted"}`}>{status}</p></div>
     </form>
     <p className="m-0 px-1 text-sm leading-6 text-muted">Slanjem upita potvrđujete da ste upoznati s načinom obrade podataka opisanim u <a className="font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark" href="/privatnost">Politici privatnosti</a>.</p>
   </div>;

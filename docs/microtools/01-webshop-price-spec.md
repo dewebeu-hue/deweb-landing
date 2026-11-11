@@ -8,6 +8,8 @@ Kalkulator prikazuje jednokratnu procjenu za novi webshop, redizajn na kompatibi
 
 Početne iznose usporedili smo s javnim cjenicima [Probit](https://www.probit.hr/cjenik-i-paketi-usluga-za-webshopove/), [FLORERA](https://www.florera-studio.hr/cijene) i [Webzy](https://webzy.com.hr/cjenik-usluga). Opseg i uključeni rad razlikuju se među ponuđačima. Brojke u Previewu služe za pregled ponude.
 
+Ponudu je moguće zatražiti na istoj stranici. Kratki obrazac koristi postojeći kontaktni API i uz ime, email i neobaveznu napomenu automatski šalje sažetak odabira. Sažetak je dostupan za pregled prije slanja.
+
 Ispod je zapis izvorne specifikacije i prve implementacije bez cijena.
 
 ## Svrha i jedan smjer

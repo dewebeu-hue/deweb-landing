@@ -103,7 +103,7 @@ test("unknown or bespoke scope explains why a complete price needs review", () =
   }
 });
 
-test("only a priced result copies a numeric estimate", () => {
+test("only a priced result includes a numeric estimate in the inquiry summary", () => {
   const draftSummary = requirementsSummary(estimateWebshop(standard, webshopPriceConfig));
   assert.match(draftSummary, /Novi webshop/);
   assert.match(draftSummary, /Do 20 proizvoda/);

@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
-import { projectSelectionHref } from "../../../lib/project-selection";
+import { ProblemForm } from "../../problem-form";
 import type { PriceConfig, SpecialNeed } from "../../../lib/webshop-price-config";
 import {
   catalogLabels, contentLabels, contentScope, emptyAnswers, estimateWebshop, formatWebshopRange,
@@ -51,17 +50,18 @@ const specialModes = [
 export function WebshopCalculator({ config }: { config: PriceConfig }) {
   const [answers, setAnswers] = useState<Answers>(emptyAnswers);
   const [attempted, setAttempted] = useState(false);
-  const [copyStatus, setCopyStatus] = useState("");
+  const [quoteOpened, setQuoteOpened] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  const quoteHeading = useRef<HTMLHeadingElement>(null);
   const estimate = estimateWebshop(answers, config);
   const errors = attempted ? estimate.errors : {};
   const complete = estimate.status === "manual" || estimate.status === "pricing_unavailable" || estimate.status === "priced";
   const showResult = attempted && complete;
+  const summary = showResult ? requirementsSummary(estimate) : null;
   const actionLabel = config.approval === "draft" ? "Prikaži pregled" : "Izračunaj okvirnu cijenu";
 
   function update<K extends keyof Answers>(name: K, value: Answers[K]) {
     setAnswers(previous => ({ ...previous, [name]: value }));
-    setCopyStatus("");
   }
   function toggleNeed(need: SpecialNeed) {
     setAnswers(previous => ({
@@ -70,7 +70,6 @@ export function WebshopCalculator({ config }: { config: PriceConfig }) {
         ? previous.specialNeeds.filter(item => item !== need)
         : [...previous.specialNeeds, need],
     }));
-    setCopyStatus("");
   }
   function submitEstimate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -82,13 +81,9 @@ export function WebshopCalculator({ config }: { config: PriceConfig }) {
       if (firstError) event.currentTarget.querySelector<HTMLInputElement>(`input[name="${firstError}"]`)?.focus();
     }
   }
-  async function copySummary() {
-    try {
-      await navigator.clipboard.writeText(requirementsSummary(estimate));
-      setCopyStatus("Sažetak je kopiran.");
-    } catch {
-      setCopyStatus("Otvorite sažetak i kopirajte ga ručno.");
-    }
+  function openQuote() {
+    setQuoteOpened(true);
+    requestAnimationFrame(() => quoteHeading.current?.focus());
   }
 
   return (
@@ -101,7 +96,6 @@ export function WebshopCalculator({ config }: { config: PriceConfig }) {
           <RadioQuestion title="Kako ćemo unijeti proizvode?" name="contentSupport" options={contentOptions} value={answers.contentSupport} error={errors.contentSupport} onChange={value => update("contentSupport", value as Answers["contentSupport"])} />
           <RadioQuestion title="Trebate li dodatne funkcije?" name="specialMode" options={specialModes} value={answers.specialMode} error={errors.specialMode} onChange={value => {
             setAnswers(previous => ({ ...previous, specialMode: value as Answers["specialMode"], specialNeeds: value === "custom" ? previous.specialNeeds : [] }));
-            setCopyStatus("");
           }} />
           {answers.specialMode === "custom" && (
             <fieldset className="min-w-0" aria-describedby={errors.specialNeeds ? "specialNeeds-error" : undefined} aria-invalid={Boolean(errors.specialNeeds)}>
@@ -128,7 +122,7 @@ export function WebshopCalculator({ config }: { config: PriceConfig }) {
         <button type="submit" className={`${actionClass} mt-7 w-full sm:w-auto`}>{actionLabel}</button>
       </form>
 
-      <section aria-labelledby="result-title" className="min-w-0 rounded-xl bg-[#edf6f7] p-5 sm:p-7 lg:sticky lg:top-6">
+      <section aria-labelledby="result-title" className={`min-w-0 rounded-xl bg-[#edf6f7] p-5 sm:p-7 ${quoteOpened ? "" : "lg:sticky lg:top-6"}`}>
         <h2 id="result-title" className="text-2xl font-black">Vaša procjena</h2>
         <div ref={resultRef} tabIndex={-1} className="mt-4 scroll-mt-6 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-teal" aria-live="polite">
           {!showResult && <p className="leading-7 text-teal-dark">Odgovorite na pitanja za pregled stavki i procjene.</p>}
@@ -161,18 +155,26 @@ export function WebshopCalculator({ config }: { config: PriceConfig }) {
           <h3 className="font-black">Troškovi izvan izrade</h3>
           <p className="mt-1 text-sm leading-6 text-teal-dark">Domena, hosting, licence, certifikati, naknade za plaćanje i dostavu te održavanje ugovaraju se zasebno.</p>
         </div>
-        {showResult && (
+        {summary && (
           <div className="mt-6 border-t border-teal/20 pt-4">
             <details>
               <summary className="cursor-pointer py-2 text-sm font-bold text-teal-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">Sažetak za ponudu</summary>
-              <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-white p-3 font-sans text-sm leading-6">{requirementsSummary(estimate)}</pre>
+              <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-white p-3 font-sans text-sm leading-6">{summary}</pre>
             </details>
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-              <Link href={projectSelectionHref("shop")} className={actionClass}>Zatraži ponudu</Link>
-              <button type="button" onClick={copySummary} className="min-h-11 text-sm font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">Kopiraj sažetak</button>
-            </div>
-            <p className="mt-3 text-sm leading-6 text-teal-dark">Sažetak možete zalijepiti u opis projekta u obrascu.</p>
-            <p className="text-sm leading-6 text-teal-dark" role="status">{copyStatus}</p>
+            {!quoteOpened && (
+              <button type="button" onClick={openQuote} className={`${actionClass} mt-3 w-full sm:w-auto`}>Zatraži ponudu</button>
+            )}
+          </div>
+        )}
+        {quoteOpened && (
+          <div className="mt-5 border-t border-teal/20 pt-5">
+            <h3 id="webshop-quote-title" ref={quoteHeading} tabIndex={-1} className="scroll-mt-6 text-xl font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal">
+              Kontakt za ponudu
+            </h3>
+            <p className="mb-4 mt-2 text-sm leading-6 text-teal-dark" aria-live="polite">
+              {summary ? "Sažetak odabira automatski se prilaže upitu." : "Dovršite odabire iznad kako biste mogli poslati upit."}
+            </p>
+            <ProblemForm webshopSummary={summary} />
           </div>
         )}
       </section>
