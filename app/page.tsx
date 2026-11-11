@@ -9,6 +9,7 @@ import { webOfferTerms, webPackages } from "../lib/web-packages";
 import { SITE_ORIGIN } from "../lib/seo-policy";
 import { SiteFooter } from "./site-footer";
 import { Portfolio } from "./portfolio";
+import serviceIllustration from "./service-illustration.module.css";
 
 export const metadata: Metadata = {
   title: "Izrada web-stranica, webshopova i poslovnih alata | deweb",
@@ -41,10 +42,12 @@ const nav = [
 ] as const;
 
 const servicePaths = [
-  { goal: "Predstaviti posao i primati upite", service: "Web-stranice i redizajn", href: "#web-stranice" },
-  { goal: "Prodavati online", service: "Izrada i dorada webshopa", href: "#webshopovi" },
-  { goal: "Smanjiti ručni rad", service: "Poslovni alati za upite, ponude i evidenciju", href: "#interni-alati" },
+  { id: "web", goal: "Predstaviti posao i primati upite", service: "Web-stranice i redizajn", href: "#web-stranice" },
+  { id: "shop", goal: "Prodavati online", service: "Izrada i dorada webshopa", href: "#webshopovi" },
+  { id: "tool", goal: "Smanjiti ručni rad", service: "Poslovni alati za upite, ponude i evidenciju", href: "#interni-alati" },
 ] as const;
+
+const serviceImageSizes = "(min-width: 1200px) 510px, (min-width: 768px) 42vw, (min-width: 356px) 320px, calc(100vw - 36px)";
 
 const toolExamples = [
   ["Upiti na više mjesta", "Evidencija upita može pokazati tko čeka odgovor i koji je sljedeći korak."],
@@ -80,7 +83,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
 
       <main id="vrh">
         <section className="hero-surface" aria-labelledby="hero-title">
-          <div className={`${frame} grid items-center gap-4 py-9 md:grid-cols-[1.08fr_0.92fr] md:gap-8 md:py-14 lg:gap-14 lg:py-[68px]`}>
+          <div className={`${frame} ${serviceIllustration.art} grid items-center gap-4 py-9 md:grid-cols-[1.08fr_0.92fr] md:gap-8 md:py-14 lg:gap-14 lg:py-[68px]`}>
             <div className="min-w-0 max-w-[570px]">
               <h1 id="hero-title" className="text-balance text-[clamp(2.55rem,4.9vw,4.4rem)] font-black leading-[1.02] tracking-[-0.04em] text-ink">
                 Što želite postići?
@@ -90,9 +93,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
               </p>
               <nav className="mt-6 md:mt-8" aria-label="Odaberite što želite postići">
                 <ul className="grid gap-2">
-                  {servicePaths.map(({ goal, service, href }) => (
+                  {servicePaths.map(({ id, goal, service, href }) => (
                     <li key={href}>
-                      <a href={href} className="group flex min-h-[65px] items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-ink transition-colors duration-150 hover:bg-teal-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-dark motion-reduce:transition-none md:px-5">
+                      <a href={href} data-service-choice={id} className="group flex min-h-[65px] items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-ink transition-colors duration-150 hover:bg-teal-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-dark motion-reduce:transition-none md:px-5">
                         <span className="grid min-w-0 gap-0.5">
                           <strong className="text-[0.98rem] font-extrabold leading-snug md:text-[1.04rem]">{goal}</strong>
                           <span className="text-sm leading-snug text-teal-dark">{service}</span>
@@ -105,7 +108,20 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
               </nav>
               <ProjectLink type="unsure" className="mt-2 inline-flex min-h-11 items-center text-sm font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Nisam siguran što mi treba</ProjectLink>
             </div>
-            <Image src="/deweb-usluge.webp" alt="" width={960} height={960} sizes="(min-width: 1200px) 510px, (min-width: 768px) 42vw, (min-width: 356px) 320px, calc(100vw - 36px)" preload className="mx-auto h-auto w-full max-w-[20rem] select-none md:max-w-[510px]" />
+            <div aria-hidden="true" className="pointer-events-none relative mx-auto aspect-square w-full max-w-[20rem] select-none md:max-w-[510px]">
+              <Image src="/deweb-usluge.webp" alt="" fill sizes={serviceImageSizes} preload className={serviceIllustration.base} />
+              {servicePaths.map(({ id }) => (
+                <Image
+                  key={id}
+                  src="/deweb-usluge.webp"
+                  alt=""
+                  fill
+                  sizes={serviceImageSizes}
+                  loading="eager"
+                  className={`${serviceIllustration.highlight} ${serviceIllustration[id]}`}
+                />
+              ))}
+            </div>
           </div>
         </section>
 
@@ -141,7 +157,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
               <p className="max-w-[56ch] text-lg leading-8 text-ink">Prije izrade dogovaramo kako ćete voditi katalog, naplaćivati narudžbe i organizirati dostavu. Opseg i cijenu definiramo prema vašoj trgovini i potrebnim integracijama.</p>
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
                 <ProjectLink type="shop" className={`${topAction} inline-flex`}>Razgovarajmo o webshopu</ProjectLink>
-                <a href="/alati/kalkulator-cijene-webshopa" className="inline-flex min-h-11 items-center text-sm font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Isprobajte kalkulator opsega</a>
+                <a href="/alati/kalkulator-cijene-webshopa" className="inline-flex min-h-11 items-center text-sm font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Izračunajte cijenu webshopa</a>
               </div>
             </div>
           </div>

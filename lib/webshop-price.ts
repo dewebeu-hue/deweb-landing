@@ -1,25 +1,55 @@
-import type { CatalogSize, ContentSupport, MoneyRange, PriceConfig, ProjectType } from "./webshop-price-config";
+import type { CatalogSize, ContentSupport, MoneyRange, PriceConfig, ProjectType, SpecialNeed } from "./webshop-price-config";
 
-export const projectLabels: Record<ProjectType, string> = { new: "Novi webshop", redesign: "Redizajn postojećeg webshopa" };
+export const projectLabels: Record<ProjectType, string> = {
+  new: "Novi webshop",
+  redesign: "Redizajn postojećeg webshopa",
+  migration: "Preseljenje na novu platformu",
+};
+export const projectScope: Record<ProjectType, string> = {
+  new: "Postavljanje trgovine i prilagodba izgleda vašem brendu.",
+  redesign: "Obnova izgleda i kupnje na postojećoj, kompatibilnoj platformi.",
+  migration: "Postavljanje nove trgovine i preusmjeravanje starih adresa.",
+};
 export const catalogLabels: Record<CatalogSize, string> = {
-  upTo50: "Do 50 proizvoda",
-  from51To500: "51–500 proizvoda",
-  over500: "Više od 500 proizvoda",
+  upTo20: "Do 20 proizvoda",
+  from21To50: "21–50 proizvoda",
+  from51To200: "51–200 proizvoda",
+  from201To500: "201–500 proizvoda",
+  from501To1000: "501–1.000 proizvoda",
+  over1000: "Više od 1.000 proizvoda",
   unknown: "Još ne znam",
 };
 export const contentLabels: Record<ContentSupport, string> = {
-  self: "Proizvode i sadržaj unosim samostalno",
-  help: "Treba mi pomoć s unosom ili prijenosom",
-  unknown: "Još nije jasno",
+  self: "Unosim samostalno ili zadržavam postojeći katalog",
+  import: "Uvoz iz pripremljene tablice",
+  help: "Ručni unos do 20 proizvoda",
+  extensive: "Veći ručni unos ili sređivanje podataka",
+  unknown: "Još ne znam kako ćemo unijeti sadržaj",
 };
-export const specialLabels = {
-  integration: "Povezivanje s ERP/POS ili drugim sustavom",
-  b2b: "B2B pravila",
+export const contentScope: Partial<Record<ContentSupport, string>> = {
+  import: "Jedna uređena CSV tablica s podacima i poveznicama na slike.",
+  help: "Dostavljate gotove opise i slike. Ostatak kataloga unosite sami.",
+};
+export const specialLabels: Record<SpecialNeed, string> = {
+  integration: "ERP, blagajna ili drugi poslovni sustav",
+  invoicing: "Računi i fiskalizacija",
+  b2b: "Posebne cijene za poslovne kupce",
   subscriptions: "Pretplate",
-  languages: "Više jezika ili valuta",
-  delivery: "Posebna dostava ili naplata",
-} as const;
-export type SpecialNeed = keyof typeof specialLabels;
+  languages: "Dodatni jezik",
+  currency: "Dodatna valuta",
+  delivery: "Dodatna dostava ili naplata",
+  bespoke: "Integracija po mjeri ili drugi složeniji zahtjev",
+};
+export const specialScope: Record<SpecialNeed, string> = {
+  integration: "Jedno povezivanje putem postojećeg, kompatibilnog dodatka.",
+  invoicing: "Povezivanje s jednim kompatibilnim servisom i provjera izdavanja računa.",
+  b2b: "Jedna grupa kupaca s posebnim cijenama putem gotovog dodatka.",
+  subscriptions: "Jedan model ponavljajuće naplate uz podržan način plaćanja.",
+  languages: "Jedan dodatni jezik uz gotove prijevode.",
+  currency: "Jedna dodatna valuta uz podržanu naplatu.",
+  delivery: "Jedna dodatna služba ili metoda plaćanja uz gotov dodatak.",
+  bespoke: "Npr. nestandardni ERP, više grupa kupaca ili prijenos narudžbi i računa kupaca.",
+};
 export type SpecialMode = "standard" | "custom" | "unknown";
 export type Answers = {
   projectType: ProjectType | "";
@@ -39,12 +69,13 @@ export type Estimate = {
   range?: MoneyRange;
   currency?: "EUR";
   taxDisplay?: string;
+  items?: { label: string; range: MoneyRange }[];
 };
 
 const allowed = <T extends string>(value: unknown, values: readonly T[]): value is T => typeof value === "string" && values.includes(value as T);
-const projectTypes: ProjectType[] = ["new", "redesign"];
-const catalogSizes: CatalogSize[] = ["upTo50", "from51To500", "over500", "unknown"];
-const contentSupports: ContentSupport[] = ["self", "help", "unknown"];
+const projectTypes = Object.keys(projectLabels) as ProjectType[];
+const catalogSizes = Object.keys(catalogLabels) as CatalogSize[];
+const contentSupports = Object.keys(contentLabels) as ContentSupport[];
 const specialModes: SpecialMode[] = ["standard", "custom", "unknown"];
 const specialNeeds = Object.keys(specialLabels) as SpecialNeed[];
 
@@ -80,8 +111,18 @@ function validRange(value: unknown): value is MoneyRange {
   return Number.isSafeInteger(range.min) && Number.isSafeInteger(range.max) && range.min! >= 0 && range.max! >= range.min!;
 }
 
-function approvedConfig(config: PriceConfig): boolean {
-  return config.approval === "approved" && Boolean(config.version.trim()) && Boolean(config.approvedAt?.trim()) && Boolean(config.approvedBy?.trim()) && config.currency === "EUR" && Boolean(config.taxDisplay?.trim()) && (config.rounding === "none" || config.rounding === "nearestEuro");
+function usableConfig(config: PriceConfig): boolean {
+  const approvalValid = config.approval === "preview"
+    || (config.approval === "approved" && Boolean(config.approvedAt?.trim()) && Boolean(config.approvedBy?.trim()));
+  return approvalValid && Boolean(config.version.trim()) && config.currency === "EUR"
+    && Boolean(config.taxDisplay?.trim()) && (config.rounding === "none" || config.rounding === "nearestEuro");
+}
+
+const euroNumber = new Intl.NumberFormat("hr-HR", { maximumFractionDigits: 2 });
+
+export function formatWebshopRange({ min, max }: MoneyRange): string {
+  const lower = euroNumber.format(min / 100);
+  return min === max ? `${lower} €` : `${lower}–${euroNumber.format(max / 100)} €`;
 }
 
 export function estimateWebshop(raw: unknown, config: PriceConfig): Estimate {
@@ -94,25 +135,48 @@ export function estimateWebshop(raw: unknown, config: PriceConfig): Estimate {
   if (answers.specialMode) summary.push(`Poseban način prodaje: ${answers.specialMode === "standard" ? "Ne, standardna kupnja" : answers.specialMode === "unknown" ? "Još nije jasno" : answers.specialNeeds.map(need => specialLabels[need]).join(", ") || "Nije odabrano"}`);
   if (Object.keys(errors).length) return { status: incomplete && Object.values(errors).every(error => error === "Odaberite odgovor." || error === "Odaberite barem jedan poseban zahtjev.") ? "incomplete" : "invalid", errors, summary, reasons: [] };
 
-  const reasons: string[] = [];
-  if (answers.catalogSize === "unknown") reasons.push("Broj proizvoda još nije poznat.");
-  if (answers.contentSupport === "unknown") reasons.push("Opseg unosa ili prijenosa sadržaja još nije poznat.");
-  if (answers.specialMode === "unknown") reasons.push("Poseban način prodaje još nije razjašnjen.");
-  if (answers.specialMode === "custom") reasons.push(...answers.specialNeeds.map(need => specialLabels[need]));
-  if (reasons.length) return { status: "manual", errors: {}, summary, reasons };
+  const { projectType, catalogSize, contentSupport, specialMode, specialNeeds: needs } = answers;
+  if (!projectType || !catalogSize || !contentSupport || !specialMode) return { status: "incomplete", errors, summary, reasons: [] };
 
-  if (!approvedConfig(config)) return { status: "pricing_unavailable", errors: {}, summary, reasons: [], priceCause: "pending" };
-  const project = config.base[answers.projectType as ProjectType];
-  const catalog = config.catalog[answers.catalogSize as Exclude<CatalogSize, "unknown">];
-  const content = config.content[answers.contentSupport as Exclude<ContentSupport, "unknown">];
-  if (![project, catalog, content].every(validRange)) return { status: "pricing_unavailable", errors: {}, summary, reasons: [], priceCause: "incomplete" };
-  const lower = project!.min + catalog!.min + content!.min;
-  const upper = project!.max + catalog!.max + content!.max;
-  if (!Number.isSafeInteger(lower) || !Number.isSafeInteger(upper) || lower > upper) return { status: "pricing_unavailable", errors: {}, summary, reasons: [], priceCause: "incomplete" };
+  const reasons: string[] = [];
+  if (catalogSize === "unknown") reasons.push("Broj proizvoda još nije poznat.");
+  if (catalogSize === "over1000") reasons.push("Za katalog veći od 1.000 proizvoda potrebno je provjeriti podatke i zahtjeve trgovine.");
+  if (contentSupport === "unknown") reasons.push("Način unosa proizvoda još nije poznat.");
+  if (contentSupport === "extensive") reasons.push("Veći ručni unos i sređivanje podataka procjenjujemo prema uzorku.");
+  if (specialMode === "unknown") reasons.push("Dodatne funkcije još nisu razjašnjene.");
+  if (needs.includes("bespoke")) reasons.push("Za integraciju po mjeri ili složeniji zahtjev prvo provjeravamo opseg.");
+  if (projectType === "migration" && (contentSupport === "self" || contentSupport === "help")) reasons.push("Za preseljenje treba potvrditi kako će se postojeći katalog prenijeti.");
+  if (reasons.length || catalogSize === "unknown" || catalogSize === "over1000"
+    || contentSupport === "unknown" || contentSupport === "extensive") {
+    return { status: "manual", errors: {}, summary, reasons };
+  }
+
+  if (!usableConfig(config)) return { status: "pricing_unavailable", errors: {}, summary, reasons: [], priceCause: "pending" };
+  const items = [
+    { label: projectLabels[projectType], range: config.base[projectType] },
+    { label: catalogLabels[catalogSize], range: config.catalog[catalogSize] },
+    { label: contentLabels[contentSupport], range: config.content[contentSupport] },
+    ...needs.filter(need => need !== "bespoke").map(need => ({ label: specialLabels[need], range: config.special[need] })),
+  ];
+  const pricedItems = items.filter((item): item is { label: string; range: MoneyRange } => validRange(item.range));
+  const total = pricedItems.reduce(({ min, max }, { range }) => ({ min: min + range.min, max: max + range.max }), { min: 0, max: 0 });
   const round = (amount: number) => config.rounding === "nearestEuro" ? Math.round(amount / 100) * 100 : amount;
-  return { status: "priced", errors: {}, summary, reasons: [], range: { min: round(lower), max: round(upper) }, currency: "EUR", taxDisplay: config.taxDisplay! };
+  const range = { min: round(total.min), max: round(total.max) };
+  if (pricedItems.length !== items.length || !validRange(total) || !validRange(range)) {
+    return { status: "pricing_unavailable", errors: {}, summary, reasons: [], priceCause: "incomplete" };
+  }
+  return {
+    status: "priced", errors: {}, summary, reasons, range, currency: "EUR", taxDisplay: config.taxDisplay!,
+    items: pricedItems.filter(({ range }) => range.max > 0),
+  };
 }
 
 export function requirementsSummary(estimate: Estimate): string {
-  return ["Zahtjevi za webshop", ...estimate.summary, ...(estimate.reasons.length ? ["Za razgovor: " + estimate.reasons.join("; ")] : []), "Okvirna cijena nije potvrđena; molim ponudu nakon pregleda zahtjeva."].join("\n");
+  return [
+    "Zahtjevi za webshop",
+    ...estimate.summary,
+    ...estimate.reasons,
+    ...(estimate.range ? [`Okvirna procjena izrade ${formatWebshopRange(estimate.range)}`] : []),
+    "Molim ponudu nakon pregleda zahtjeva.",
+  ].join("\n");
 }

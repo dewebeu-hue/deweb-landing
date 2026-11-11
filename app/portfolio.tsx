@@ -5,7 +5,7 @@ const projectsInDevelopment = [
   { name: "Ponude", type: "Pilot", summary: "Poslovna aplikacija za izradu i praćenje ponuda, s katalogom, PDF-om i podsjetnicima." },
   { name: "Konfiguratori za ponude", type: "Demonstracije", summary: "Primjeri kako kupac sam odabire opcije proizvoda, a prodaja dobiva strukturiran upit." },
   { name: "VSME Passport", type: "U razvoju", summary: "Alat za organiziranje podataka o održivosti malih i srednjih poduzeća." },
-  { name: "Kalkulator opsega webshopa", type: "Javni prototip", summary: "Iz kratkih odgovora sastavlja sažetak zahtjeva za izradu webshopa.", href: "/alati/kalkulator-cijene-webshopa" },
+  { name: "Kalkulator cijene webshopa", type: "Javni prototip", summary: "Iz kratkih odgovora sastavlja sažetak zahtjeva za izradu webshopa.", href: "/alati/kalkulator-cijene-webshopa" },
 ];
 
 const projectLink = "inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark";
@@ -16,7 +16,7 @@ export function Portfolio() {
       <div className="mx-auto w-[min(100%-36px,1160px)]">
         <div className="reveal-on-scroll" data-reveal>
           <h2 id="work-title" className="text-[2rem] font-black leading-[1.12] tracking-[-0.035em] text-ink sm:text-[2.65rem] lg:text-[3.1rem]">Odabrani radovi</h2>
-          <p className="mt-4 max-w-[65ch] leading-7 text-muted">Webshop i vlastite platforme koje možete otvoriti, uz poslovne alate koje razvijamo i testiramo.</p>
+          <p className="mt-4 max-w-[65ch] leading-7 text-muted">Webshop, platforme i poslovni alati.</p>
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-3">

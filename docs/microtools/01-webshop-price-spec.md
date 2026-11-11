@@ -1,6 +1,14 @@
 # Specifikacija: kalkulator cijene webshopa
 
-Status: **tehnički nacrt spreman; brojčani poslovni model BLOCKED**. Predložena ruta: `/alati/kalkulator-cijene-webshopa`; nadređena ruta `/alati` kasnije je jednostavan popis tri najavljena alata (cijena webshopa, isplativost kvalificiranih upita, marža i doprinos po narudžbi). Ovaj dokument specificira samo prvi alat. Izvori i provjere su u [00-project-audit.md](00-project-audit.md).
+Status: **prijedlog cjenika aktivan u Previewu**. Produkcijska konfiguracija ostaje u stanju nacrta.
+
+## Izmjene u Previewu — studeni 2026.
+
+Kalkulator prikazuje jednokratnu procjenu za novi webshop, redizajn na kompatibilnoj platformi i preseljenje s uvozom iz pripremljene tablice. Cijena se slaže od osnovice, veličine kataloga, unosa i odabranih dodataka. Iznosi i granice nalaze se u [webshop-price-config.ts](../../lib/webshop-price-config.ts). Dodatke procjenjujemo za jasno ograničen opseg i gotove kompatibilne integracije. Posebna ponuda pokriva nestandardne integracije, katalog veći od 1.000 proizvoda, nepripremljene podatke i nejasan opseg. Vanjske i tekuće troškove iskazujemo odvojeno.
+
+Početne iznose usporedili smo s javnim cjenicima [Probit](https://www.probit.hr/cjenik-i-paketi-usluga-za-webshopove/), [FLORERA](https://www.florera-studio.hr/cijene) i [Webzy](https://webzy.com.hr/cjenik-usluga). Opseg i uključeni rad razlikuju se među ponuđačima. Brojke u Previewu služe za pregled ponude.
+
+Ispod je zapis izvorne specifikacije i prve implementacije bez cijena.
 
 ## Svrha i jedan smjer
 
