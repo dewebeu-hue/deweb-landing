@@ -95,7 +95,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
                 <ul className="grid gap-2">
                   {servicePaths.map(({ id, goal, service, href }) => (
                     <li key={href}>
-                      <a href={href} data-service-choice={id} className="group flex min-h-[65px] items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-ink transition-colors duration-150 hover:bg-teal-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-dark motion-reduce:transition-none md:px-5">
+                      <a href={href} data-service-choice={id} className={`${serviceIllustration.choice} group flex min-h-[65px] items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-dark md:px-5`}>
                         <span className="grid min-w-0 gap-0.5">
                           <strong className="text-[0.98rem] font-extrabold leading-snug md:text-[1.04rem]">{goal}</strong>
                           <span className="text-sm leading-snug text-teal-dark">{service}</span>

@@ -1,13 +1,40 @@
 .art {
+  --service-fade: 180ms cubic-bezier(0.23, 1, 0.32, 1);
   --art-base: 1;
   --art-web: 0;
   --art-shop: 0;
   --art-tool: 0;
 }
 
+/* The light sits beside the arrow, in the direction of the illustration. */
+.choice {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.choice::before {
+  position: absolute;
+  inset: -40% -8% -40% auto;
+  z-index: -1;
+  width: 58%;
+  border-radius: 50%;
+  background: #bdebed;
+  filter: blur(30px);
+  opacity: 0;
+  pointer-events: none;
+  content: "";
+  transition: opacity var(--service-fade);
+}
+
+.choice:focus-visible::before {
+  opacity: 1;
+  transition: none;
+}
+
 .base,
 .highlight {
-  transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+  transition: opacity var(--service-fade);
 }
 
 .base {
@@ -55,6 +82,10 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .choice:hover::before {
+    opacity: 1;
+  }
+
   .art:has([data-service-choice]:hover) {
     --art-base: 0.68;
   }
@@ -80,6 +111,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .choice::before,
   .base,
   .highlight {
     transition: none;
