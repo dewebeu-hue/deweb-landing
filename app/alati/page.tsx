@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { webshopPricingForEnvironment } from "../../lib/webshop-price-config";
 
 export const metadata: Metadata = {
   title: "Besplatni alati | deweb",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default function ToolsPage() {
-  const showPrices = process.env.VERCEL_ENV === "preview";
+  const showPrices = webshopPricingForEnvironment(process.env.VERCEL_ENV).approval !== "draft";
   return (
     <main className="mx-auto min-h-screen w-[min(100%-36px,1120px)] pb-20 text-ink">
       <div className="flex items-center justify-between border-b border-line py-5">

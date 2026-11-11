@@ -1,12 +1,12 @@
 # Specifikacija: kalkulator cijene webshopa
 
-Status: **prijedlog cjenika aktivan u Previewu**. Produkcijska konfiguracija ostaje u stanju nacrta.
+Status: **okvirne procjene aktivne u produkciji od 11. 11. 2026.** Objavljeni rasponi odgovaraju Previewu odobrenom za objavu na deweb.hr. Konačna ponuda slijedi nakon provjere zahtjeva.
 
-## Izmjene u Previewu — studeni 2026.
+## Kalkulator i slanje upita — studeni 2026.
 
 Kalkulator prikazuje jednokratnu procjenu za novi webshop, redizajn na kompatibilnoj platformi i preseljenje s uvozom iz pripremljene tablice. Cijena se slaže od osnovice, veličine kataloga, unosa i odabranih dodataka. Iznosi i granice nalaze se u [webshop-price-config.ts](../../lib/webshop-price-config.ts). Dodatke procjenjujemo za jasno ograničen opseg i gotove kompatibilne integracije. Posebna ponuda pokriva nestandardne integracije, katalog veći od 1.000 proizvoda, nepripremljene podatke i nejasan opseg. Vanjske i tekuće troškove iskazujemo odvojeno.
 
-Početne iznose usporedili smo s javnim cjenicima [Probit](https://www.probit.hr/cjenik-i-paketi-usluga-za-webshopove/), [FLORERA](https://www.florera-studio.hr/cijene) i [Webzy](https://webzy.com.hr/cjenik-usluga). Opseg i uključeni rad razlikuju se među ponuđačima. Brojke u Previewu služe za pregled ponude.
+Početne iznose usporedili smo s javnim cjenicima [Probit](https://www.probit.hr/cjenik-i-paketi-usluga-za-webshopove/), [FLORERA](https://www.florera-studio.hr/cijene) i [Webzy](https://webzy.com.hr/cjenik-usluga). Opseg i uključeni rad razlikuju se među ponuđačima.
 
 Ponudu je moguće zatražiti na istoj stranici. Kratki obrazac koristi postojeći kontaktni API i uz ime, email i neobaveznu napomenu automatski šalje sažetak odabira. Sažetak je dostupan za pregled prije slanja.
 

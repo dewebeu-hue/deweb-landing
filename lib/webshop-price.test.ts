@@ -23,9 +23,15 @@ test("untrusted values and inconsistent choices are invalid", () => {
   assert.ok(validateWebshopAnswers({ ...standard, specialMode: "custom", specialNeeds: ["unknown"] }).errors.specialNeeds);
 });
 
-test("preview pricing stays scoped to Preview and a draft refuses injected prices", () => {
+test("production uses the reviewed estimates and a draft refuses injected prices", () => {
   assert.equal(webshopPricingForEnvironment("preview"), config);
-  for (const environment of ["production", "development", undefined]) {
+  const production = webshopPricingForEnvironment("production");
+  assert.equal(production.approval, "approved");
+  const example = { ...standard, catalogSize: "from51To200", contentSupport: "import" };
+  const estimate = estimateWebshop(example, production);
+  assert.equal(estimate.status, "priced");
+  assert.deepEqual(estimate.range, amounts(1330, 2030));
+  for (const environment of ["development", undefined]) {
     const draft = webshopPricingForEnvironment(environment);
     assert.equal(draft, webshopPriceConfig);
     assert.equal(estimateWebshop(standard, draft).status, "pricing_unavailable");

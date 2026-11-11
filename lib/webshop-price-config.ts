@@ -74,6 +74,15 @@ export const webshopPreviewPriceConfig: PriceConfig = {
   },
 };
 
+const webshopProductionPriceConfig: PriceConfig = {
+  ...webshopPreviewPriceConfig,
+  version: "2026-11-11",
+  approval: "approved",
+  approvedAt: "2026-11-11",
+  approvedBy: "deweb",
+};
+
 export function webshopPricingForEnvironment(environment: string | undefined): PriceConfig {
+  if (environment === "production") return webshopProductionPriceConfig;
   return environment === "preview" ? webshopPreviewPriceConfig : webshopPriceConfig;
 }
