@@ -109,24 +109,20 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
               <ProjectLink type="unsure" className="mt-2 inline-flex min-h-11 items-center text-sm font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Nisam siguran što mi treba</ProjectLink>
             </div>
             <div aria-hidden="true" className="pointer-events-none relative mx-auto aspect-square w-full max-w-[20rem] select-none md:max-w-[510px]">
-              <Image src="/deweb-usluge.webp" alt="" fill sizes={serviceImageSizes} preload className={serviceIllustration.base} />
+              <div className={serviceIllustration.platform} />
               {servicePaths.map(({ id }) => (
-                <Image
-                  key={id}
-                  src="/deweb-usluge.webp"
-                  alt=""
-                  fill
-                  sizes={serviceImageSizes}
-                  loading="eager"
-                  className={`${serviceIllustration.highlight} ${serviceIllustration[id]}`}
-                />
+                <div key={id} className={`${serviceIllustration.piece} ${serviceIllustration[id]}`}>
+                  {id === "web" && <span className={serviceIllustration.browserBacking} />}
+                  <Image
+                    src="/deweb-usluge.webp"
+                    alt=""
+                    fill
+                    sizes={serviceImageSizes}
+                    loading="eager"
+                    className={serviceIllustration.texture}
+                  />
+                </div>
               ))}
-              <span className={`${serviceIllustration.event} ${serviceIllustration.inquiry}`}>
-                Novi upit s weba
-              </span>
-              <span className={`${serviceIllustration.event} ${serviceIllustration.received}`}>
-                <span className={serviceIllustration.check}>✓</span> Upit u evidenciji
-              </span>
             </div>
           </div>
         </section>
