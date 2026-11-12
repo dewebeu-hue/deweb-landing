@@ -108,7 +108,6 @@
   border-radius: 9% / 12%;
   background: #f8fcfc;
   box-shadow: -7px 7px 0 #91afb4, -10px 15px 18px rgb(8 42 61 / 24%);
-  transform: skewY(5deg);
   container-type: inline-size;
 }
 
@@ -218,7 +217,6 @@
     -7px 5px 0 #b53d16,
     -10px 11px 16px rgb(109 43 22 / 25%),
     inset 0 2px 4px rgb(255 234 211 / 55%);
-  transform: skewY(-4deg);
 }
 
 .toolTile::after {
