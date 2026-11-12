@@ -98,36 +98,101 @@
   --anchor-y: 83%;
 }
 
-/* The original browser image is partly behind the bag and checkmark. */
-.browserBacking {
+.browser {
   position: absolute;
-  inset: 11% 20.5% 34% 20.5%;
+  inset: 19% 19% 34%;
+  display: grid;
+  grid-template-rows: 22% 1fr;
   overflow: hidden;
-  border-radius: 12% 12% 10% 10%;
-  background: linear-gradient(115deg, #aeb9bb, #e4e7e7 13%, #d6dbdc 87%, #8d9da1);
-  box-shadow: 0 6px 12px rgb(8 42 61 / 20%);
-  transform: skewY(7deg);
+  border: 1px solid #a8c6ca;
+  border-radius: 9% / 12%;
+  background: #f8fcfc;
+  box-shadow: -7px 7px 0 #91afb4, -10px 15px 18px rgb(8 42 61 / 24%);
+  transform: skewY(5deg);
+  container-type: inline-size;
 }
 
-.browserBacking::after {
-  position: absolute;
-  inset: 25% 7% 10% 14%;
-  border-radius: 7%;
-  background: linear-gradient(150deg, #173749, #1c485a 75%, #133243);
-  content: "";
+.browserBar {
+  display: flex;
+  align-items: center;
+  gap: 9%;
+  padding-inline: 7%;
+  background: #15394c;
 }
 
-/* Follow the visible edges of the three objects in deweb-usluge.webp. */
-.web .texture {
-  clip-path: polygon(
-    20.5% 47.8%, 20.5% 16%, 21.5% 12%, 24% 8.7%, 28% 6.7%, 32% 6.4%,
-    73.5% 13.3%, 77.1% 15.3%, 79% 18.6%, 79.5% 23%, 79.5% 49.4%,
-    60% 49.4%, 55.7% 50%, 52.7% 52.1%, 50.2% 57.7%, 47.3% 57.7%,
-    46.2% 50.6%, 45.2% 49.5%, 40.2% 49.2%, 39.4% 44.5%, 37.6% 40.5%,
-    35% 38.3%, 31.5% 37.4%, 28.5% 38%, 25.3% 40.3%, 22.6% 43.4%, 21.3% 47.8%
-  );
+.browserControls {
+  flex: 0 0 18%;
+  aspect-ratio: 4;
+  background:
+    radial-gradient(circle closest-side, #f4ad61 90%, transparent) left / 25% 100% no-repeat,
+    radial-gradient(circle closest-side, #9bc2c9 90%, transparent) center / 25% 100% no-repeat,
+    radial-gradient(circle closest-side, #60adb5 90%, transparent) right / 25% 100% no-repeat;
 }
 
+.browserAddress {
+  width: 62%;
+  border-radius: 99px;
+  padding: 0.12em 0.65em;
+  background: #e4f0f1;
+  color: #214757;
+  font-size: 5cqi;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.browserPage {
+  display: grid;
+  grid-template-columns: 1fr 0.95fr;
+  grid-template-rows: 22% 1fr;
+  gap: 8%;
+  padding: 7%;
+  background: linear-gradient(135deg, #fff, #e3f1f2);
+}
+
+.browserNav {
+  grid-column: 1 / -1;
+  border-bottom: 1px solid #c1d9dc;
+  background:
+    linear-gradient(#0c7480, #0c7480) left 28% / 18% 33% no-repeat,
+    linear-gradient(#6b9ca6, #6b9ca6) 74% 28% / 10% 20% no-repeat,
+    linear-gradient(#6b9ca6, #6b9ca6) 89% 28% / 10% 20% no-repeat,
+    linear-gradient(#6b9ca6, #6b9ca6) right 28% / 7% 20% no-repeat;
+}
+
+.browserCopy {
+  display: grid;
+  align-content: center;
+  gap: 13%;
+  padding-block: 6%;
+}
+
+.browserCopy span {
+  height: 3cqi;
+  border-radius: 99px;
+  background: #23495d;
+}
+
+.browserCopy span:nth-child(2) {
+  width: 72%;
+}
+
+.browserCopy span:last-child {
+  width: 60%;
+  height: 6cqi;
+  margin-top: 8%;
+  background: #087986;
+}
+
+.browserImage {
+  border-radius: 10% / 14%;
+  background:
+    radial-gradient(circle at 73% 27%, #f4ad61 0 7%, transparent 8%),
+    linear-gradient(149deg, transparent 55%, #236b7c 56%),
+    linear-gradient(36deg, #76b7c1 37%, transparent 38%),
+    linear-gradient(140deg, #d1eaeb, #549dac);
+}
+
+/* Follow the visible edges of the bag and checkmark in deweb-usluge.webp. */
 .shop .texture {
   clip-path: polygon(
     10.4% 78.3%, 15.8% 51.1%, 16.4% 49.7%, 19% 49.1%, 22.5% 49.1%,

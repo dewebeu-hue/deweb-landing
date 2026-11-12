@@ -112,15 +112,32 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
               <div className={serviceIllustration.platform} />
               {servicePaths.map(({ id }) => (
                 <div key={id} className={`${serviceIllustration.piece} ${serviceIllustration[id]}`}>
-                  {id === "web" && <span className={serviceIllustration.browserBacking} />}
-                  <Image
-                    src="/deweb-usluge.webp"
-                    alt=""
-                    fill
-                    sizes={serviceImageSizes}
-                    loading="eager"
-                    className={serviceIllustration.texture}
-                  />
+                  {id === "web" ? (
+                    <div className={serviceIllustration.browser}>
+                      <div className={serviceIllustration.browserBar}>
+                        <span className={serviceIllustration.browserControls} />
+                        <span className={serviceIllustration.browserAddress}>www.</span>
+                      </div>
+                      <div className={serviceIllustration.browserPage}>
+                        <div className={serviceIllustration.browserNav} />
+                        <div className={serviceIllustration.browserCopy}>
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+                        <div className={serviceIllustration.browserImage} />
+                      </div>
+                    </div>
+                  ) : (
+                    <Image
+                      src="/deweb-usluge.webp"
+                      alt=""
+                      fill
+                      sizes={serviceImageSizes}
+                      loading="eager"
+                      className={serviceIllustration.texture}
+                    />
+                  )}
                 </div>
               ))}
             </div>
