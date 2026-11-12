@@ -86,10 +86,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
           <div className={`${frame} ${serviceIllustration.art} grid items-center gap-4 py-9 md:grid-cols-[1.08fr_0.92fr] md:gap-8 md:py-14 lg:gap-14 lg:py-[68px]`}>
             <div className="min-w-0 max-w-[570px]">
               <h1 id="hero-title" className="text-balance text-[clamp(2.55rem,4.9vw,4.4rem)] font-black leading-[1.02] tracking-[-0.04em] text-ink">
-                Što želite postići?
+                Web za kupce. <span className="text-teal-dark">Alati za vaš tim.</span>
               </h1>
               <p className="mt-4 max-w-[44ch] text-base leading-7 text-ink md:mt-5 md:text-xl md:leading-8">
-                Izrađujemo web-stranice, webshopove i poslovne alate po mjeri.
+                Izrađujemo web-stranice, webshopove i poslovne alate po mjeri. Web-stranice od {webPackages[0].price.toLocaleString("hr-HR")} €.
               </p>
               <nav className="mt-6 md:mt-8" aria-label="Odaberite što želite postići">
                 <ul className="grid gap-2">
@@ -121,6 +121,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
                   className={`${serviceIllustration.highlight} ${serviceIllustration[id]}`}
                 />
               ))}
+              <span className={`${serviceIllustration.event} ${serviceIllustration.inquiry}`}>
+                Novi upit s weba
+              </span>
+              <span className={`${serviceIllustration.event} ${serviceIllustration.received}`}>
+                <span className={serviceIllustration.check}>✓</span> Upit u evidenciji
+              </span>
             </div>
           </div>
         </section>

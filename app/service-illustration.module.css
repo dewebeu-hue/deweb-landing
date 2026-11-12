@@ -45,6 +45,58 @@
   filter: brightness(1.1) saturate(1.14);
 }
 
+.event {
+  position: absolute;
+  right: 1%;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid #bfdce2;
+  border-radius: 0.75rem;
+  padding: 0.45rem 0.7rem;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(8 42 61 / 12%);
+  color: #18314f;
+  font-size: clamp(0.68rem, 1.1vw, 0.85rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.inquiry {
+  top: 16%;
+  opacity: 0;
+}
+
+.received {
+  bottom: 17%;
+}
+
+.check {
+  color: #00606c;
+  font-weight: 900;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .inquiry {
+    animation: inquiry-sent 1.5s cubic-bezier(0.23, 1, 0.32, 1) 250ms both;
+  }
+
+  .received {
+    animation: inquiry-received 420ms cubic-bezier(0.23, 1, 0.32, 1) 1.65s both;
+  }
+}
+
+@keyframes inquiry-sent {
+  0% { opacity: 0; transform: translateY(-8px); }
+  22%, 72% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(14px); }
+}
+
+@keyframes inquiry-received {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Follow the visible edges of the three objects in deweb-usluge.webp. */
 .web {
   opacity: var(--art-web);
