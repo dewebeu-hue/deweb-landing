@@ -30,11 +30,8 @@ export function FeaturedWork() {
         </h2>
         <p className="mt-3 font-bold leading-6 text-ink">Klijentski rad · webshop za odjeću i tekstil</p>
         <p className="mt-3 max-w-[42ch] leading-7 text-ink">{featuredProject.summary}</p>
-        <p className="mt-3 leading-7 text-ink">Kupac na proizvodu može provjeriti veličinu ili, na odabranim artiklima, upisati tekst za personalizirani vez.</p>
-        <div className="mt-3 flex flex-wrap gap-x-5">
-          <a href="https://moira-hr.com/product/tunika-vez-pleter/" className={`${projectLink} text-sm`}>Pogledajte vodič za veličine</a>
-          <a href="https://moira-hr.com/product/rucnik-vez-klasje/" className={`${projectLink} text-sm`}>Pogledajte opciju veza</a>
-        </div>
+        <p className="mt-3 leading-7 text-ink">Na tunici sa zlatnim pleterom kupac može pregledati fotografije i odabrati veličinu i boju.</p>
+        <a href="https://moira-hr.com/proizvod/tunika-vez-pleter/" className={`${projectLink} mt-3 text-sm`}>Pogledajte primjer proizvoda</a>
       </div>
     </section>
   );
