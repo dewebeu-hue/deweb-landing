@@ -128,6 +128,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
                         <div className={serviceIllustration.browserImage} />
                       </div>
                     </div>
+                  ) : id === "tool" ? (
+                    <div className={serviceIllustration.toolTile} />
                   ) : (
                     <Image
                       src="/deweb-usluge.webp"

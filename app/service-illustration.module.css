@@ -192,7 +192,7 @@
     linear-gradient(140deg, #d1eaeb, #549dac);
 }
 
-/* Follow the visible edges of the bag and checkmark in deweb-usluge.webp. */
+/* Follow the visible edges of the bag in deweb-usluge.webp. */
 .shop .texture {
   clip-path: polygon(
     10.4% 78.3%, 15.8% 51.1%, 16.4% 49.7%, 19% 49.1%, 22.5% 49.1%,
@@ -206,13 +206,31 @@
   );
 }
 
-.tool .texture {
-  clip-path: polygon(
-    50.3% 74%, 50.3% 57.6%, 51.5% 53.8%, 53.8% 51.3%, 57.3% 49.7%,
-    60.5% 49.1%, 78.8% 49.1%, 81.5% 50.1%, 83.8% 52.4%, 85.2% 55.4%,
-    85.7% 60.2%, 85.6% 75.5%, 84.4% 78.4%, 82.4% 80.5%, 79.2% 81.7%,
-    59.4% 83.3%, 55.8% 82.8%, 53.1% 81.5%, 51.5% 79.4%, 50.7% 77.3%
-  );
+.toolTile {
+  position: absolute;
+  inset: 49% 15% 17% 52%;
+  display: grid;
+  place-items: center;
+  border: 1px solid #ffb16f;
+  border-radius: 26%;
+  background: linear-gradient(150deg, #fa9550, #df561b 52%, #bf3e13);
+  box-shadow:
+    -7px 5px 0 #b53d16,
+    -10px 11px 16px rgb(109 43 22 / 25%),
+    inset 0 2px 4px rgb(255 234 211 / 55%);
+  transform: skewY(-4deg);
+}
+
+.toolTile::after {
+  width: 51%;
+  height: 30%;
+  margin-top: -10%;
+  border: solid #fff8ee;
+  border-width: 0 0 clamp(5px, 1vw, 13px) clamp(5px, 1vw, 13px);
+  border-radius: 0 0 0 14%;
+  filter: drop-shadow(0 3px 2px rgb(105 36 16 / 26%));
+  transform: rotate(-45deg);
+  content: "";
 }
 
 @media (hover: hover) and (pointer: fine) {
