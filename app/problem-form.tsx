@@ -172,16 +172,22 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
       </div>}
       {!isWebshopQuote && projectType === "web" && <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor="selectedPackage">Web-paket <span className="font-normal text-muted">(neobavezno)</span></label><select id="selectedPackage" name="selectedPackage" className={controlClass} value={selectedPackage} onChange={event => { setSelectedPackage(event.target.value); replaceSelectionInUrl("web", event.target.value); }} aria-invalid={hasError("selectedPackage") || undefined}><option value="">Još nisam odabrao paket</option>{webPackages.map(item => <option key={item.id} value={item.id}>{item.name} — {item.price.toLocaleString("hr-HR")} €</option>)}</select><FieldError name="selectedPackage" show={hasError("selectedPackage")} /></div>}
       <Field name="fullName" label="Ime i prezime *" error={hasError("fullName")} wide={isWebshopQuote} />
-      {!isWebshopQuote && <Field name="companyName" label="Tvrtka ili obrt (neobavezno)" />}
       <Field name="email" label="Email *" type="email" error={hasError("email")} wide={isWebshopQuote} />
       {isWebshopQuote ? (
         <TextField name="problem" label="Napomena (neobavezno)" error={hasError("problem")} />
       ) : (
         <>
-          <Field name="phone" label="Telefon (neobavezno)" type="tel" />
-          <Field name="currentWebsite" label="Postojeći web (neobavezno)" type="url" wide />
-          {projectType === "tool" || projectType === "saas" ? <><TextField name="manualProcess" label="Što danas radite ručno ili u postojećem sustavu, a željeli biste pojednostaviti?" /><Field name="solutionUsers" label="Tko bi koristio rješenje? (neobavezno)" wide /></> : null}
           <TextField name="problem" label="Kratak opis potrebe *" error={hasError("problem")} help="Barem 20 znakova. Nemojte slati povjerljive poslovne podatke." />
+          <details className="group mb-3 rounded-lg border border-line px-3 py-2 sm:col-span-2">
+            <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-teal-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">
+              Dodajte detalje <span aria-hidden="true" className="group-open:rotate-45">+</span>
+            </summary>
+            <div className="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2">
+              <Field name="companyName" label="Tvrtka ili obrt (neobavezno)" />
+              <Field name="phone" label="Telefon (neobavezno)" type="tel" />
+              <Field name="currentWebsite" label="Postojeći web (neobavezno)" type="url" wide />
+            </div>
+          </details>
         </>
       )}
       <div className={`grid gap-3 sm:col-span-2 ${isWebshopQuote ? "" : "sm:flex sm:items-center"}`}>

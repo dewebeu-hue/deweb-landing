@@ -6,11 +6,10 @@ export const webPackages = [
     scope: "Jedna stranica do šest sadržajnih sekcija",
     bestFor: "Najbolje za: manje poslovanje s nekoliko usluga koje se mogu jasno predstaviti na jednoj stranici.",
     features: [
-      "Jedan jezik i prilagodba postojećeg vizualnog okvira vašem brendu",
-      "Uređivanje i raspored materijala koje dostavite",
-      "Jedan kontaktni obrazac; poziv i WhatsApp kada koristite te kanale",
-      "Prilagodba mobitelu i desktopu, optimizacija slika i osnovna tehnička SEO priprema",
-      "Jedan objedinjeni krug dorada te provjera i objava na dogovorenom hostingu",
+      "Jedan jezik, prilagodba postojećeg dizajna i uređivanje vaših materijala",
+      "Kontaktni obrazac, poziv i WhatsApp prema potrebi",
+      "Prikaz na mobitelu i računalu, optimizacija slika i osnovni tehnički SEO",
+      "Jedan krug dorada, provjera i objava",
     ],
   },
   {
@@ -20,12 +19,10 @@ export const webPackages = [
     scope: "Do pet stranica ukupno, uključujući naslovnu",
     bestFor: "Najbolje za: tvrtke koje žele zasebno predstaviti usluge, radove, tvrtku i kontakt te imati više prostora za buduće proširenje sadržaja.",
     features: [
-      "Jedan jezik; usluge, radovi, o tvrtki i kontakt prema dogovorenoj strukturi",
-      "Kratki razgovor i uređivanje tekstova iz vaših informacija i materijala",
-      "Dogovoreni izgled prilagođen vašem brendu i sadržaju",
-      "Jedan kontaktni obrazac; poziv i WhatsApp kada su relevantni",
-      "Prilagodba mobitelu i desktopu, optimizacija slika i osnovna tehnička SEO priprema",
-      "Dva objedinjena kruga dorada te provjera i objava na dogovorenom hostingu",
+      "Jedan jezik, dizajn prilagođen brendu i uređivanje vaših tekstova",
+      "Kontaktni obrazac, poziv i WhatsApp prema potrebi",
+      "Prikaz na mobitelu i računalu, optimizacija slika i osnovni tehnički SEO",
+      "Dva kruga dorada, provjera i objava",
     ],
   },
 ] as const;

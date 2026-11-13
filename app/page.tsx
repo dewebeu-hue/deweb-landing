@@ -8,7 +8,7 @@ import { readProjectSelection, type ProjectSelectionParams } from "../lib/projec
 import { webOfferTerms, webPackages } from "../lib/web-packages";
 import { SITE_ORIGIN } from "../lib/seo-policy";
 import { SiteFooter } from "./site-footer";
-import { Portfolio } from "./portfolio";
+import { FeaturedWork, Portfolio } from "./portfolio";
 import serviceIllustration from "./service-illustration.module.css";
 
 export const metadata: Metadata = {
@@ -86,10 +86,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
           <div className={`${frame} ${serviceIllustration.art} grid items-center gap-4 py-9 md:grid-cols-[1.08fr_0.92fr] md:gap-8 md:py-14 lg:gap-14 lg:py-[68px]`}>
             <div className="min-w-0 max-w-[570px]">
               <h1 id="hero-title" className="text-balance text-[clamp(2.55rem,4.9vw,4.4rem)] font-black leading-[1.02] tracking-[-0.04em] text-ink">
-                Što želite postići?
+                Web za kupce. <span className="text-teal-dark">Alati za vaš tim.</span>
               </h1>
               <p className="mt-4 max-w-[44ch] text-base leading-7 text-ink md:mt-5 md:text-xl md:leading-8">
-                Izrađujemo web-stranice, webshopove i poslovne alate po mjeri.
+                Izrađujemo web-stranice, webshopove i poslovne alate po mjeri. Web-stranice od {webPackages[0].price.toLocaleString("hr-HR")} €.
               </p>
               <nav className="mt-6 md:mt-8" aria-label="Odaberite što želite postići">
                 <ul className="grid gap-2">
@@ -109,21 +109,44 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
               <ProjectLink type="unsure" className="mt-2 inline-flex min-h-11 items-center text-sm font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Nisam siguran što mi treba</ProjectLink>
             </div>
             <div aria-hidden="true" className="pointer-events-none relative mx-auto aspect-square w-full max-w-[20rem] select-none md:max-w-[510px]">
-              <Image src="/deweb-usluge.webp" alt="" fill sizes={serviceImageSizes} preload className={serviceIllustration.base} />
+              <div className={serviceIllustration.platform} />
               {servicePaths.map(({ id }) => (
-                <Image
-                  key={id}
-                  src="/deweb-usluge.webp"
-                  alt=""
-                  fill
-                  sizes={serviceImageSizes}
-                  loading="eager"
-                  className={`${serviceIllustration.highlight} ${serviceIllustration[id]}`}
-                />
+                <div key={id} className={`${serviceIllustration.piece} ${serviceIllustration[id]}`}>
+                  {id === "web" ? (
+                    <div className={serviceIllustration.browser}>
+                      <div className={serviceIllustration.browserBar}>
+                        <span className={serviceIllustration.browserControls} />
+                        <span className={serviceIllustration.browserAddress}>www.</span>
+                      </div>
+                      <div className={serviceIllustration.browserPage}>
+                        <div className={serviceIllustration.browserNav} />
+                        <div className={serviceIllustration.browserCopy}>
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+                        <div className={serviceIllustration.browserImage} />
+                      </div>
+                    </div>
+                  ) : id === "tool" ? (
+                    <div className={serviceIllustration.toolTile} />
+                  ) : (
+                    <Image
+                      src="/deweb-usluge.webp"
+                      alt=""
+                      fill
+                      sizes={serviceImageSizes}
+                      loading="eager"
+                      className={serviceIllustration.texture}
+                    />
+                  )}
+                </div>
               ))}
             </div>
           </div>
         </section>
+
+        <FeaturedWork />
 
         <section id="web-stranice" className={`${frame} py-16 md:py-20`} aria-labelledby="web-title">
           <div className="reveal-on-scroll grid gap-4 lg:grid-cols-[0.78fr_1.22fr] lg:gap-14" data-reveal><h2 id="web-title" className={heading}>Web-stranice i redizajn</h2><p className="max-w-2xl text-lg leading-8 text-muted">Za tvrtke koje žele jasno predstaviti ponudu i olakšati kupcima slanje upita. Dogovaramo sadržaj, izrađujemo stranicu i zajedno pregledavamo završnu verziju.</p></div>
@@ -131,16 +154,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
             {webPackages.map((item, index) => <article key={item.id} data-reveal className={`reveal-on-scroll ${index === 1 ? "reveal-delay-1" : ""} flex flex-col rounded-xl border p-6 md:p-8 ${item.id === "business" ? "border-teal-soft bg-[#f0f8f8]" : "border-line bg-white"}`}>
               <h3 className="text-[1.8rem] font-black leading-tight text-ink">{item.name}</h3><p className="mb-1 mt-2 text-4xl font-black tracking-tight text-ink">{item.price.toLocaleString("hr-HR")} €</p><p className="mb-6 text-sm font-semibold text-muted">Cijena izrade web-stranice</p>
               <p className="font-extrabold leading-7 text-ink">{item.scope}</p>
-              <p className="mt-3 rounded-lg bg-white/70 px-4 py-3 text-sm font-bold leading-6 text-ink">{item.bestFor}</p>
               <ul className="mb-8 mt-4 grid list-disc gap-3 pl-5 text-sm leading-6 text-muted marker:text-teal-dark">{item.features.map(feature => <li key={feature}>{feature}</li>)}</ul>
-              <ProjectLink type="web" packageId={item.id} className={`${item.id === "business" ? button : outlineButton} mt-auto w-full`}>Odaberite {item.name.toLowerCase()}</ProjectLink>
+              <ProjectLink type="web" packageId={item.id} className={`${item.id === "business" ? button : outlineButton} mt-auto w-full`}>Zatražite ponudu <span className="sr-only">za paket {item.name}</span></ProjectLink>
             </article>)}
           </div>
-          <div className="mt-7 grid gap-5 rounded-2xl border border-line bg-[#f5f9fa] p-6 md:grid-cols-2 md:p-8">
-            <div><h3 className="text-lg font-black text-ink">Što nije dio web-paketa</h3><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.exclusions}</p><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.editing}</p></div>
-            <div><h3 className="text-lg font-black text-ink">Troškovi i dogovor</h3><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.external}</p><p className="mt-3 text-sm leading-7 text-muted">{webOfferTerms.delivery}</p></div>
-          </div>
-          <p className="mt-5 text-sm font-bold leading-6 text-ink">{webOfferTerms.tax}</p>
+          <p className="mt-5 text-sm leading-6 text-muted">Webshop, rezervacije i posebne integracije ugovaraju se zasebno. Domena, hosting i licence nisu uključeni u cijenu. <a href="#pitanja" className="font-extrabold text-teal-dark underline underline-offset-4">Detalji paketa i troškova</a></p>
+          <p className="mt-2 text-sm font-bold leading-6 text-ink">{webOfferTerms.tax}</p>
           <aside className="mt-9 flex flex-wrap items-center justify-between gap-x-8 gap-y-3" aria-labelledby="technical-review-title">
             <div>
               <h3 id="technical-review-title" className="text-lg font-black text-ink">Već imate web-stranicu?</h3>
@@ -156,8 +175,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
             <div>
               <p className="max-w-[56ch] text-lg leading-8 text-ink">Prije izrade dogovaramo kako ćete voditi katalog, naplaćivati narudžbe i organizirati dostavu. Opseg i cijenu definiramo prema vašoj trgovini i potrebnim integracijama.</p>
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
-                <ProjectLink type="shop" className={`${topAction} inline-flex`}>Razgovarajmo o webshopu</ProjectLink>
-                <a href="/alati/kalkulator-cijene-webshopa" className="inline-flex min-h-11 items-center text-sm font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Izračunajte cijenu webshopa</a>
+                <ProjectLink type="shop" className={`${topAction} inline-flex`}>Zatražite ponudu za webshop</ProjectLink>
+                <a href="/alati/kalkulator-cijene-webshopa" className="inline-flex min-h-11 items-center text-sm font-extrabold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-orange-dark">Izračunajte okvirnu cijenu webshopa</a>
               </div>
             </div>
           </div>
@@ -166,6 +185,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
         <section id="interni-alati" className="py-16 md:py-20" aria-labelledby="tools-title">
           <div className={frame}>
             <div className="reveal-on-scroll grid gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16" data-reveal><h2 id="tools-title" className={heading}>Poslovni alati po mjeri</h2><div><p className="text-lg leading-8 text-muted">Krećemo od posla koji danas radite ručno. Ovisno o potrebi, izrađujemo alat za evidenciju, ponude, upite ili radne naloge. Ponudu definiramo prema dogovorenom opsegu.</p></div></div>
+            <article className="mt-9 rounded-2xl border border-line bg-[#edf7f7] p-5 sm:p-7">
+              <h3 className="text-2xl font-black text-ink">Ponude od kataloga do podsjetnika</h3>
+              <p className="mt-2 max-w-[65ch] leading-7 text-muted">Primjer tijeka iz pilot-aplikacije Ponude. Odabrane artikle možete dodati u ponudu sa slikama i pratiti kada se trebate javiti kupcu.</p>
+              <ol className="mt-5 grid list-decimal gap-3 pl-5 font-bold text-ink marker:text-teal-dark sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+                <li>Odaberite stavke iz kataloga</li>
+                <li>Sastavite ponudu sa slikama</li>
+                <li>Preuzmite PDF</li>
+                <li>Postavite podsjetnik</li>
+              </ol>
+            </article>
             <div className="reveal-on-scroll mt-9 grid gap-3 sm:grid-cols-2" data-reveal>
               {toolExamples.map(([problem, possibility]) => (
                 <article key={problem} className="rounded-xl bg-[#f5f9fa] p-6 md:p-7">
@@ -174,7 +203,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
                 </article>
               ))}
             </div>
-            <div className="mt-9 flex flex-wrap items-center gap-5"><ProjectLink type="tool" className={button}>Opišite svoj proces</ProjectLink><p className="m-0 max-w-lg text-sm leading-6 text-muted">Prvo provjeravamo što treba riješiti, što je izvedivo i koji opseg ima smisla.</p></div>
+            <div className="mt-9 flex flex-wrap items-center gap-5"><ProjectLink type="tool" className={button}>Zatražite ponudu za poslovni alat</ProjectLink><p className="m-0 max-w-lg text-sm leading-6 text-muted">Prvo provjeravamo što treba riješiti, što je izvedivo i koji opseg ima smisla.</p></div>
           </div>
         </section>
 
@@ -199,6 +228,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
           <Faq q="Tko kontrolira domenu i pristupe nakon izrade?">{webOfferTerms.ownership}</Faq>
           <Faq q="Mogu li kasnije mijenjati sadržaj?">{webOfferTerms.editing}</Faq>
           <Faq q="Moram li plaćati održavanje?">{webOfferTerms.maintenance}</Faq>
+          <Faq q="Što nije uključeno u web-pakete?">{webOfferTerms.exclusions}</Faq>
           <Faq q="Koji su dodatni i godišnji troškovi?">{webOfferTerms.external} {webOfferTerms.managedHosting}</Faq>
           <Faq q="Kako izgleda plaćanje i što se događa nakon objave?">{webOfferTerms.delivery}</Faq>
         </div></div></section>
