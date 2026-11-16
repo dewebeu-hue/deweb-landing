@@ -25,7 +25,7 @@ export default function ToolsPage() {
           <p className="m-0 text-xs font-black uppercase tracking-[.14em] text-teal-dark">Prodaja / prikaz cijena</p>
           <h2 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">Moram li isticati sidrenu cijenu?</h2>
           <p className="mt-3 max-w-xl leading-7 text-muted">Provjerite sidrenu cijenu, cijenu po jedinici mjere, sniženja i mrežni cjenik za svoje prodajne kanale.</p>
-          <Link href="/alati/sidrene-cijene" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-lg bg-teal-dark px-6 py-3 font-extrabold text-white outline-offset-4 transition hover:bg-teal focus-visible:outline focus-visible:outline-4 focus-visible:outline-teal-dark">Provjeri obveze</Link>
+          <Link href="/alati/sidrene-cijene" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-lg bg-teal-dark px-6 py-3 font-extrabold text-white outline-offset-4 transition hover:bg-teal focus-visible:outline focus-visible:outline-4 focus-visible:outline-teal-dark">Provjeri obvezu za sidrenu cijenu</Link>
         </article>
         <article className="rounded-xl border border-line bg-white p-6 shadow-soft sm:p-8">
           <p className="m-0 text-xs font-black uppercase tracking-[.14em] text-teal-dark">Webshop / priprema opsega</p>
