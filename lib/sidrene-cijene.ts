@@ -6,13 +6,13 @@ type Obligation = keyof typeof obligations;
 type Status = keyof typeof statusLabels;
 export type Guidance = {
   status: Status; reason: string; action: string; refs: SourceId[];
-  pending?: boolean; amountNeedsCheck?: boolean; example?: string; question?: QuestionId;
+  pending?: boolean; amountNeedsCheck?: boolean; example?: string; question?: QuestionId; shortAction?: string;
 };
 export const amountCheckLabel = "Iznos treba provjeriti";
 type Channel = { type: "sale" | "ad"; key: string; name: string };
 export type ResultRow = Guidance & { obligation: Obligation };
-type Group = { title: string; items: ResultRow[]; website?: WebsiteType };
-const result = (status: Status, reason: string, action: string, refs: SourceId[], extra?: Pick<Guidance, "pending" | "amountNeedsCheck" | "example" | "question">): Guidance => ({ status, reason, action, refs, ...extra });
+type Group = { title: string; items: ResultRow[]; website?: WebsiteType; placement?: { channel: Channel; scope: string } };
+const result = (status: Status, reason: string, action: string, refs: SourceId[], extra?: Pick<Guidance, "pending" | "amountNeedsCheck" | "example" | "question" | "shortAction">): Guidance => ({ status, reason, action, refs, ...extra });
 const isUnknown = (a: Answers, k: QuestionId) => !selected(a, k).length || selected(a, k).every(v => v === "unknown" || v === "other");
 const has = (a: Answers, k: QuestionId, ...values: string[]) => selected(a, k).some(v => values.includes(v));
 const withoutUncertain = (a: Answers, k: QuestionId) => selected(a, k).filter(v => !["unknown", "other"].includes(v));
@@ -25,7 +25,7 @@ const inPremises = ["shop", "outlet"];
 const blank = "______ €";
 const evidence = "Potražite iznos u starom cjeniku, blagajni, webshopu ili računima za to prodajno mjesto.";
 const scopeAction = "Dodajte zasebnu ponudu ako se razlikuju kupci, cijene, prodavatelji ili pravila.";
-const toCheck = (question: QuestionId, action: string, refs: SourceId[]) => result("check", questions[question][0], action, refs, { question });
+const toCheck = (question: QuestionId, action: string, refs: SourceId[], shortAction?: string) => result("check", questions[question][0], action, refs, { question, shortAction });
 const general = (obligation: Obligation, a: Answers, territory: string): Guidance | undefined => {
   if (isUnknown(a, "buyers") || (!selects(a, "buyers", "consumer") && has(a, "buyers", "unknown", "other"))) return toCheck("buyers", "Provjerite kupuje li itko kao fizička osoba za osobnu uporabu.", ["consumer"]);
   if (!selects(a, "buyers", "consumer")) return result("outside", "Ovu ponudu imaju samo poslovni kupci, ustanove ili otkupljivači.", "Provjerite ovu ponudu ponovno ako je počnete nuditi građanima za osobnu kupnju.", ["consumer"]);
@@ -57,10 +57,16 @@ function nextBase(a: Answers, kind: string, ch: Channel, price: string): Guidanc
   if (kind === "goods" && selects(a, "regulation", "regulated")) issues.push("izuzeće za reguliranu cijenu robe");
   const split = price === "quote" ? " Odvojite individualni izračun od fiksnih stavki poput izlaska, satnice i materijala." : "";
   const history = isUnknown(a, "history") || !selects(a, "proof", "yes") ? evidence : "Sačuvajte zapis o cijeni za ovo prodajno mjesto.";
-  const prepare = selects(a, "history", "new", "changed")
+  const firstPrice = selects(a, "history", "new", "changed");
+  const prepare = firstPrice
     ? "Zapišite prvu cijenu i datum kada ste ovu ponudu prvi put uvrstili u prodaju."
     : reference ? `Pronađite cijenu koja je vrijedila ${reference}` : "Pronađite raniju cijenu za ovu ponudu.";
-  return result("check", `Zakon uvodi baznu cijenu. Konačni pravilnik određuje datum i način prikaza.${issues.length ? ` Još treba provjeriti ${issues.join(", ")}.` : ""}`, `${prepare} ${history}${split} U konačnom pravilniku provjerite koji iznos trebate prikazati.`, refs, { pending: true });
+  return result("check", `Zakon uvodi baznu cijenu. Konačni pravilnik određuje datum i način prikaza.${issues.length ? ` Još treba provjeriti ${issues.join(", ")}.` : ""}`, `${prepare} ${history}${split} U konačnom pravilniku provjerite koji iznos trebate prikazati.`, refs, {
+    pending: true,
+    shortAction: price === "quote" || price === "dynamic"
+      ? "Provjerite traži li pravilnik baznu cijenu za ovaj način naplate."
+      : reference && !firstPrice ? `Za baznu cijenu pripremite iznos od ${reference}` : prepare,
+  });
 }
 
 function unit(a: Answers, kind: string, ch: Channel): Guidance {
@@ -73,7 +79,9 @@ function unit(a: Answers, kind: string, ch: Channel): Guidance {
   if (selects(a, "goods", "loose")) return result("applies", "Rasuta roba ima izravnu obvezu isticanja jedinične cijene (čl. 7. st. 4. ZZP-a).", ch.type === "ad" ? "Navedite jasnu cijenu po odgovarajućoj jedinici uz oglašenu robu." : "Na prodajnom mjestu jasno navedite cijenu po odgovarajućoj jedinici.", refs, { example: `Rasuta roba\nCijena za 1 kg: ${blank}` });
   if (!selects(a, "goods", "packed", "pieces", "standard")) return toCheck("goods", "Utvrdite prodaje li se roba rasuto, pakirano ili na komad. Status nove ili rabljene robe sam po sebi nije dovoljan.", refs);
   if (either(a, "unit", "yes", "no") || isUnknown(a, "unit")) return toCheck("unit", "Provjerite popis iz čl. 8. st. 1. za konkretan artikl. Razdvojite skupine ako je potrebno.", refs);
-  if (selects(a, "unit", "no")) return result("outside", "Ova roba nije rasuta i nije na popisu robe za koju treba prikazati cijenu po jedinici.", "Istaknite cijenu koju kupac plaća za artikl.", refs);
+  if (selects(a, "unit", "no")) return result("outside", "Ova roba nije rasuta i nije na popisu robe za koju treba prikazati cijenu po jedinici.", "Istaknite cijenu koju kupac plaća za artikl.", refs, {
+    shortAction: "Istaknite aktualnu cijenu uz artikl.",
+  });
   const exceptions = withoutUncertain(a, "unitException").filter(v => v !== "none");
   if ((exceptions.length && selects(a, "unitException", "none")) || isUnknown(a, "unitException")) return toCheck("unitException", "Provjerite neto količinu, način pakiranja i vrstu prodaje za isti artikl.", refs);
   if (exceptions.length) return result("outside", `Označeno izuzeće: ${exceptions.map(v => label("unitException", v)).join("; ")}.`, "To izuzeće primijenite samo na odgovarajuću robu. Zasebno provjerite druge cijene.", refs);
@@ -86,7 +94,7 @@ function discount(a: Answers, kind: string, ch: Channel): Guidance {
   if (ambiguousKind(kind)) return toCheck("kinds", "Odvojite robu od usluge kako biste mogli utvrditi pravila za prikaz sniženja.", refs);
   if (kind !== "goods" && (ch.type === "ad" || ["door", "webshop", "booking", "market", "social", "messages"].includes(ch.key))) return result("outside", "Čl. 19. st. 7.–8. izuzima oglašavanje usluge i ugovore o usluzi na daljinu ili izvan poslovnih prostorija.", "Jasno navedite cijenu i uvjete. Posebno provjerite eventualnu akciju iste usluge unutar poslovnih prostorija.", refs);
   const promotion = selects(a, "discount", "public", "coupon", "expiry");
-  if ((promotion && selects(a, "discount", "none")) || isUnknown(a, "discount")) return toCheck("discount", "Provjerite nudite li ovdje javnu akciju ili kod dostupan svima. Ako akcija vrijedi samo na jednom mjestu, unesite je kao zasebnu ponudu.", [...refs, "euDiscount"]);
+  if ((promotion && selects(a, "discount", "none")) || isUnknown(a, "discount")) return toCheck("discount", "Provjerite nudite li ovdje javnu akciju ili kod dostupan svima. Ako akcija vrijedi samo na jednom mjestu, unesite je kao zasebnu ponudu.", [...refs, "euDiscount"], "Provjerite nudite li javnu akciju ili kupon dostupan svima.");
   if (!promotion && selects(a, "discount", "personal") && !has(a, "discount", "other", "unknown")) return result("outside", "Označen je stvarno individualni popust, bez javne najave sniženja.", "Opće dostupan kod ili široko oglašen popust procijenite kao javno sniženje.", [...refs, "euDiscount"]);
   if (!promotion && selects(a, "discount", "none") && !has(a, "discount", "other", "unknown")) return result("outside", "Za ovaj kanal nije označeno sniženje.", "Sačuvajte povijest cijena za eventualnu buduću akciju.", refs);
   if (!promotion) return toCheck("discount", "Pregledajte oglas i uvjete popusta za ovaj kanal.", refs);
@@ -101,8 +109,13 @@ function discount(a: Answers, kind: string, ch: Channel): Guidance {
   const qualified = "Kod javnog sniženja i koda dostupnog svima gledaju se ranije cijene iste ponude na mjestu gdje vrijedi popust.";
   const defect = kind === "goods" && selects(a, "goods", "defect") ? " Jasno označite grešku i opišite kupcu u čemu se sastoji (čl. 23.)." : "";
   if (selects(a, "discountProof", "first")) return result("check", "Za prvu prodaju nije utvrđena prethodna cijena koja bi potkrijepila oglašeno sniženje.", `Prikažite početnu cijenu bez oznake sniženja dok ne utvrdite valjanu prethodnu cijenu.${defect}`, [...refs, "euDiscount"], { question: "discountProof", example });
-  if (!selects(a, "discountProof", "full") || has(a, "discountProof", "partial", "unknown")) return result("applies", `${qualified} ${evidence}`, `Pronađite najnižu cijenu po kojoj ste nudili artikl u 30 dana prije akcije. Prikažite je uz sniženu cijenu. Objavite sniženje tek kad potvrdite oba iznosa.${defect}`, [...refs, "euDiscount"], { amountNeedsCheck: true, question: "discountProof", example });
-  return result("applies", qualified, `${ads} prikažite sniženu cijenu i najnižu cijenu u 30 dana prije akcije. Uračunajte ranije akcijske cijene. Postotak popusta računajte od te najniže cijene.${defect}`, [...refs, "euDiscount"], { example });
+  if (!selects(a, "discountProof", "full") || has(a, "discountProof", "partial", "unknown")) return result("applies", `${qualified} ${evidence}`, `Pronađite najnižu cijenu po kojoj ste nudili artikl u 30 dana prije akcije. Prikažite je uz sniženu cijenu. Objavite sniženje tek kad potvrdite oba iznosa.${defect}`, [...refs, "euDiscount"], {
+    amountNeedsCheck: true, question: "discountProof", example,
+    shortAction: "Prije objave sniženja utvrdite najnižu cijenu iz 30 dana prije akcije pa je prikažite uz sniženu cijenu.",
+  });
+  return result("applies", qualified, `${ads} prikažite sniženu cijenu i najnižu cijenu u 30 dana prije akcije. Uračunajte ranije akcijske cijene. Postotak popusta računajte od te najniže cijene.${defect}`, [...refs, "euDiscount"], {
+    example, shortAction: "Prikažite sniženu cijenu i najnižu cijenu u 30 dana prije akcije.",
+  });
 }
 
 function priceList(a: Answers, kind: string, site: string): Guidance {
@@ -115,7 +128,10 @@ function priceList(a: Answers, kind: string, site: string): Guidance {
   if (isUnknown(a, "regulation")) return toCheck("regulation", "Provjerite uređuje li sektorski propis ovaj iznos i po kojem članku.", ["article7"]);
   if (ambiguousKind(kind) || selects(a, "regulation", "regulated")) return result("check", "Čl. 7. st. 9. propisuje objavu cjenika na vlastitom webu. Za ovu vrstu ili regulaciju ponude treba potvrditi točan obuhvat.", "Pripremite odvojene popise proizvoda, tržišnih i reguliranih usluga. U konačnom pravilniku provjerite obuhvat svake stavke i način objave.", refs, { pending: true });
   const quote = selects(a, "pricing", "quote") ? " Odvojite ponude po mjeri od fiksnih stavki poput satnice, izlaska i doplata." : "";
-  return result("applies", "Zakon traži važeći cjenik na vašem webu, čak i kad na njemu nemate košaricu. U konačnom pravilniku provjerite format datoteke, podatke koje treba navesti i koliko dugo treba čuvati stare cjenike.", `Pripremite stranicu „Cjenik” s aktualnim cijenama. Ako cijene ovise o prodajnom mjestu, označite za koje mjesto vrijede.${quote} U konačnom pravilniku provjerite kako objaviti i kada ažurirati cjenik.`, refs, { pending: true, example: "Na web dodajte poveznicu „Cjenik”. Na stranici označite koji su iznosi za poslovnicu, a koji za webshop." });
+  return result("applies", "Zakon traži važeći cjenik na vašem webu, čak i kad na njemu nemate košaricu. U konačnom pravilniku provjerite format datoteke, podatke koje treba navesti i koliko dugo treba čuvati stare cjenike.", `Pripremite stranicu „Cjenik” s aktualnim cijenama. Ako cijene ovise o prodajnom mjestu, označite za koje mjesto vrijede.${quote} U konačnom pravilniku provjerite kako objaviti i kada ažurirati cjenik.`, refs, {
+    pending: true, example: "Na web dodajte poveznicu „Cjenik”. Na stranici označite koji su iznosi za poslovnicu, a koji za webshop.",
+    shortAction: quote ? undefined : "Pripremite stranicu „Cjenik” s važećim cijenama. Provjerite format i rok ažuriranja.",
+  });
 }
 
 function channels(a: Answers): Channel[] {
@@ -150,7 +166,7 @@ export function assessOffer(offer: Offer) {
         return { obligation: "base" as const, ...base, reason: priced ? `${label("pricing", price)}: ${base.reason}` : base.reason };
       }).filter((row, i, all) => all.findIndex(other => other.reason === row.reason) === i);
       const section = ch.type === "sale" ? "Prodaja" : "Oglašavanje";
-      groups.push({ title: `${prefix} · ${section}: ${ch.name}`, items: [
+      groups.push({ title: `${prefix} · ${section}: ${ch.name}`, placement: { channel: ch, scope: prefix }, items: [
         ...items,
         { obligation: "unit", ...(general("unit", a, area) ?? askChannel ?? unit(a, part.kind, ch)) },
         { obligation: "discount", ...(general("discount", a, area) ?? askChannel ?? discount(a, part.kind, ch)) },
@@ -183,6 +199,38 @@ type WebsiteScope = { offerId: number; detail: string; row: ResultRow };
 
 function websiteDecisionKey({ status, action, pending, question, reason }: ResultRow) {
   return JSON.stringify([status, action, pending, question, status === "check" ? reason : undefined]);
+}
+
+function quickSteps(rows: ResultRow[]) {
+  const active = rows.filter(row => row.status !== "outside" || row.shortAction);
+  active.sort((a, b) => Number(b.status === "outside") - Number(a.status === "outside"));
+  const steps = new Map<string, { action: string; note?: string }>();
+  for (const row of active) {
+    const action = row.shortAction ?? row.action;
+    const note = row.amountNeedsCheck ? `${statusLabels.applies} · ${amountCheckLabel}`
+      : row.pending ? row.status === "applies" ? "Obveza vrijedi · Detalji čekaju pravilnik" : "Čeka objavu pravilnika"
+      : row.status === "check" ? statusLabels.check : undefined;
+    steps.set(JSON.stringify([action, note]), { action, note });
+  }
+  return [...steps.values()];
+}
+
+function offerQuickSteps(groups: Group[]) {
+  const combined = new Map<string, { titles: string[]; steps: ReturnType<typeof quickSteps> }>();
+  const scopes = new Set(groups.flatMap(group => group.placement ? [group.placement.scope] : []));
+  for (const { title, items, placement } of groups) {
+    const steps = quickSteps(items);
+    if (!steps.length) continue;
+    const key = JSON.stringify([placement?.scope ?? title, steps]);
+    const channel = placement?.channel;
+    const name = channel && scopes.size === 1 && !placement.scope.includes(" · ")
+      ? channel.type === "sale" ? channel.name : channel.key === "web" ? "Oglasi na webu" : `Oglasi (${channel.name})`
+      : title;
+    const entry = combined.get(key);
+    if (entry) entry.titles.push(name);
+    else combined.set(key, { titles: [name], steps });
+  }
+  return [...combined.values()].map(({ titles, steps }) => ({ title: titles.join(" / "), steps }));
 }
 
 export function assessResults(offers: readonly Offer[]) {
@@ -233,7 +281,19 @@ export function assessResults(offers: readonly Offer[]) {
     }
     return { key, title, row: primary.row, offerId: primary.offerId, details: [...distinct.values()], scopes: scopeNames };
   });
-  return { offerResults, websites, showCta: websites.some(({ row }) => row.status === "applies") };
+  const quickPlan = {
+    offers: offerResults.map(({ offer, name, groups }) => ({ id: offer.id, name, groups: offerQuickSteps(groups) })),
+    websites: websites.map(({ key, title, row, details }) => ({
+      key, title,
+      steps: quickSteps([row]),
+      details: details.map(detail => ({
+        key: detail.key,
+        title: detail.scopes.map(scope => scope.detail).join(", "),
+        steps: quickSteps([detail.row]),
+      })),
+    })),
+  };
+  return { offerResults, websites, quickPlan, showCta: websites.some(({ row }) => row.status === "applies") };
 }
 
 function formatGuidance(row: ResultRow) {

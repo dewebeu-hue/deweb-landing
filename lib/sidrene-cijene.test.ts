@@ -177,6 +177,19 @@ test("MOIRA ima jedan mrežni cjenik za tri potrošačka kanala, a veleprodaja o
   assert.deepEqual(site.scopes, ["MOIRA outlet (Outlet)", "MOIRA webshop (Vlastiti webshop)", "MOIRA sajamska prodaja (Sajam)"]);
   assert.ok(assessment.offerResults.slice(0, 3).every(({ groups }) => groups.every(group => group.items.every(row => row.obligation !== "list"))));
   assert.ok(assessment.offerResults[3].groups[0].items.every(row => row.status === "outside"));
+  const [outlet, webshop, fair, wholesale] = assessment.quickPlan.offers;
+  assert.equal(outlet.groups[0].title, "Outlet");
+  assert.match(outlet.groups[0].steps[0].action, /aktualnu cijenu/);
+  assert.ok(outlet.groups[0].steps.some(step => step.note === "Čeka objavu pravilnika" && step.action.includes("10. 9. 2026.")));
+  assert.ok(outlet.groups[0].steps.some(step => step.note === "Treba provjeriti" && step.action.includes("javnu akciju")));
+  assert.equal(webshop.groups.length, 1);
+  assert.equal(webshop.groups[0].title, "Vlastiti webshop / Oglasi na webu");
+  assert.ok(webshop.groups[0].steps.some(step => step.note === "Obveza vrijedi · Iznos treba provjeriti" && step.action.includes("30 dana")));
+  assert.equal(fair.groups[0].title, "Sajam");
+  assert.equal(fair.groups[0].steps.length, 2);
+  assert.deepEqual(wholesale.groups, []);
+  assert.deepEqual(assessment.quickPlan.websites.map(website => website.title), ["moira-hr.com"]);
+  assert.match(assessment.quickPlan.websites[0].steps[0].action, /stranicu „Cjenik”/);
   const copied = formatResults(offers);
   assert.equal((copied.match(/^Cjenik na webu — Obveza vrijedi/gm) ?? []).length, 1);
   assert.match(copied, /Najniža cijena prije sniženja — Obveza vrijedi · Iznos treba provjeriti/);
@@ -202,9 +215,12 @@ test("zajednički cjenik zadržava iznimke uz potvrđenu obvezu", () => {
     { id: 1, name: "Robna ponuda", answers: { ...good, website: ["shop"] }, websiteDomains: { shop: "trgovina.hr" } },
     { id: 2, name: "Regulirana usluga", answers: { ...good, ...service, website: ["info"], regulation: ["regulated"] }, websiteDomains: { info: "www.trgovina.hr" } },
   ];
-  const { websites } = assessResults(offers);
+  const { websites, quickPlan } = assessResults(offers);
   assert.equal(websites.length, 1);
   assert.equal(websites[0].row.status, "applies");
   assert.equal(websites[0].details[0].row.status, "check");
   assert.equal(websites[0].details[0].scopes[0].offerId, 2);
+  assert.equal(quickPlan.websites.length, 1);
+  assert.match(quickPlan.websites[0].details[0].title, /Regulirana usluga/);
+  assert.equal(quickPlan.websites[0].details[0].steps[0].note, "Čeka objavu pravilnika");
 });

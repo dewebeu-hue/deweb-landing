@@ -256,18 +256,7 @@ export function PriceQuestionnaire() {
             <p className="mt-2 text-sm leading-6 text-muted print:text-black">{ASSESSMENT_PERIOD}</p>
           </div>
         </div>
-        <ul aria-label="Pregled ponuda" className="mt-4 divide-y divide-teal/20 border-y border-teal/20 print:hidden">
-          {results.offerResults.map(({ offer: item, name, groups }) => {
-            const rows = groups.flatMap(group => group.items);
-            const needsCheck = rows.some(row => row.status === "check" || row.pending || row.amountNeedsCheck);
-            return <li key={item.id} className="flex flex-wrap items-center justify-between gap-x-3 py-1.5">
-              <a href={`#offer-result-${item.id}`} className={`${link} min-w-0 [overflow-wrap:anywhere]`}>{name}</a>
-              {needsCheck && <span className="text-sm font-semibold text-teal-dark">Još za provjeriti</span>}
-              {rows.some(row => row.status === "applies") && <span className="text-sm font-semibold text-teal-dark">Imate obveze</span>}
-            </li>;
-          })}
-          {results.websites.length > 0 && <li><a href="#website-results" className={link}>Cjenik na webu</a></li>}
-        </ul>
+        <QuickPlan plan={results.quickPlan} />
         <div className="mt-4 flex flex-wrap gap-2 print:hidden">
           <button type="button" className={primary} onClick={copy}>Kopiraj rezultat</button>
           <button type="button" className={secondary} onClick={printResults}>Ispiši</button>
@@ -303,7 +292,7 @@ export function PriceQuestionnaire() {
       </article>)}
       {results.websites.length > 0 && <section id="website-results" aria-labelledby="website-title" className="mt-7 min-w-0 border-t border-line pt-3">
         <h3 id="website-title" className="text-xl font-black sm:text-2xl print:text-base">Cjenik na webu</h3>
-        {results.websites.map(site => <div key={site.key} data-website-result className="mt-3 min-w-0 rounded-xl border border-line bg-white print:border-0">
+        {results.websites.map((site, index) => <div key={site.key} id={`website-result-${index}`} data-website-result className="mt-3 min-w-0 scroll-mt-4 rounded-xl border border-line bg-white print:border-0">
           <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold [overflow-wrap:anywhere] sm:px-5 print:bg-white print:px-0">{site.title}</h4>
           <div className="border-b border-line px-3 py-2 text-sm leading-6 text-muted sm:px-5 print:px-0 print:text-black">
             <p><strong>Ponude za koje trebate provjeriti što ulazi u cjenik</strong></p>
@@ -331,6 +320,39 @@ export function PriceQuestionnaire() {
       </li>)}</ul>
     </details>
   </>;
+}
+
+type ResultPlan = ReturnType<typeof assessResults>["quickPlan"];
+type PlanSteps = ResultPlan["websites"][number]["steps"];
+
+function QuickPlan({ plan }: { plan: ResultPlan }) {
+  return <ul aria-label="Kratki popis koraka" className="mt-4 divide-y divide-teal/20 rounded-lg border border-teal/20 bg-white px-3 sm:px-5 print:px-0">
+    {plan.offers.map(({ id, name, groups }) => <li key={id} className="py-2.5 [overflow-wrap:anywhere]">
+      <h3 className="text-base font-extrabold"><a href={`#offer-result-${id}`} className={link}>{name}</a></h3>
+      {groups.map(({ title, steps }) => <div key={title} className="mb-2">
+        {title !== name && <h4 className="text-sm font-semibold text-muted">{title}</h4>}
+        <QuickSteps steps={steps} />
+      </div>)}
+      {!groups.length && <p className="mb-2 text-sm text-muted">U ovom pregledu nema dodatnih koraka.</p>}
+    </li>)}
+    {plan.websites.map(({ key, title, steps, details }, index) => <li key={key} className="py-2.5 [overflow-wrap:anywhere]">
+      <h3 className="text-base font-extrabold"><a href={`#website-result-${index}`} className={link}>Cjenik na webu · {title}</a></h3>
+      <QuickSteps steps={steps} />
+      {details.map(({ key, title, steps }) => <div key={key} className="mt-2">
+        <h4 className="text-sm font-semibold text-muted">{title}</h4>
+        <QuickSteps steps={steps} />
+      </div>)}
+    </li>)}
+  </ul>;
+}
+
+function QuickSteps({ steps }: { steps: PlanSteps }) {
+  return <ul className="mt-1 list-disc space-y-1 pl-5 text-sm leading-6">
+    {steps.map(({ action, note }) => <li key={JSON.stringify([action, note])}>
+      {action}
+      {note && <span className="block text-xs font-bold leading-5 text-[#7b3c09]">{note}</span>}
+    </li>)}
+  </ul>;
 }
 
 function GuidanceRow({ row, edit }: { row: ResultRow; edit?: () => void }) {
