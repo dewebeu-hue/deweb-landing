@@ -1,0 +1,41 @@
+.tool :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #006d7b;
+  outline-offset: 3px;
+}
+
+.tool :is(h2, h3, h4, fieldset, [tabindex='-1']) {
+  scroll-margin-top: 1.5rem;
+}
+
+.tool ::selection {
+  background: #e1f4f5;
+  color: #004d58;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .option { transition: background-color 130ms ease, border-color 130ms ease; }
+  .press { transition: transform 125ms cubic-bezier(.23, 1, .32, 1), background-color 130ms ease; }
+  .press:active { transform: scale(.98); }
+  .arrive { animation: arrive 165ms cubic-bezier(.23, 1, .32, 1) both; }
+}
+
+@keyframes arrive {
+  from { opacity: .78; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 639px) {
+  .tool:has([data-showing-results]) > header p { display: none; }
+  .tool:has([data-showing-results]) > header { padding-block: 1rem; }
+}
+
+@media print {
+  .tool { width: 100%; min-height: auto; color: black; padding: 0; }
+  .tool section { margin-top: 0; }
+  .tool [data-result-row] { break-inside: avoid; }
+  .tool :is(h2, h3, h4) { break-after: avoid; }
+  .tool [data-result-status] { color: black; background: transparent; border: 1px solid #888; }
+  .tool details::details-content { display: contents; content-visibility: visible; }
+  .tool details summary { display: none; }
+  .tool a { color: black; }
+}
