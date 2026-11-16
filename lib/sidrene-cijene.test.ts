@@ -46,7 +46,7 @@ test("Instagram bez vlastitog weba ne uklanja pravila prodaje i oglašavanja", (
 test("prezentacijski web bez košarice: zakon potvrđuje obvezu, tehnički detalji ostaju otvoreni", () => {
   const answers: Answers = { ...service, website: ["info"], sales: ["door"], ads: ["web"] };
   const after = check(answers);
-  const list = channel(after, "Prezentacijski web", "list");
+  const list = channel(after, "Vlastiti web bez košarice", "list");
   assert.equal(list.status, "applies");
   assert.equal(list.pending, true);
   assert.doesNotMatch(list.action, /do 8:00|CSV ili XML/);
@@ -68,9 +68,9 @@ test("webshop i outlet: zasebni iznosi, dokazi i upute bez ukidanja outlet obvez
 test("prodavatelja na marketplaceu pravila ne tretiraju kao posrednika koji prikazuje tuđe cijene", () => {
   const seller: Answers = { roles: ["platform"], sales: ["market"], ads: ["market"], discount: ["public"], discountProof: ["full"] };
   const a = check(seller);
-  assert.equal(channel(a, "Prodaja: Marketplace", "base").pending, true);
-  assert.equal(channel(a, "Prodaja: Marketplace", "discount").status, "applies");
-  assert.equal(channel(check({ ...seller, roles: ["display"] }), "Prodaja: Marketplace", "base").pending, undefined);
+  assert.equal(channel(a, "Prodaja: Tuđa platforma", "base").pending, true);
+  assert.equal(channel(a, "Prodaja: Tuđa platforma", "discount").status, "applies");
+  assert.equal(channel(check({ ...seller, roles: ["display"] }), "Prodaja: Tuđa platforma", "base").pending, undefined);
 });
 
 test("posrednik s vlastitom naknadom dobiva uputu za naknadu odvojeno od tuđe cijene", () => {
@@ -79,17 +79,17 @@ test("posrednik s vlastitom naknadom dobiva uputu za naknadu odvojeno od tuđe c
   assert.match(a.notes.join(), /tuđe cijene/i);
   assert.equal(channel(a, "Posredovanje · prikaz tuđih cijena", "base").pending, undefined);
   assert.match(channel(a, "Posredovanje · prikaz tuđih cijena", "base").action, /tko prodaje/);
-  assert.equal(channel(a, "Prezentacijski web", "list").status, "applies");
+  assert.equal(channel(a, "Vlastiti web bez košarice", "list").status, "applies");
 });
 
 test("majstor: fiksni izlazak ostaje uz individualni izračun; satnica nije jedinična cijena robe", () => {
   const a = check({ ...service, sales: ["door", "shop"], pricing: ["fee", "quote", "hour"], website: ["info"] });
-  const bases = a.groups.find(group => group.title.includes("Kućni prag"))?.items.filter(row => row.obligation === "base") ?? [];
+  const bases = a.groups.find(group => group.title.includes("Kod kupca"))?.items.filter(row => row.obligation === "base") ?? [];
   assert.equal(bases.length, 3);
   assert.ok(bases.some(row => row.reason.includes("Fiksna doplata")));
   assert.ok(bases.some(row => row.action.includes("Odvojite individualni izračun")));
-  assert.equal(channel(a, "Kućni prag", "unit").status, "outside");
-  assert.match(channel(a, "Prezentacijski web", "list").action, /satnice/);
+  assert.equal(channel(a, "Kod kupca", "unit").status, "outside");
+  assert.match(channel(a, "Vlastiti web bez košarice", "list").action, /satnice/);
 });
 
 test("regulirana i tržišna usluga mogu se procijeniti odvojeno", () => {
@@ -97,8 +97,8 @@ test("regulirana i tržišna usluga mogu se procijeniti odvojeno", () => {
   const b = check({ ...service, regulation: ["market"], website: ["info"] });
   assert.equal(channel(a, "Fizička poslovnica", "base").status, "outside");
   assert.equal(channel(b, "Fizička poslovnica", "base").pending, true);
-  assert.equal(channel(a, "Prezentacijski web", "list").status, "check");
-  assert.equal(channel(b, "Prezentacijski web", "list").status, "applies");
+  assert.equal(channel(a, "Vlastiti web bez košarice", "list").status, "check");
+  assert.equal(channel(b, "Vlastiti web bez košarice", "list").status, "applies");
   assert.equal(channel(check({ ...service, regulation: ["regulated", "market"] }), "Fizička poslovnica", "base").question, "regulation");
 });
 
@@ -178,8 +178,8 @@ test("MOIRA ima jedan mrežni cjenik za tri potrošačka kanala, a veleprodaja o
   assert.ok(assessment.offerResults.slice(0, 3).every(({ groups }) => groups.every(group => group.items.every(row => row.obligation !== "list"))));
   assert.ok(assessment.offerResults[3].groups[0].items.every(row => row.status === "outside"));
   const copied = formatResults(offers);
-  assert.equal((copied.match(/^Mrežni cjenik — Primjenjuje se/gm) ?? []).length, 1);
-  assert.match(copied, /Najniža cijena prije sniženja — Primjenjuje se · Iznos treba provjeriti/);
+  assert.equal((copied.match(/^Cjenik na webu — Obveza vrijedi/gm) ?? []).length, 1);
+  assert.match(copied, /Najniža cijena prije sniženja — Obveza vrijedi · Iznos treba provjeriti/);
   assert.match(copied, /Pravila od 17\. 11\. 2026\. nadalje/);
 });
 

@@ -6,7 +6,7 @@ import { amountCheckLabel, assessResults, formatResults, obligations, statusLabe
 import { ASSESSMENT_PERIOD, consultationReports, offerName as nameOf, questions, selected, selects, sources, websiteDomain, websiteTypes, type Answers, type Offer, type QuestionId, type WebsiteType } from "../../../lib/sidrene-cijene-podaci";
 import styles from "./upitnik.module.css";
 
-const steps = ["Kupci i ponuda", "Prodajna mjesta i oglasi", "Vrsta cijene i robe", "Povijest i sniženja"];
+const steps = ["Kupci i ponuda", "Gdje prodajete i oglašavate", "Roba i cijene", "Ranije cijene i popusti"];
 const primary = `${styles.press} inline-flex min-h-12 items-center justify-center rounded-lg bg-teal-dark px-5 py-2.5 text-center text-sm font-bold text-white hover:bg-teal`;
 const secondary = `${styles.press} inline-flex min-h-11 items-center justify-center rounded-lg border border-line bg-white px-4 py-2 text-center text-sm font-bold text-teal-dark hover:bg-teal-soft`;
 const link = "inline-flex min-h-11 items-center text-sm font-bold text-teal-dark underline decoration-teal/40 underline-offset-4 hover:decoration-teal-dark";
@@ -14,17 +14,19 @@ const statusStyle = { applies: "bg-teal-soft text-teal-dark", outside: "bg-slate
 const singular: QuestionId[] = ["legacy", "unit", "prior", "proof", "discountProof"];
 const sole = ["none", "unknown", "standard"];
 const prompts: Partial<Record<QuestionId, string>> = {
-  buyers: "Označite sve koji kupuju ovu ponudu. Za kupce s različitim cijenama ili kanalima dodajte zasebne ponude.",
-  roles: "Ako samo prikazujete tuđi iznos, označite posredovanje. Vlastitu naplaćenu naknadu možete označiti uz njega.",
-  kinds: "Označite što nudite istim kupcima i po istim kanalima. Različite poslovne situacije unesite kao zasebne ponude.",
-  goods: "Označite i kako prodajete robu: pakirano, rasuto ili na komad. Odvojite ponude ako se način prodaje razlikuje.",
-  website: "Društveni profil i stranica prodavatelja na tuđoj platformi nisu vlastiti web.",
-  sales: "Odaberite sve kanale za ovu ponudu. Ako druga ponuda ima drukčije kanale, dodajte je zasebno.",
-  ads: "Ovo je zasebno od prodaje. Primjerice, možete prodavati u poslovnici, a iznos objaviti na Instagramu.",
-  pricing: "Primjerice, označite fiksnu doplatu za izlazak i individualnu ponudu za rad.",
-  regulation: "Ako imate i tržišnu i reguliranu cijenu, dodajte zasebnu ponudu za svaki dio.",
-  history: "Označite što se odnosi na isti artikl ili uslugu. Promjena šifre sama po sebi ne znači novu ponudu.",
-  discount: "Javno dostupan kod može biti javno sniženje. Popust dogovoren s jednim kupcem označite zasebno.",
+  buyers: "Ako građanima i tvrtkama nudite različite cijene, dodajte ih kao dvije ponude.",
+  goods: "Primjer za majicu: „Nova” i „Na komad, bez pakiranja”.",
+  website: "Ako imate samo Instagram, Facebook ili stranicu na tuđoj platformi, odaberite „Nemam vlastiti web”.",
+  sales: "Primjer: outlet i sajam. Ako se cijene razlikuju, dodajte zasebnu ponudu za svako mjesto.",
+  ads: "Primjer: prodajete u trgovini, a cijene objavljujete na Instagramu.",
+  regulation: "Ako propis određuje cijenu samo za dio ponude, taj dio dodajte zasebno.",
+  legacy: "O ovom odgovoru ovisi datum za provjeru bazne cijene.",
+  unit: "Provjeravamo treba li prikazati cijenu po kilogramu, litri ili drugoj jedinici.",
+  discountProof: "Gledajte cijene istog artikla na mjestu na kojem ga snižavate.",
+};
+const productLists: Partial<Record<QuestionId, string[]>> = {
+  legacy: ["Hrana i piće", "Kozmetika, proizvodi za čišćenje i toaletne potrepštine", "Proizvodi za kućanstvo"],
+  unit: ["Hrana za ljude i životinje", "Deterdženti, pelene te proizvodi za njegu i higijenu tijela, kose ili zubi", "Boje i lakovi (osim slikarskih), motorna ulja i tekućine te destilirana voda"],
 };
 
 function stepQuestions(a: Answers): QuestionId[][] {
@@ -188,7 +190,7 @@ export function PriceQuestionnaire() {
               <button type="button" className={`${secondary} max-w-full !justify-start !text-left [overflow-wrap:anywhere] md:w-full ${item.id === activeId ? "!border-teal-dark !bg-teal-dark !text-white" : ""}`} aria-current={item.id === activeId ? "true" : undefined} onClick={() => editOffer(item.id)}>{nameOf(item, i)}</button>
             </li>)}
           </ul>
-          <button type="button" onClick={addOffer} className={`${link} mt-1 text-left`}><span aria-hidden="true" className="mr-1.5 text-lg">+</span> Dodaj još jednu vrstu ponude</button>
+          <button type="button" onClick={addOffer} className={`${link} mt-1 text-left`}><span aria-hidden="true" className="mr-1.5 text-lg">+</span> Dodaj ponudu</button>
         </div>
       </aside>
       <section className="min-w-0 rounded-xl border border-line bg-white p-4 sm:p-7 lg:p-8" aria-labelledby="questionnaire-title">
@@ -202,14 +204,17 @@ export function PriceQuestionnaire() {
           <div key={`${activeId}-${step}`} className={move ? styles.arrive : undefined}>
             <h2 id="questionnaire-title" tabIndex={-1} className="break-words text-2xl font-black leading-tight tracking-[-.025em] outline-none sm:text-3xl">{steps[step]}</h2>
             {step === 0 && <label className="mt-4 block max-w-md text-sm font-semibold" htmlFor="offer-name">Naziv ponude <span className="font-normal text-muted">(neobavezno)</span>
-              <input id="offer-name" type="text" maxLength={80} value={offer.name} onChange={e => updateOffer(item => ({ ...item, name: e.target.value }))} className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 px-3 text-base" placeholder="Npr. Prodaja meda na štandu" />
+              <input id="offer-name" type="text" maxLength={80} value={offer.name} onChange={e => updateOffer(item => ({ ...item, name: e.target.value }))} className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 px-3 text-base" placeholder="Npr. Odjeća u outletu" />
             </label>}
             {questionsNow.map(key => {
-              const hint = key === "history" ? `Najavljeni referentni dan je ${selects(a, "legacy", "yes") ? "2. 5. 2025." : "10. 9. 2026."} ${prompts.history}` : prompts[key];
+              const hint = key === "history" ? `Datum za provjeru bazne cijene prema najavi je ${selects(a, "legacy", "yes") ? "2. 5. 2025." : "10. 9. 2026."}` : prompts[key];
               const multi = !singular.includes(key);
-              return <fieldset key={key} id={`question-${key}`} tabIndex={-1} aria-describedby={invalid === key ? `error-${key}` : hint ? `hint-${key}` : undefined} className="mt-6 min-w-0 outline-none">
+              const items = productLists[key];
+              const description = [invalid === key && `error-${key}`, (multi || hint) && `hint-${key}`, items && `items-${key}`].filter(Boolean).join(" ");
+              return <fieldset key={key} id={`question-${key}`} tabIndex={-1} aria-describedby={description || undefined} className="mt-6 min-w-0 outline-none">
                 <legend className="text-base font-extrabold leading-snug sm:text-lg">{questions[key][0]}</legend>
-                <p id={`hint-${key}`} className="mt-1.5 text-sm leading-6 text-muted">{multi ? "Možete označiti više odgovora. " : ""}{hint}</p>
+                {(multi || hint) && <p id={`hint-${key}`} className="mt-1.5 text-sm leading-6 text-muted">{multi ? "Možete označiti više odgovora. " : ""}{hint}</p>}
+                {items && <ul id={`items-${key}`} className="mt-1.5 list-disc space-y-0.5 pl-5 text-sm leading-6 text-muted">{items.map(item => <li key={item}>{item}</li>)}</ul>}
                 {invalid === key && <p id={`error-${key}`} role="alert" className="mt-2 text-sm font-bold text-[#9c2a0b]">Odaberite odgovor ili označite „Ne znam”.</p>}
                 <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
                   {Object.entries(questions[key][1]).map(([value, name]) => {
@@ -221,22 +226,21 @@ export function PriceQuestionnaire() {
                   })}
                 </div>
                 {key === "website" && websiteTypes.some(type => selects(a, "website", type)) && <div className="mt-4 max-w-md space-y-3">
-                  <p id="website-domain-help" className="text-sm leading-6 text-muted">Upišite istu domenu za ponude na istom webu. Ako imate samo jedan web te vrste, domenu možete izostaviti.</p>
+                  <p id="website-domain-help" className="text-sm leading-6 text-muted">Ako imate više webova iste vrste, upišite adresu weba koji koristite za ovu ponudu.</p>
                   {websiteTypes.filter(type => selects(a, "website", type)).map(type => <label key={type} htmlFor={`website-domain-${type}`} className="block text-sm font-bold">
-                    {type === "shop" ? "Domena webshopa" : "Domena prezentacijskog weba"} <span className="font-normal text-muted">(neobavezno)</span>
+                    {type === "shop" ? "Adresa webshopa" : "Adresa weba bez košarice"} <span className="font-normal text-muted">(neobavezno)</span>
                     <input id={`website-domain-${type}`} type="text" inputMode="url" maxLength={253} autoCapitalize="none" spellCheck={false} placeholder="npr. trgovina.hr" aria-invalid={invalidDomain === type || undefined} aria-describedby={invalidDomain === type ? `website-domain-help website-domain-error-${type}` : "website-domain-help"}
                       className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 px-3 text-base" value={offer.websiteDomains?.[type] ?? ""} onChange={event => {
                         const value = event.target.value;
                         setInvalidDomain(undefined);
                         updateOffer(item => ({ ...item, websiteDomains: { ...item.websiteDomains, [type]: value } }));
                       }} />
-                    {invalidDomain === type && <span id={`website-domain-error-${type}`} role="alert" className="mt-1 block text-[#9c2a0b]">Upišite valjanu domenu weba.</span>}
+                    {invalidDomain === type && <span id={`website-domain-error-${type}`} role="alert" className="mt-1 block text-[#9c2a0b]">Upišite adresu poput trgovina.hr.</span>}
                   </label>)}
                 </div>}
               </fieldset>;
             })}
           </div>
-          {selects(a, "buyers", "consumer") && selects(a, "buyers", "buyer", "institution", "company") && step === 0 && <p className="mt-4 rounded-lg bg-teal-soft p-3 text-sm leading-6 text-teal-dark">Ako potrošači i poslovni kupci imaju različite ponude ili mjesta prodaje, unesite ih odvojeno.</p>}
           <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-line pt-4">
             {step > 0 && <button type="button" className={secondary} onClick={e => goTo(activeSteps.findLastIndex((entry, i) => i < step && entry.length > 0), undefined, e.detail > 0)}>Natrag</button>}
             <button type="submit" className={primary} onClick={e => setMove(e.detail > 0)}>{nextStep >= 0 ? "Nastavi" : "Prikaži rezultate"}</button>
@@ -255,17 +259,19 @@ export function PriceQuestionnaire() {
         <ul aria-label="Pregled ponuda" className="mt-4 divide-y divide-teal/20 border-y border-teal/20 print:hidden">
           {results.offerResults.map(({ offer: item, name, groups }) => {
             const rows = groups.flatMap(group => group.items);
+            const needsCheck = rows.some(row => row.status === "check" || row.pending || row.amountNeedsCheck);
             return <li key={item.id} className="flex flex-wrap items-center justify-between gap-x-3 py-1.5">
               <a href={`#offer-result-${item.id}`} className={`${link} min-w-0 [overflow-wrap:anywhere]`}>{name}</a>
-              <span className="text-sm font-semibold text-teal-dark">{rows.filter(row => row.status === "applies").length} primjenjivo · {rows.filter(row => row.status === "check" || row.pending || row.amountNeedsCheck).length} za provjeru</span>
+              {needsCheck && <span className="text-sm font-semibold text-teal-dark">Još za provjeriti</span>}
+              {rows.some(row => row.status === "applies") && <span className="text-sm font-semibold text-teal-dark">Imate obveze</span>}
             </li>;
           })}
-          {results.websites.length > 0 && <li><a href="#website-results" className={link}>Mrežni cjenik po webu</a></li>}
+          {results.websites.length > 0 && <li><a href="#website-results" className={link}>Cjenik na webu</a></li>}
         </ul>
         <div className="mt-4 flex flex-wrap gap-2 print:hidden">
           <button type="button" className={primary} onClick={copy}>Kopiraj rezultat</button>
           <button type="button" className={secondary} onClick={printResults}>Ispiši</button>
-          <button type="button" className={secondary} onClick={addOffer}>Dodaj još jednu vrstu ponude</button>
+          <button type="button" className={secondary} onClick={addOffer}>Dodaj ponudu</button>
         </div>
         {announce === "Rezultat je kopiran." && <p aria-hidden="true" className="mt-3 text-sm font-semibold text-teal-dark print:hidden">{announce}</p>}
         {copyFallback && <label className="mt-4 block text-sm font-bold print:hidden" htmlFor="copy-result">Označite i kopirajte tekst rezultata
@@ -278,39 +284,46 @@ export function PriceQuestionnaire() {
           <button type="button" className={`${secondary} print:hidden`} onClick={() => editOffer(item.id)} aria-label={`Uredi odgovore: ${name}`}>Uredi odgovore</button>
         </div>
         {notes.length > 0 && <details className="mb-2 rounded-lg bg-[#edf6f7] px-3 text-sm leading-6 text-teal-dark sm:px-4 print:bg-white print:text-black">
-          <summary className="min-h-11 cursor-pointer py-2.5 font-bold">Na što se odnosi ovaj rezultat</summary>
+          <summary className="min-h-11 cursor-pointer py-2.5 font-bold">Napomene za ovu ponudu</summary>
           <ul className="grid gap-1 pb-3">{notes.map(note => <li key={note}>{note}</li>)}</ul>
         </details>}
-        {groups.map((group, j) => <div key={`${group.title}-${j}`} className="mt-3 min-w-0 rounded-xl border border-line bg-white print:border-0">
-          <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold leading-snug sm:px-5 print:bg-white print:px-0">{group.title}</h4>
-          <div className="divide-y divide-line">
-            {[...group.items].sort((x, y) => Number(x.status === "outside") - Number(y.status === "outside")).map((row, k) => <GuidanceRow key={`${row.obligation}-${k}`} row={row} edit={row.question && stepQuestions(item.answers).flat().includes(row.question) ? () => editOffer(item.id, row.question) : undefined} />)}
-          </div>
-        </div>)}
+        {groups.map((group, j) => {
+          const outside = group.items.filter(row => row.status === "outside");
+          return <div key={`${group.title}-${j}`} className="mt-3 min-w-0 rounded-xl border border-line bg-white print:border-0">
+            <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold leading-snug sm:px-5 print:bg-white print:px-0">{group.title}</h4>
+            <div className="divide-y divide-line">
+              {group.items.filter(row => row.status !== "outside").map((row, k) => <GuidanceRow key={`${row.obligation}-${k}`} row={row} edit={row.question && stepQuestions(item.answers).flat().includes(row.question) ? () => editOffer(item.id, row.question) : undefined} />)}
+              {outside.length > 0 && <details>
+                <summary className="min-h-11 cursor-pointer px-3 py-3 text-sm font-bold text-teal-dark sm:px-5 print:px-0">Obveze koje ovdje ne vrijede ({outside.length})</summary>
+                <div className="divide-y divide-line">{outside.map((row, k) => <GuidanceRow key={`${row.obligation}-${k}`} row={row} />)}</div>
+              </details>}
+            </div>
+          </div>;
+        })}
       </article>)}
       {results.websites.length > 0 && <section id="website-results" aria-labelledby="website-title" className="mt-7 min-w-0 border-t border-line pt-3">
-        <h3 id="website-title" className="text-xl font-black sm:text-2xl print:text-base">Objava cjenika po webu</h3>
+        <h3 id="website-title" className="text-xl font-black sm:text-2xl print:text-base">Cjenik na webu</h3>
         {results.websites.map(site => <div key={site.key} data-website-result className="mt-3 min-w-0 rounded-xl border border-line bg-white print:border-0">
           <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold [overflow-wrap:anywhere] sm:px-5 print:bg-white print:px-0">{site.title}</h4>
           <div className="border-b border-line px-3 py-2 text-sm leading-6 text-muted sm:px-5 print:px-0 print:text-black">
-            <p><strong>Ponude i prodajni kanali za provjeru obuhvata</strong></p>
+            <p><strong>Ponude za koje trebate provjeriti što ulazi u cjenik</strong></p>
             <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1">{site.scopes.map(scope => <li key={scope} className="[overflow-wrap:anywhere]">{scope}</li>)}</ul>
           </div>
           <GuidanceRow row={site.row} edit={site.row.question ? () => editOffer(site.offerId, site.row.question) : undefined} />
           {site.details.length > 0 && <ul className="border-t border-line px-3 py-2 text-sm leading-6 sm:px-5 print:px-0">
             {site.details.map(({ key, scopes, row }) => <li key={key} className="py-1">
-              <p><strong>{scopes.map(scope => scope.detail).join("; ")}</strong> · {statusLabels[row.status]}</p><p>{row.reason} {row.action}</p>
-              <ResultSources row={row} />
+              <p><strong>{scopes.map(scope => scope.detail).join("; ")}</strong> · {statusLabels[row.status]}</p><p>{row.action}</p>
+              <ResultDetails row={row} />
               {row.question && scopes.map(scope => <button key={scope.offerId} type="button" className={`${link} mr-3 print:hidden`} onClick={() => editOffer(scope.offerId, row.question)}>Dopuni odgovor za {scope.detail}</button>)}
             </li>)}
           </ul>}
         </div>)}
       </section>}
-      {results.showCta && <p className="mt-6 rounded-xl bg-teal-soft p-4 font-semibold text-teal-dark print:hidden">Trebate objaviti mrežni cjenik? <Link className="underline underline-offset-4" href="/#kontakt">Zatražite pomoć s postavljanjem</Link>.</p>}
+      {results.showCta && <p className="mt-6 rounded-xl bg-teal-soft p-4 font-semibold text-teal-dark print:hidden"><Link className="underline underline-offset-4" href="/#kontakt">Zatražite pomoć s objavom cjenika</Link></p>}
     </section>}
     <details className="mt-7 rounded-xl border border-line bg-white px-4 py-2 sm:px-6 print:hidden">
-      <summary className="min-h-11 cursor-pointer py-3 text-sm font-extrabold text-teal-dark">Izvori i granice procjene</summary>
-      <p className="leading-7 text-muted">Alat obrađuje hrvatsko tržište prema pravilima od 17. studenoga 2026. nadalje. Bazna cijena s referentnog dana razlikuje se od najniže cijene prije sniženja. Najava upozoravanja pri nadzoru ne mijenja obveze.</p>
+      <summary className="min-h-11 cursor-pointer py-3 text-sm font-extrabold text-teal-dark">Propisi i službeni izvori</summary>
+      <p className="leading-7 text-muted">Upitnik pokriva prodaju u Hrvatskoj prema pravilima od 17. studenoga 2026. U rezultatu je označeno što još treba provjeriti u konačnim pravilnicima.</p>
       <ul className="mt-3 divide-y divide-line text-sm leading-6">{Object.entries(sources).map(([id, source]) => <li key={id} className="py-2">
         <a href={source.url} className="font-bold text-teal-dark underline underline-offset-4">{source.title} · {source.section}</a>
         <p className="text-muted">{source.type} · {source.scope}. Primjena: {source.applies}</p>
@@ -330,18 +343,18 @@ function GuidanceRow({ row, edit }: { row: ResultRow; edit?: () => void }) {
     </div>
     <div className="min-w-0">
       <p className="text-[.9375rem] font-semibold leading-6">{row.action}</p>
-      <p className="mt-1 text-sm leading-6 text-muted print:text-black">{row.reason}</p>
-      {row.example && <p className="mt-2 whitespace-pre-wrap break-words rounded bg-[#edf6f7] px-3 py-2 text-sm leading-6 text-teal-dark print:text-black"><strong className="block">Predložak</strong>{row.example}</p>}
-      <ResultSources row={row} />
-      {edit && <button type="button" className={`${link} print:hidden`} onClick={edit}>Dopuni odgovor</button>}
+      <ResultDetails row={row} />
+      {edit && <button type="button" className={`${link} print:hidden`} aria-label={`Uredi odgovor za: ${obligations[row.obligation]}`} onClick={edit}>Uredi odgovor</button>}
     </div>
   </div>;
 }
 
-function ResultSources({ row }: { row: Guidance }) {
+function ResultDetails({ row }: { row: Guidance }) {
   return <details data-result-sources>
-    <summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-teal-dark">Izvori ({row.refs.length})</summary>
-    <ul className="space-y-1 text-sm leading-6">
+    <summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-teal-dark">{row.example ? "Zašto, primjer i izvori" : "Zašto i izvori"}</summary>
+    <p className="text-sm leading-6 text-muted print:text-black">{row.reason}</p>
+    {row.example && <p className="mt-2 whitespace-pre-wrap break-words rounded bg-[#edf6f7] px-3 py-2 text-sm leading-6 text-teal-dark print:text-black"><strong className="block">Primjer</strong>{row.example}</p>}
+    <ul className="mt-2 space-y-1 text-sm leading-6">
       {row.refs.map(id => <li key={id}>
         <a href={sources[id].url} className="font-semibold text-teal-dark underline underline-offset-4">{sources[id].title} · {sources[id].section}</a> <span className="text-muted">({sources[id].type})</span>
       </li>)}
