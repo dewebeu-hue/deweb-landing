@@ -1,6 +1,6 @@
 # Moram li isticati sidrenu cijenu?
 
-Radna verzija: `/alati/sidrene-cijene`. Upitnik obrađuje 16. i 17. studenoga 2026. za hrvatsko tržište. Odgovori ostaju u memoriji otvorene stranice; nema poziva prema poslužitelju, pohrane osobnih podataka ni prijave. Za cijene, dokaze, uloge ili kupce koji se razlikuju između poslovnica ili kanala treba dodati odvojene ponude. Predlošci ne izmišljaju povijesne iznose.
+Upitnik na `/alati/sidrene-cijene` primjenjuje pravila od 17. studenoga 2026. nadalje za hrvatsko tržište. Odgovori ostaju u memoriji otvorene stranice. Za cijene, dokaze, uloge ili kupce koji se razlikuju između poslovnica ili kanala treba dodati odvojene ponude. Kod potvrđenog javnog sniženja rezultat označava da se obveza primjenjuje i zasebno traži provjeru iznosa ako nedostaje evidencija. Ponude s istom domenom dobivaju zajednički rezultat za mrežni cjenik.
 
 ## Što je potvrđeno 16. 11. 2026.
 
@@ -16,4 +16,4 @@ Radna verzija: `/alati/sidrene-cijene`. Upitnik obrađuje 16. i 17. studenoga 20
 2. **Mrežni cjenik:** potvrditi točan obuhvat posebnih ponuda i izuzeća, format, obvezna polja, cijene po prodajnom mjestu, strojno dohvaćanje, ritam ažuriranja i arhivu. Osnovna obveza vlastitog weba dolazi iz čl. 7. st. 9. Rok i format starih odluka ne prenose se automatski.
 3. **Prijelaz:** objava, datumi i stvarni učinak triju odluka o prestanku važenja. Zasebno zabilježiti datume objave izvješća sa savjetovanja kada se utvrde. Nedostaje i webinar iz zahtjeva (dostupan je samo tekst zahtjeva), pa su scenariji izvedeni iz zahtjeva i navedenih izvora.
 
-Izvori, njihov tip, referenca, razdoblje primjene i datum provjere nalaze se u `lib/sidrene-cijene-podaci.ts`. Odluke za novi režim koncentrirane su u `nextBase` i `priceList` u `lib/sidrene-cijene.ts`. Kad konačni tekstovi budu dostupni, ažurirati citate i te dvije grane, zadržati potvrđenu povijesnu verziju te ponoviti `npm test`, `npm run typecheck`, `npm run build` i browser QA na oba datuma. Povrat radne verzije je revert commita; nema migracije ili pohranjenih podataka.
+Izvori, njihov tip, referenca, razdoblje primjene i datum provjere nalaze se u `lib/sidrene-cijene-podaci.ts`. Odluke za novi režim koncentrirane su u `nextBase` i `priceList` u `lib/sidrene-cijene.ts`. Kad konačni tekstovi budu dostupni, ažurirati citate i te dvije grane te ponoviti `npm test`, `npm run typecheck`, `npm run build` i provjeru u pregledniku. Povrat radne verzije je revert commita.

@@ -33,7 +33,7 @@ export default function AnchorPricePage() {
       <PriceQuestionnaire />
       <section className="mt-12 max-w-3xl border-t border-line pt-7 print:hidden" aria-labelledby="price-guide">
         <h2 id="price-guide" className="text-2xl font-black">Što je sidrena (bazna) cijena?</h2>
-        <p className="mt-3 leading-7 text-muted">Bazna cijena pokazuje maloprodajnu cijenu koja je vrijedila na određeni dan u prošlosti. U ranijim odlukama koristi se naziv dodatna cijena. U upitniku odaberite datum i opišite što prodajete, kome je ponuda namijenjena i gdje prikazujete cijenu. <a className={sourceLink} href={sources.article7.url}>Izmjene Zakona o zaštiti potrošača</a></p>
+        <p className="mt-3 leading-7 text-muted">Bazna cijena pokazuje maloprodajnu cijenu koja je vrijedila na određeni dan u prošlosti. U ranijim odlukama koristi se naziv dodatna cijena. Za procjenu prema pravilima od 17. studenoga 2026. opišite što prodajete, kome je ponuda namijenjena i gdje prikazujete cijenu. <a className={sourceLink} href={sources.article7.url}>Izmjene Zakona o zaštiti potrošača</a></p>
         <dl className="mt-5 grid gap-5">
           <div>
             <dt className="font-extrabold">Najniža cijena prije sniženja</dt>

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import Link from "next/link";
-import { assessOffer, formatResults, obligations, statusLabels, type Guidance } from "../../../lib/sidrene-cijene";
-import { CHANGE, DATES, VERIFIED, consultationReports, questions, selected, selects, sources, type Answers, type AssessmentDate, type Offer, type QuestionId } from "../../../lib/sidrene-cijene-podaci";
+import { amountCheckLabel, assessResults, formatResults, obligations, statusLabels, type Guidance, type ResultRow } from "../../../lib/sidrene-cijene";
+import { ASSESSMENT_PERIOD, consultationReports, offerName as nameOf, questions, selected, selects, sources, websiteDomain, websiteTypes, type Answers, type Offer, type QuestionId, type WebsiteType } from "../../../lib/sidrene-cijene-podaci";
 import styles from "./upitnik.module.css";
 
 const steps = ["Kupci i ponuda", "Prodajna mjesta i oglasi", "Vrsta cijene i robe", "Povijest i sniženja"];
@@ -11,7 +11,7 @@ const primary = `${styles.press} inline-flex min-h-12 items-center justify-cente
 const secondary = `${styles.press} inline-flex min-h-11 items-center justify-center rounded-lg border border-line bg-white px-4 py-2 text-center text-sm font-bold text-teal-dark hover:bg-teal-soft`;
 const link = "inline-flex min-h-11 items-center text-sm font-bold text-teal-dark underline decoration-teal/40 underline-offset-4 hover:decoration-teal-dark";
 const statusStyle = { applies: "bg-teal-soft text-teal-dark", outside: "bg-slate-100 text-slate-700", check: "bg-[#fff0dc] text-[#7b3c09]" };
-const singular: QuestionId[] = ["legacy", "storeType", "unit", "prior", "proof", "discountProof"];
+const singular: QuestionId[] = ["legacy", "unit", "prior", "proof", "discountProof"];
 const sole = ["none", "unknown", "standard"];
 const prompts: Partial<Record<QuestionId, string>> = {
   buyers: "Označite sve koji kupuju ovu ponudu. Za kupce s različitim cijenama ili kanalima dodajte zasebne ponude.",
@@ -27,7 +27,7 @@ const prompts: Partial<Record<QuestionId, string>> = {
   discount: "Javno dostupan kod može biti javno sniženje. Popust dogovoren s jednim kupcem označite zasebno.",
 };
 
-function stepQuestions(a: Answers, date: AssessmentDate): QuestionId[][] {
+function stepQuestions(a: Answers): QuestionId[][] {
   const customer = selects(a, "buyers", "consumer");
   if (!customer) return [["buyers"]];
   const own = selects(a, "roles", "own", "platform");
@@ -35,33 +35,23 @@ function stepQuestions(a: Answers, date: AssessmentDate): QuestionId[][] {
   const thirdOnly = !own && selects(a, "roles", "display") && !feeOnly;
   const goods = !feeOnly && selects(a, "kinds", "goods");
   const partial = !selects(a, "sales", "none") || !selects(a, "ads", "none");
-  const mayHaveBase = date === CHANGE || goods && selects(a, "legacy", "yes") && selects(a, "activity", "retail");
-  const showHistory = !thirdOnly && partial && mayHaveBase;
   return [
     ["buyers", "roles", ...(!feeOnly && !thirdOnly ? ["kinds" as const] : [])],
     ["territory", "sales", "website", "ads", ...(selected(a, "sales").filter(x => !sole.includes(x)).length > 1 || selects(a, "sales", "shop", "outlet", "market") ? ["locations" as const] : [])],
     thirdOnly ? [] : ["activity", "pricing", "regulation", ...(goods ? ["goods", "legacy"] as const : []),
-      ...(goods && date === VERIFIED && !selects(a, "legacy", "no") && !selects(a, "activity", "opg") ? ["storeType" as const] : []),
       ...(goods && !selects(a, "goods", "loose", "auction") ? ["unit" as const] : []),
       ...(goods && selects(a, "unit", "yes") && !selects(a, "goods", "loose", "auction") ? ["unitException" as const] : [])],
-    !partial || thirdOnly ? [] : [...(showHistory ? [...(date === CHANGE && goods && selects(a, "legacy", "yes") ? ["prior" as const] : []), "history" as const, ...(!selects(a, "history", "unknown", "other") && selected(a, "history").length ? ["proof" as const] : [])] : []), "discount", ...(selects(a, "discount", "public", "coupon") && (goods || selects(a, "sales", "shop", "outlet")) ? ["discountProof" as const] : [])],
+    !partial || thirdOnly ? [] : [
+      ...(goods && selects(a, "legacy", "yes") ? ["prior" as const] : []), "history",
+      ...(!selects(a, "history", "unknown", "other") && selected(a, "history").length ? ["proof" as const] : []),
+      "discount", ...(selects(a, "discount", "public", "coupon") && (goods || selects(a, "sales", "shop", "outlet")) ? ["discountProof" as const] : []),
+    ],
   ];
 }
 
-function usableAnswers(a: Answers, date: AssessmentDate): Answers {
-  const active = new Set(stepQuestions(a, date).flat());
+function usableAnswers(a: Answers): Answers {
+  const active = new Set(stepQuestions(a).flat());
   return Object.fromEntries(Object.entries(a).filter(([key]) => active.has(key as QuestionId))) as Answers;
-}
-
-const nameOf = (offer: Offer, index: number) => offer.name.trim() || `Ponuda ${index + 1}`;
-
-function DateInput({ date, change }: { date: AssessmentDate; change: (date: AssessmentDate) => void }) {
-  return <label className="block min-w-0 text-sm font-bold text-ink">
-    Datum procjene
-    <select value={date} onChange={e => change(e.target.value as AssessmentDate)} className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 bg-white px-2 py-1.5 text-sm font-semibold text-ink">
-      {DATES.map(([value, title]) => <option key={value} value={value}>{title.split(" — ")[0]}</option>)}
-    </select>
-  </label>;
 }
 
 export function PriceQuestionnaire() {
@@ -69,9 +59,9 @@ export function PriceQuestionnaire() {
   const [offers, setOffers] = useState<Offer[]>([{ id: 1, name: "", answers: {} }]);
   const [activeId, setActiveId] = useState(1);
   const [step, setStep] = useState(0);
-  const [date, setDate] = useState<AssessmentDate>(VERIFIED);
   const [view, setView] = useState<"questions" | "results">("questions");
   const [invalid, setInvalid] = useState<QuestionId>();
+  const [invalidDomain, setInvalidDomain] = useState<WebsiteType>();
   const [announce, setAnnounce] = useState("");
   const [move, setMove] = useState(false);
   const [focusId, setFocusId] = useState("");
@@ -79,11 +69,11 @@ export function PriceQuestionnaire() {
   const index = offers.findIndex(offer => offer.id === activeId);
   const offer = offers[index];
   const a = offer.answers;
-  const activeSteps = stepQuestions(a, date);
+  const activeSteps = stepQuestions(a);
   const questionsNow = activeSteps[step] ?? [];
   const nextStep = activeSteps.findIndex((entry, i) => i > step && entry.length > 0);
-  const assessmentOffers = offers.map(item => ({ ...item, answers: usableAnswers(item.answers, date) }));
-  const results = view === "results" ? assessmentOffers.map(item => assessOffer(item, date)) : [];
+  const assessmentOffers = offers.map(item => ({ ...item, answers: usableAnswers(item.answers) }));
+  const results = view === "results" ? assessResults(assessmentOffers) : undefined;
 
   useEffect(() => {
     if (!focusId) return;
@@ -95,16 +85,11 @@ export function PriceQuestionnaire() {
 
   function goTo(index: number, target = "questionnaire-title", animate = false) {
     setInvalid(undefined);
+    setInvalidDomain(undefined);
     setMove(animate);
     setView("questions");
     setStep(index);
     setFocusId(target);
-  }
-
-  function changeDate(value: AssessmentDate) {
-    setDate(value);
-    setCopyFallback(false);
-    setAnnounce("Datum procjene je promijenjen.");
   }
 
   function updateOffer(update: (item: Offer) => Offer) {
@@ -132,7 +117,7 @@ export function PriceQuestionnaire() {
   function editOffer(id: number, key?: QuestionId) {
     const item = offers.find(x => x.id === id);
     if (!item) return;
-    const at = key ? stepQuestions(item.answers, date).findIndex(section => section.includes(key)) : -1;
+    const at = key ? stepQuestions(item.answers).findIndex(section => section.includes(key)) : -1;
     setActiveId(id);
     goTo(Math.max(at, 0), at >= 0 ? `question-${key}` : "questionnaire-title");
   }
@@ -160,13 +145,21 @@ export function PriceQuestionnaire() {
       setFocusId(`question-${missing}`);
       return;
     }
+    if (questionsNow.includes("website")) {
+      const invalidSite = websiteTypes.find(type => selects(a, "website", type) && offer.websiteDomains?.[type]?.trim() && !websiteDomain(offer.websiteDomains[type]));
+      if (invalidSite) {
+        setInvalidDomain(invalidSite);
+        setFocusId(`website-domain-${invalidSite}`);
+        return;
+      }
+    }
     if (nextStep >= 0) goTo(nextStep, undefined, move);
     else finish();
   }
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(formatResults(assessmentOffers, date));
+      await navigator.clipboard.writeText(formatResults(assessmentOffers));
       setCopyFallback(false);
       setAnnounce("Rezultat je kopiran.");
     } catch {
@@ -185,9 +178,9 @@ export function PriceQuestionnaire() {
 
   return <>
     <p role="status" className="sr-only">{announce}</p>
-    {view === "questions" ? <div className="grid items-start gap-5 print:hidden md:grid-cols-[minmax(13rem,15rem)_minmax(0,1fr)] lg:gap-8">
+    {!results ? <div className="grid items-start gap-5 print:hidden md:grid-cols-[minmax(13rem,15rem)_minmax(0,1fr)] lg:gap-8">
       <aside className="min-w-0 rounded-xl bg-[#edf6f7] p-4 sm:p-5" aria-label="Ponude i datum">
-        <DateInput date={date} change={changeDate} />
+        <p className="text-sm font-bold text-teal-dark">{ASSESSMENT_PERIOD}</p>
         <div className="mt-4 border-t border-teal/20 pt-3">
           <p className="text-sm font-bold">Vaše ponude <span className="ml-1 font-medium text-teal-dark">({offers.length})</span></p>
           <ul className="mt-2 flex flex-wrap gap-2 md:flex-col">
@@ -212,7 +205,7 @@ export function PriceQuestionnaire() {
               <input id="offer-name" type="text" maxLength={80} value={offer.name} onChange={e => updateOffer(item => ({ ...item, name: e.target.value }))} className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 px-3 text-base" placeholder="Npr. Prodaja meda na štandu" />
             </label>}
             {questionsNow.map(key => {
-              const hint = key === "history" ? `Za ovu procjenu: ${date === VERIFIED || selects(a, "legacy", "yes") ? "2. 5. 2025." : "10. 9. 2026. prema najavi"} ${prompts.history}` : prompts[key];
+              const hint = key === "history" ? `Najavljeni referentni dan je ${selects(a, "legacy", "yes") ? "2. 5. 2025." : "10. 9. 2026."} ${prompts.history}` : prompts[key];
               const multi = !singular.includes(key);
               return <fieldset key={key} id={`question-${key}`} tabIndex={-1} aria-describedby={invalid === key ? `error-${key}` : hint ? `hint-${key}` : undefined} className="mt-6 min-w-0 outline-none">
                 <legend className="text-base font-extrabold leading-snug sm:text-lg">{questions[key][0]}</legend>
@@ -227,6 +220,19 @@ export function PriceQuestionnaire() {
                     </label>;
                   })}
                 </div>
+                {key === "website" && websiteTypes.some(type => selects(a, "website", type)) && <div className="mt-4 max-w-md space-y-3">
+                  <p id="website-domain-help" className="text-sm leading-6 text-muted">Upišite istu domenu za ponude na istom webu. Ako imate samo jedan web te vrste, domenu možete izostaviti.</p>
+                  {websiteTypes.filter(type => selects(a, "website", type)).map(type => <label key={type} htmlFor={`website-domain-${type}`} className="block text-sm font-bold">
+                    {type === "shop" ? "Domena webshopa" : "Domena prezentacijskog weba"} <span className="font-normal text-muted">(neobavezno)</span>
+                    <input id={`website-domain-${type}`} type="text" inputMode="url" maxLength={253} autoCapitalize="none" spellCheck={false} placeholder="npr. trgovina.hr" aria-invalid={invalidDomain === type || undefined} aria-describedby={invalidDomain === type ? `website-domain-help website-domain-error-${type}` : "website-domain-help"}
+                      className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 px-3 text-base" value={offer.websiteDomains?.[type] ?? ""} onChange={event => {
+                        const value = event.target.value;
+                        setInvalidDomain(undefined);
+                        updateOffer(item => ({ ...item, websiteDomains: { ...item.websiteDomains, [type]: value } }));
+                      }} />
+                    {invalidDomain === type && <span id={`website-domain-error-${type}`} role="alert" className="mt-1 block text-[#9c2a0b]">Upišite valjanu domenu weba.</span>}
+                  </label>)}
+                </div>}
               </fieldset>;
             })}
           </div>
@@ -243,18 +249,18 @@ export function PriceQuestionnaire() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-xl">
             <h2 id="results-title" tabIndex={-1} className="text-2xl font-black tracking-[-.025em] outline-none sm:text-3xl print:text-lg">Što trebate napraviti</h2>
-            <p className="mt-2 text-sm leading-6 text-muted print:text-black">{date === VERIFIED ? "Postojeća pravila za 16. 11. 2026." : "Prijelaz na nova pravila 17. 11. 2026."} <span className="hidden sm:inline print:inline">Izvori provjereni 16. 11. 2026.</span></p>
+            <p className="mt-2 text-sm leading-6 text-muted print:text-black">{ASSESSMENT_PERIOD}</p>
           </div>
-          <div className="w-full max-w-[13rem] print:hidden"><DateInput date={date} change={changeDate} /></div>
         </div>
         <ul aria-label="Pregled ponuda" className="mt-4 divide-y divide-teal/20 border-y border-teal/20 print:hidden">
-          {offers.map((item, i) => {
-            const rows = results[i].groups.flatMap(group => group.items);
+          {results.offerResults.map(({ offer: item, name, groups }) => {
+            const rows = groups.flatMap(group => group.items);
             return <li key={item.id} className="flex flex-wrap items-center justify-between gap-x-3 py-1.5">
-              <a href={`#offer-result-${item.id}`} className={`${link} min-w-0 [overflow-wrap:anywhere]`}>{nameOf(item, i)}</a>
-              <span className="text-sm font-semibold text-teal-dark">{rows.filter(row => row.status === "applies").length} primjenjivo · {rows.filter(row => row.status === "check" || row.pending).length} za provjeru</span>
+              <a href={`#offer-result-${item.id}`} className={`${link} min-w-0 [overflow-wrap:anywhere]`}>{name}</a>
+              <span className="text-sm font-semibold text-teal-dark">{rows.filter(row => row.status === "applies").length} primjenjivo · {rows.filter(row => row.status === "check" || row.pending || row.amountNeedsCheck).length} za provjeru</span>
             </li>;
           })}
+          {results.websites.length > 0 && <li><a href="#website-results" className={link}>Mrežni cjenik po webu</a></li>}
         </ul>
         <div className="mt-4 flex flex-wrap gap-2 print:hidden">
           <button type="button" className={primary} onClick={copy}>Kopiraj rezultat</button>
@@ -263,50 +269,73 @@ export function PriceQuestionnaire() {
         </div>
         {announce === "Rezultat je kopiran." && <p aria-hidden="true" className="mt-3 text-sm font-semibold text-teal-dark print:hidden">{announce}</p>}
         {copyFallback && <label className="mt-4 block text-sm font-bold print:hidden" htmlFor="copy-result">Označite i kopirajte tekst rezultata
-          <textarea readOnly id="copy-result" rows={5} value={formatResults(assessmentOffers, date)} onFocus={e => e.currentTarget.select()} className="mt-2 w-full rounded-lg border border-teal bg-white p-3 text-base" />
+          <textarea readOnly id="copy-result" rows={5} value={formatResults(assessmentOffers)} onFocus={e => e.currentTarget.select()} className="mt-2 w-full rounded-lg border border-teal bg-white p-3 text-base" />
         </label>}
       </div>
-      {offers.map((item, i) => <article key={item.id} id={`offer-result-${item.id}`} className="mt-7 min-w-0 scroll-mt-4 border-t border-line print:mt-4">
+      {results.offerResults.map(({ offer: item, name, groups, notes }) => <article key={item.id} id={`offer-result-${item.id}`} className="mt-7 min-w-0 scroll-mt-4 border-t border-line print:mt-4">
         <div className="flex flex-wrap items-center justify-between gap-2 py-3">
-          <h3 className="min-w-0 text-xl font-black [overflow-wrap:anywhere] sm:text-2xl print:text-base">{nameOf(item, i)}</h3>
-          <button type="button" className={`${secondary} print:hidden`} onClick={() => editOffer(item.id)} aria-label={`Uredi odgovore: ${nameOf(item, i)}`}>Uredi odgovore</button>
+          <h3 className="min-w-0 text-xl font-black [overflow-wrap:anywhere] sm:text-2xl print:text-base">{name}</h3>
+          <button type="button" className={`${secondary} print:hidden`} onClick={() => editOffer(item.id)} aria-label={`Uredi odgovore: ${name}`}>Uredi odgovore</button>
         </div>
-        {results[i].notes.length > 0 && <details className="mb-2 rounded-lg bg-[#edf6f7] px-3 text-sm leading-6 text-teal-dark sm:px-4 print:bg-white print:text-black">
+        {notes.length > 0 && <details className="mb-2 rounded-lg bg-[#edf6f7] px-3 text-sm leading-6 text-teal-dark sm:px-4 print:bg-white print:text-black">
           <summary className="min-h-11 cursor-pointer py-2.5 font-bold">Na što se odnosi ovaj rezultat</summary>
-          <ul className="grid gap-1 pb-3">{results[i].notes.map(note => <li key={note}>{note}</li>)}</ul>
+          <ul className="grid gap-1 pb-3">{notes.map(note => <li key={note}>{note}</li>)}</ul>
         </details>}
-        {results[i].groups.map((group, j) => <div key={`${group.title}-${j}`} className="mt-3 min-w-0 rounded-xl border border-line bg-white print:border-0">
+        {groups.map((group, j) => <div key={`${group.title}-${j}`} className="mt-3 min-w-0 rounded-xl border border-line bg-white print:border-0">
           <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold leading-snug sm:px-5 print:bg-white print:px-0">{group.title}</h4>
           <div className="divide-y divide-line">
-            {[...group.items].sort((x, y) => Number(x.status === "outside") - Number(y.status === "outside")).map((row, k) => <div key={`${row.obligation}-${k}`} data-result-row className="grid min-w-0 gap-1.5 px-3 py-3 sm:grid-cols-[minmax(10rem,14rem)_minmax(0,1fr)] sm:gap-4 sm:px-5 print:block print:px-0 print:py-2">
-              <div className="min-w-0">
-                <p className="text-sm font-extrabold">{obligations[row.obligation]}</p>
-                <span data-result-status className={`mt-1 inline-block rounded px-2 py-1 text-xs font-bold ${statusStyle[row.status]}`}>{statusLabels[row.status]}</span>
-                {row.pending && <p className="mt-1 text-xs font-bold text-[#7b3c09]">Čeka objavu pravilnika</p>}
-              </div>
-              <div className="min-w-0">
-                <p className="text-[.9375rem] font-semibold leading-6">{row.action}</p>
-                <p className="mt-1 text-sm leading-6 text-muted print:text-black">{row.reason}</p>
-                {row.example && <p className="mt-2 whitespace-pre-wrap break-words rounded bg-[#edf6f7] px-3 py-2 text-sm leading-6 text-teal-dark print:text-black"><strong className="block">Predložak</strong>{row.example}</p>}
-                <ResultSources row={row} />
-                {row.question && stepQuestions(item.answers, date).some(ids => ids.includes(row.question!)) && <button type="button" className={`${link} print:hidden`} onClick={() => editOffer(item.id, row.question)}>Dopuni odgovor</button>}
-              </div>
-            </div>)}
+            {[...group.items].sort((x, y) => Number(x.status === "outside") - Number(y.status === "outside")).map((row, k) => <GuidanceRow key={`${row.obligation}-${k}`} row={row} edit={row.question && stepQuestions(item.answers).flat().includes(row.question) ? () => editOffer(item.id, row.question) : undefined} />)}
           </div>
         </div>)}
       </article>)}
-      {results.some(result => result.showCta) && <p className="mt-6 rounded-xl bg-teal-soft p-4 font-semibold text-teal-dark print:hidden">Trebate objaviti mrežni cjenik? <Link className="underline underline-offset-4" href="/#kontakt">Zatražite pomoć s postavljanjem</Link>.</p>}
+      {results.websites.length > 0 && <section id="website-results" aria-labelledby="website-title" className="mt-7 min-w-0 border-t border-line pt-3">
+        <h3 id="website-title" className="text-xl font-black sm:text-2xl print:text-base">Objava cjenika po webu</h3>
+        {results.websites.map(site => <div key={site.key} data-website-result className="mt-3 min-w-0 rounded-xl border border-line bg-white print:border-0">
+          <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold [overflow-wrap:anywhere] sm:px-5 print:bg-white print:px-0">{site.title}</h4>
+          <div className="border-b border-line px-3 py-2 text-sm leading-6 text-muted sm:px-5 print:px-0 print:text-black">
+            <p><strong>Ponude i prodajni kanali za provjeru obuhvata</strong></p>
+            <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1">{site.scopes.map(scope => <li key={scope} className="[overflow-wrap:anywhere]">{scope}</li>)}</ul>
+          </div>
+          <GuidanceRow row={site.row} edit={site.row.question ? () => editOffer(site.offerId, site.row.question) : undefined} />
+          {site.details.length > 0 && <ul className="border-t border-line px-3 py-2 text-sm leading-6 sm:px-5 print:px-0">
+            {site.details.map(({ key, scopes, row }) => <li key={key} className="py-1">
+              <p><strong>{scopes.map(scope => scope.detail).join("; ")}</strong> · {statusLabels[row.status]}</p><p>{row.reason} {row.action}</p>
+              <ResultSources row={row} />
+              {row.question && scopes.map(scope => <button key={scope.offerId} type="button" className={`${link} mr-3 print:hidden`} onClick={() => editOffer(scope.offerId, row.question)}>Dopuni odgovor za {scope.detail}</button>)}
+            </li>)}
+          </ul>}
+        </div>)}
+      </section>}
+      {results.showCta && <p className="mt-6 rounded-xl bg-teal-soft p-4 font-semibold text-teal-dark print:hidden">Trebate objaviti mrežni cjenik? <Link className="underline underline-offset-4" href="/#kontakt">Zatražite pomoć s postavljanjem</Link>.</p>}
     </section>}
     <details className="mt-7 rounded-xl border border-line bg-white px-4 py-2 sm:px-6 print:hidden">
       <summary className="min-h-11 cursor-pointer py-3 text-sm font-extrabold text-teal-dark">Izvori i granice procjene</summary>
-      <p className="leading-7 text-muted">Alat daje pregled za hrvatsko tržište i dva navedena datuma. Bazna cijena s referentnog dana razlikuje se od najniže cijene prije sniženja. Najava upozoravanja pri nadzoru ne mijenja obveze.</p>
+      <p className="leading-7 text-muted">Alat obrađuje hrvatsko tržište prema pravilima od 17. studenoga 2026. nadalje. Bazna cijena s referentnog dana razlikuje se od najniže cijene prije sniženja. Najava upozoravanja pri nadzoru ne mijenja obveze.</p>
       <ul className="mt-3 divide-y divide-line text-sm leading-6">{Object.entries(sources).map(([id, source]) => <li key={id} className="py-2">
         <a href={source.url} className="font-bold text-teal-dark underline underline-offset-4">{source.title} · {source.section}</a>
-        <p className="text-muted">{source.type} · {source.scope}. Primjena: {source.applies} Provjereno: 16. 11. 2026.</p>
+        <p className="text-muted">{source.type} · {source.scope}. Primjena: {source.applies}</p>
         {(id === "draftBase" || id === "draftList") && <p className="text-muted">Datum objave izvješća: {consultationReports[id] ?? "nije potvrđen"}.</p>}
       </li>)}</ul>
     </details>
   </>;
+}
+
+function GuidanceRow({ row, edit }: { row: ResultRow; edit?: () => void }) {
+  return <div data-result-row className="grid min-w-0 gap-1.5 px-3 py-3 sm:grid-cols-[minmax(10rem,14rem)_minmax(0,1fr)] sm:gap-4 sm:px-5 print:block print:px-0 print:py-2">
+    <div className="min-w-0">
+      <p className="text-sm font-extrabold">{obligations[row.obligation]}</p>
+      <span data-result-status className={`mt-1 inline-block rounded px-2 py-1 text-xs font-bold ${statusStyle[row.status]}`}>{statusLabels[row.status]}</span>
+      {row.amountNeedsCheck && <p className="mt-1 text-xs font-bold text-[#7b3c09]">{amountCheckLabel}</p>}
+      {row.pending && <p className="mt-1 text-xs font-bold text-[#7b3c09]">Čeka objavu pravilnika</p>}
+    </div>
+    <div className="min-w-0">
+      <p className="text-[.9375rem] font-semibold leading-6">{row.action}</p>
+      <p className="mt-1 text-sm leading-6 text-muted print:text-black">{row.reason}</p>
+      {row.example && <p className="mt-2 whitespace-pre-wrap break-words rounded bg-[#edf6f7] px-3 py-2 text-sm leading-6 text-teal-dark print:text-black"><strong className="block">Predložak</strong>{row.example}</p>}
+      <ResultSources row={row} />
+      {edit && <button type="button" className={`${link} print:hidden`} onClick={edit}>Dopuni odgovor</button>}
+    </div>
+  </div>;
 }
 
 function ResultSources({ row }: { row: Guidance }) {
