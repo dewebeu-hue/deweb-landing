@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import Link from "next/link";
 import { amountCheckLabel, assessResults, formatResults, obligations, statusLabels, type Guidance, type ResultRow } from "../../../lib/sidrene-cijene";
-import { ASSESSMENT_PERIOD, consultationReports, offerName as nameOf, questions, selected, selects, sources, websiteDomain, websiteTypes, type Answers, type Offer, type QuestionId, type WebsiteType } from "../../../lib/sidrene-cijene-podaci";
+import { ASSESSMENT_PERIOD, GENERAL_REFERENCE, LEGACY_REFERENCE, mainSources, offerName as nameOf, questions, selected, selects, sources, websiteDomain, websiteTypes, type Answers, type Offer, type QuestionId, type SourceId, type WebsiteType } from "../../../lib/sidrene-cijene-podaci";
 import styles from "./upitnik.module.css";
 
 const steps = ["Kupci i ponuda", "Gdje prodajete i oglašavate", "Roba i cijene", "Ranije cijene i popusti"];
@@ -11,18 +11,22 @@ const primary = `${styles.press} inline-flex min-h-12 items-center justify-cente
 const secondary = `${styles.press} inline-flex min-h-11 items-center justify-center rounded-lg border border-line bg-white px-4 py-2 text-center text-sm font-bold text-teal-dark hover:bg-teal-soft`;
 const link = "inline-flex min-h-11 items-center text-sm font-bold text-teal-dark underline decoration-teal/40 underline-offset-4 hover:decoration-teal-dark";
 const statusStyle = { applies: "bg-teal-soft text-teal-dark", outside: "bg-slate-100 text-slate-700", check: "bg-[#fff0dc] text-[#7b3c09]" };
-const singular: QuestionId[] = ["legacy", "unit", "prior", "proof", "discountProof"];
+const singular: QuestionId[] = ["legacy", "unit", "regulation", "history", "referenceDiscount", "proof", "printTiming", "discountProof"];
 const sole = ["none", "unknown", "standard"];
 const prompts: Partial<Record<QuestionId, string>> = {
   buyers: "Ako građanima i tvrtkama nudite različite cijene, dodajte ih kao dvije ponude.",
+  roles: "Posebno unesite vlastitu prodaju i vlastitu naknadu ako za njih vrijede različite cijene ili uvjeti.",
   goods: "Primjer za majicu: „Nova” i „Na komad, bez pakiranja”.",
   website: "Ako imate samo Instagram, Facebook ili stranicu na tuđoj platformi, odaberite „Nemam vlastiti web”.",
   sales: "Primjer: outlet i sajam. Ako se cijene razlikuju, dodajte zasebnu ponudu za svako mjesto.",
-  ads: "Primjer: prodajete u trgovini, a cijene objavljujete na Instagramu.",
+  ads: "Ovdje označite oglase s cijenom. Ako se preko Instagrama može i kupiti, označite ga i u pitanju o prodaji.",
   regulation: "Ako propis određuje cijenu samo za dio ponude, taj dio dodajte zasebno.",
+  priceException: "Odgovorite za cijenu koju provjeravate. Redovnu cijenu i cijenu samo za određene kupce unesite zasebno.",
+  locations: "Usporedite cijele cjenike. Ako imate zasebne cijene na više prodajnih mjesta, označite da se razlikuju.",
   legacy: "O ovom odgovoru ovisi datum za provjeru bazne cijene.",
   unit: "Provjeravamo treba li prikazati cijenu po kilogramu, litri ili drugoj jedinici.",
-  discountProof: "Gledajte cijene istog artikla na mjestu na kojem ga snižavate.",
+  discount: "Ovo je trenutačni popust. Ako vrijedi samo na jednom mjestu, unesite tu ponudu zasebno.",
+  discountProof: "Gledajte cijene iste robe ili usluge na mjestu na kojem je snižavate.",
 };
 const productLists: Partial<Record<QuestionId, string[]>> = {
   legacy: ["Hrana i piće", "Kozmetika, proizvodi za čišćenje i toaletne potrepštine", "Proizvodi za kućanstvo"],
@@ -36,17 +40,28 @@ function stepQuestions(a: Answers): QuestionId[][] {
   const feeOnly = !own && selects(a, "roles", "fee");
   const thirdOnly = !own && selects(a, "roles", "display") && !feeOnly;
   const goods = !feeOnly && selects(a, "kinds", "goods");
-  const partial = !selects(a, "sales", "none") || !selects(a, "ads", "none");
+  const hasSales = selected(a, "sales").some(value => value !== "none");
+  const partial = hasSales || !selects(a, "ads", "none");
+  const dated = !goods || selects(a, "legacy", "yes", "no") || selected(a, "kinds").length > 1;
+  const needsHistory = dated && !selects(a, "regulation", "regulated") && (
+    selected(a, "sales").some(value => !["none", "vending"].includes(value))
+    || selects(a, "ads", "tv") || (selects(a, "ads", "print") && !selects(a, "printTiming", "old"))
+  );
+  const historyKnown = selected(a, "history").length === 1 && !selects(a, "history", "unknown");
+  const referenceDiscountKnown = selects(a, "referenceDiscount", "regular", "promo");
   return [
     ["buyers", "roles", ...(!feeOnly && !thirdOnly ? ["kinds" as const] : [])],
-    ["territory", "sales", "website", "ads", ...(selected(a, "sales").filter(x => !sole.includes(x)).length > 1 || selects(a, "sales", "shop", "outlet", "market") ? ["locations" as const] : [])],
-    thirdOnly ? [] : ["activity", "pricing", "regulation", ...(goods ? ["goods", "legacy"] as const : []),
+    ["territory", "sales", ...(!thirdOnly ? ["website" as const] : []), "ads",
+      ...(!thirdOnly && selects(a, "ads", "print") ? ["printTiming" as const] : []),
+      ...(!thirdOnly && hasSales && (selects(a, "website", "shop", "info") || selected(a, "sales").filter(x => !sole.includes(x)).length > 1 || selects(a, "sales", "shop", "outlet", "market")) ? ["locations" as const] : [])],
+    thirdOnly ? [] : ["activity", "pricing", "regulation", ...(!selects(a, "regulation", "regulated") ? ["priceException" as const] : []), ...(goods ? ["goods", "legacy"] as const : []),
       ...(goods && !selects(a, "goods", "loose", "auction") ? ["unit" as const] : []),
       ...(goods && selects(a, "unit", "yes") && !selects(a, "goods", "loose", "auction") ? ["unitException" as const] : [])],
     !partial || thirdOnly ? [] : [
-      ...(goods && selects(a, "legacy", "yes") ? ["prior" as const] : []), "history",
-      ...(!selects(a, "history", "unknown", "other") && selected(a, "history").length ? ["proof" as const] : []),
-      "discount", ...(selects(a, "discount", "public", "coupon") && (goods || selects(a, "sales", "shop", "outlet")) ? ["discountProof" as const] : []),
+      ...(needsHistory ? ["history" as const] : []),
+      ...(needsHistory && historyKnown ? ["referenceDiscount" as const] : []),
+      ...(needsHistory && historyKnown && referenceDiscountKnown ? ["proof" as const] : []),
+      "discount", ...(selects(a, "discount", "public", "coupon") && (goods || selects(a, "sales", "shop", "outlet", "stand", "fair")) ? ["discountProof" as const] : []),
     ],
   ];
 }
@@ -207,7 +222,14 @@ export function PriceQuestionnaire() {
               <input id="offer-name" type="text" maxLength={80} value={offer.name} onChange={e => updateOffer(item => ({ ...item, name: e.target.value }))} className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 px-3 text-base" placeholder="Npr. Odjeća u outletu" />
             </label>}
             {questionsNow.map(key => {
-              const hint = key === "history" ? `Datum za provjeru bazne cijene prema najavi je ${selects(a, "legacy", "yes") ? "2. 5. 2025." : "10. 9. 2026."}` : prompts[key];
+              const reference = selects(a, "legacy", "yes") ? LEGACY_REFERENCE : GENERAL_REFERENCE;
+              const first = selects(a, "history", "new", "changed");
+              const hint = key === "history" ? `Provjerite ponudu na dan ${reference} Ako imate više proizvoda s različitim datumima, unesite ih zasebno.`
+                : key === "referenceDiscount" ? first ? "Gledajte dan kada ste tu robu ili uslugu prvi put uvrstili u ponudu." : `Gledajte cijenu na dan ${reference} Popust samo za pojedinu skupinu kupaca ili način plaćanja procjenjuje se zasebno.`
+                : key === "proof" && selects(a, "referenceDiscount", "promo") ? selects(a, "legacy", "yes")
+                  ? "Potražite najnižu cijenu u 30 dana prije početka tadašnjeg popusta." : "Potražite maloprodajnu cijenu koja je vrijedila prije tadašnjeg popusta."
+                : key === "proof" ? first ? "Potražite cijenu koja je vrijedila na dan prvog uvrštenja u ponudu." : `Potražite cijenu koja je vrijedila na dan ${reference}`
+                : prompts[key];
               const multi = !singular.includes(key);
               const items = productLists[key];
               const description = [invalid === key && `error-${key}`, (multi || hint) && `hint-${key}`, items && `items-${key}`].filter(Boolean).join(" ");
@@ -295,13 +317,14 @@ export function PriceQuestionnaire() {
         {results.websites.map((site, index) => <div key={site.key} id={`website-result-${index}`} data-website-result className="mt-3 min-w-0 scroll-mt-4 rounded-xl border border-line bg-white print:border-0">
           <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold [overflow-wrap:anywhere] sm:px-5 print:bg-white print:px-0">{site.title}</h4>
           <div className="border-b border-line px-3 py-2 text-sm leading-6 text-muted sm:px-5 print:px-0 print:text-black">
-            <p><strong>Ponude za koje trebate provjeriti što ulazi u cjenik</strong></p>
+            <p><strong>Ponude i prodajna mjesta</strong></p>
             <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1">{site.scopes.map(scope => <li key={scope} className="[overflow-wrap:anywhere]">{scope}</li>)}</ul>
           </div>
           <GuidanceRow row={site.row} edit={site.row.question ? () => editOffer(site.offerId, site.row.question) : undefined} />
           {site.details.length > 0 && <ul className="border-t border-line px-3 py-2 text-sm leading-6 sm:px-5 print:px-0">
             {site.details.map(({ key, scopes, row }) => <li key={key} className="py-1">
               <p><strong>{scopes.map(scope => scope.detail).join("; ")}</strong> · {statusLabels[row.status]}</p><p>{row.action}</p>
+              <RuleLink id={row.refs[0]} />
               <ResultDetails row={row} />
               {row.question && scopes.map(scope => <button key={scope.offerId} type="button" className={`${link} mr-3 print:hidden`} onClick={() => editOffer(scope.offerId, row.question)}>Dopuni odgovor za {scope.detail}</button>)}
             </li>)}
@@ -312,11 +335,10 @@ export function PriceQuestionnaire() {
     </section>}
     <details className="mt-7 rounded-xl border border-line bg-white px-4 py-2 sm:px-6 print:hidden">
       <summary className="min-h-11 cursor-pointer py-3 text-sm font-extrabold text-teal-dark">Propisi i službeni izvori</summary>
-      <p className="leading-7 text-muted">Upitnik pokriva prodaju u Hrvatskoj prema pravilima od 17. studenoga 2026. U rezultatu je označeno što još treba provjeriti u konačnim pravilnicima.</p>
-      <ul className="mt-3 divide-y divide-line text-sm leading-6">{Object.entries(sources).map(([id, source]) => <li key={id} className="py-2">
-        <a href={source.url} className="font-bold text-teal-dark underline underline-offset-4">{source.title} · {source.section}</a>
-        <p className="text-muted">{source.type} · {source.scope}. Primjena: {source.applies}</p>
-        {(id === "draftBase" || id === "draftList") && <p className="text-muted">Datum objave izvješća: {consultationReports[id] ?? "nije potvrđen"}.</p>}
+      <p className="leading-7 text-muted">Upitnik primjenjuje objavljene pravilnike za prodaju u Hrvatskoj od 17. studenoga 2026. Uz svaku uputu naveden je propis.</p>
+      <ul className="mt-3 divide-y divide-line text-sm leading-6">{mainSources.map(id => <li key={id} className="py-2">
+        <RuleLink id={id} />
+        <p className="text-muted">{sources[id].type} · {sources[id].scope}. Primjena {sources[id].applies}.</p>
       </li>)}</ul>
     </details>
   </>;
@@ -329,7 +351,7 @@ function QuickPlan({ plan }: { plan: ResultPlan }) {
   return <ul aria-label="Kratki popis koraka" className="mt-4 divide-y divide-teal/20 rounded-lg border border-teal/20 bg-white px-3 sm:px-5 print:px-0">
     {plan.offers.map(({ id, name, groups }) => <li key={id} className="py-2.5 [overflow-wrap:anywhere]">
       <h3 className="text-base font-extrabold"><a href={`#offer-result-${id}`} className={link}>{name}</a></h3>
-      {groups.map(({ title, steps }) => <div key={title} className="mb-2">
+      {groups.map(({ title, steps }, index) => <div key={`${title}-${index}`} className="mb-2">
         {title !== name && <h4 className="text-sm font-semibold text-muted">{title}</h4>}
         <QuickSteps steps={steps} />
       </div>)}
@@ -348,9 +370,10 @@ function QuickPlan({ plan }: { plan: ResultPlan }) {
 
 function QuickSteps({ steps }: { steps: PlanSteps }) {
   return <ul className="mt-1 list-disc space-y-1 pl-5 text-sm leading-6">
-    {steps.map(({ action, note }) => <li key={JSON.stringify([action, note])}>
+    {steps.map(({ action, note, ref }) => <li key={JSON.stringify([action, note, ref])}>
       {action}
       {note && <span className="block text-xs font-bold leading-5 text-[#7b3c09]">{note}</span>}
+      <RuleLink id={ref} small />
     </li>)}
   </ul>;
 }
@@ -359,27 +382,31 @@ function GuidanceRow({ row, edit }: { row: ResultRow; edit?: () => void }) {
   return <div data-result-row className="grid min-w-0 gap-1.5 px-3 py-3 sm:grid-cols-[minmax(10rem,14rem)_minmax(0,1fr)] sm:gap-4 sm:px-5 print:block print:px-0 print:py-2">
     <div className="min-w-0">
       <p className="text-sm font-extrabold">{obligations[row.obligation]}</p>
+      {row.priceLabel && <p className="mt-1 text-xs text-muted">{row.priceLabel}</p>}
       <span data-result-status className={`mt-1 inline-block rounded px-2 py-1 text-xs font-bold ${statusStyle[row.status]}`}>{statusLabels[row.status]}</span>
       {row.amountNeedsCheck && <p className="mt-1 text-xs font-bold text-[#7b3c09]">{amountCheckLabel}</p>}
-      {row.pending && <p className="mt-1 text-xs font-bold text-[#7b3c09]">Čeka objavu pravilnika</p>}
     </div>
     <div className="min-w-0">
       <p className="text-[.9375rem] font-semibold leading-6">{row.action}</p>
+      <RuleLink id={row.refs[0]} />
       <ResultDetails row={row} />
       {edit && <button type="button" className={`${link} print:hidden`} aria-label={`Uredi odgovor za: ${obligations[row.obligation]}`} onClick={edit}>Uredi odgovor</button>}
     </div>
   </div>;
 }
 
+function RuleLink({ id, small }: { id: SourceId; small?: boolean }) {
+  const source = sources[id];
+  return <a href={source.url} className={`block font-semibold text-teal-dark underline underline-offset-4 ${small ? "text-xs leading-5" : "text-sm leading-6"}`}>{source.title} · {source.section}</a>;
+}
+
 function ResultDetails({ row }: { row: Guidance }) {
   return <details data-result-sources>
-    <summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-teal-dark">{row.example ? "Zašto, primjer i izvori" : "Zašto i izvori"}</summary>
+    <summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-teal-dark">{row.example ? "Detalji i izvori" : row.refs.length > 1 ? "Zašto i izvori" : "Zašto"}</summary>
     <p className="text-sm leading-6 text-muted print:text-black">{row.reason}</p>
     {row.example && <p className="mt-2 whitespace-pre-wrap break-words rounded bg-[#edf6f7] px-3 py-2 text-sm leading-6 text-teal-dark print:text-black"><strong className="block">Primjer</strong>{row.example}</p>}
-    <ul className="mt-2 space-y-1 text-sm leading-6">
-      {row.refs.map(id => <li key={id}>
-        <a href={sources[id].url} className="font-semibold text-teal-dark underline underline-offset-4">{sources[id].title} · {sources[id].section}</a> <span className="text-muted">({sources[id].type})</span>
-      </li>)}
-    </ul>
+    {row.refs.length > 1 && <ul className="mt-2 space-y-1 text-sm leading-6">
+      {row.refs.slice(1).map(id => <li key={id}><RuleLink id={id} /></li>)}
+    </ul>}
   </details>;
 }

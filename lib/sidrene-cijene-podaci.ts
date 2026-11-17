@@ -1,12 +1,15 @@
-export const VERIFIED = "2026-11-16";
+export const VERIFIED = "2026-11-17";
 export const ASSESSMENT_PERIOD = "Pravila od 17. 11. 2026. nadalje";
+export const LEGACY_REFERENCE = "2. 5. 2025.";
+export const GENERAL_REFERENCE = "10. 9. 2026.";
 
 const nn = "https://narodne-novine.nn.hr/clanci/sluzbeni/";
 const law = `${nn}2022_02_19_203.html`;
 const amendment = `${nn}2026_06_59_728.html`;
-const legacy = `${nn}2025_05_75_979.html`;
 const source = (title: string, url: string, section: string, scope: string, applies: string, type = "Objavljeni propis") =>
   ({ title, url, section, scope, applies, type, checked: VERIFIED });
+const base = (section: string, scope: string) => source("NN 132/2026-1583", `${nn}2026_11_132_1583.html`, section, scope, "od 17. 11. 2026.");
+const list = (section: string, scope: string) => source("NN 132/2026-1584", `${nn}2026_11_132_1584.html`, section, scope, "od 17. 11. 2026.");
 
 export const sources = {
   consumer: source("ZZP · NN 19/2022", law, "čl. 4. i 5.", "Potrošač, trgovac i proizvod", "od 28. 5. 2022.; čitati s izmjenama"),
@@ -14,23 +17,38 @@ export const sources = {
   unit: source("Pravilnik · NN 105/2026", `${nn}2026_09_105_1270.html`, "čl. 3.–9.", "Jedinične cijene robe i cjenik usluga na prodajnom mjestu", "od 26. 9. 2026."),
   discount: source("ZZP · NN 19/2022", law, "čl. 8. st. 4. i čl. 19. st. 4.–7.", "Posebni oblici prodaje i prikaz prethodne cijene", "od 28. 5. 2022.; čitati s izmjenama"),
   discountChange: source("ZZP · NN 59/2026", amendment, "čl. 10.–14. i 66. (čl. 19.–24. ZZP-a)", "Posebni oblici prodaje, lako kvarljiva roba i roba pred istekom", "od 17. 6. 2026."),
+  discountConditions: source("ZZP · NN 19/2022", law, "čl. 8. st. 3. i 4.", "Posebni uvjeti prodaje i popust na proizvode", "od 28. 5. 2022.; čitati s izmjenama"),
+  discountSale: source("ZZP · NN 59/2026", amendment, "čl. 19. st. 4. ZZP-a (izmjena čl. 10.)", "Najniža cijena pri prodaji robe", "od 17. 6. 2026."),
+  discountAd: source("ZZP · NN 59/2026", amendment, "čl. 19. st. 6. ZZP-a (izmjena čl. 10.)", "Najniža cijena u oglasu za robu", "od 17. 6. 2026."),
+  discountService: source("ZZP · NN 59/2026", amendment, "čl. 19. st. 7. i 8. ZZP-a (izmjena čl. 10.)", "Najniža cijena pri sniženju usluge i iznimke", "od 17. 6. 2026."),
+  discountExpiry: source("ZZP · NN 59/2026", amendment, "čl. 19. st. 5. i čl. 24. ZZP-a", "Posebni oblici prodaje kvarljive robe i robe pred istekom", "od 17. 6. 2026."),
   euDiscount: source("Smjernice Europske komisije · 2021/C 526/02", "https://eur-lex.europa.eu/legal-content/HR/TXT/?uri=oj%3AJOC_2021_526_R_0002", "t. 2.1. i 2.3.", "Personalizirani popusti i različiti prodajni kanali za robu", "objavljeno 29. 12. 2021.", "Službeno pojašnjenje"),
-  legacyBase: source("Odluka · NN 75/2025", legacy, "t. VI.–VII.", "Referenca ranije dodatne cijene za šest skupina robe", "raniji režim od 15. 5. 2025."),
-  decisionBase: source("Odluka · NN 101/2026", `${nn}2026_09_101_1212.html`, "t. II.–VI.", "Dodatna cijena robe i usluga", "objavljena; stupanje na snagu pomaknuto na 17. 11. 2026.; najavljen prestanak"),
-  decisionList: source("Odluka · NN 101/2026", `${nn}2026_09_101_1213.html`, "t. II.–IX.", "Mrežni cjenici robe i usluga", "objavljena; stupanje na snagu pomaknuto na 17. 11. 2026.; najavljen prestanak"),
-  postponeBase: source("Izmjena · NN 110/2026", `${nn}2026_09_110_1309.html`, "t. I.–II.", "Odgoda odluke o dodatnoj cijeni", "od 30. 9. 2026."),
-  postponeList: source("Izmjena · NN 110/2026", `${nn}2026_09_110_1310.html`, "t. I.–II.", "Odgoda odluke o mrežnim cjenicima", "od 30. 9. 2026."),
-  ministry: source("Ministarstvo gospodarstva · pojašnjenja", "https://mingo.gov.hr/vijesti/pojasnjenja-za-primjenu-dodatne-cijene-i-objavu-cjenika-od-1-listopada/10440", "Odjeljci o prikazu, iznimkama i mrežnim stranicama", "Odluke NN 101/2026; ne tumači konačne pravilnike", "22. 9. 2026.; rok u objavi naknadno odgođen", "Službeno pojašnjenje"),
-  opg: source("Savjetodavna · pojašnjenje za OPG", "https://savjetodavna.mps.hr/2026/10/01/obveza-isticanja-dodatne-sidrene-cijene-i-objave-cjenika-proizvoda-i-usluga/", "Uvod i odjeljak o dodatnoj cijeni", "Registrirani OPG u ranijem režimu; tumačenje odluka", "1. 10. 2026.; ne zamjenjuje pravilnik", "Službeno pojašnjenje"),
-  draftBase: source("e-Savjetovanje 10333", "https://esavjetovanja.gov.hr/Econ/10333", "Prijedlog pravilnika o isticanju bazne cijene", "Referentni dan, obuhvat, izuzeća i način prikaza", "najavljeno 17. 11. 2026.; konačna objava nije potvrđena", "Nacrt ili najava"),
-  draftList: source("e-Savjetovanje 10332", "https://esavjetovanja.gov.hr/Econ/10332", "Prijedlog pravilnika o načinu objave cjenika", "Obuhvat, format, polja, rokovi i arhiva mrežnog cjenika", "najavljeno 17. 11. 2026.; konačna objava nije potvrđena", "Nacrt ili najava"),
-  consultation: source("Ministarstvo gospodarstva · savjetovanja", "https://mingo.gov.hr/vijesti/ministar-susnjar-kroz-dijalog-s-gospodarstvenicima-do-provedivih-pravila-i-vece-zastite-potrosaca/10461", "Odjeljci o referentnim datumima i savjetovanjima", "Najava obuhvata, iznimaka i trajanja savjetovanja", "savjetovanja 14. 10.–13. 11. 2026.", "Nacrt ili najava"),
-  government: source("Vlada RH · objava od 14. 11.", "https://vlada.gov.hr/inspektorat-nece-kaznjavati-zbog-baznih-cijena-nego-upozoravati/47604", "Izjava o početku primjene i nadzoru", "Najavljeni edukativni pristup nadzoru; nije izuzeće", "14. 11. 2026.; trajanje nije određeno", "Nacrt ili najava"),
-  repeal: source("Vlada RH · 225. sjednica", "https://vlada.gov.hr/225-sjednica-vlade-republike-hrvatske-47600/47600", "Dnevni red, prijedlozi a)–c) o prestanku važenja", "Prestanak važenja odluka NN 75/2025 i NN 101/2026", "sjednica 14. 11. 2026.; konačna objava nije potvrđena", "Nacrt ili najava"),
+  baseRule: base("čl. 3.–8.", "Bazna cijena, izuzeća, prodaja i oglašavanje"),
+  baseLegacy: base("čl. 3. st. 1. podst. 1.", "Šest skupina na dan 2. 5. 2025."),
+  baseLegacyNew: base("čl. 3. st. 1. podst. 2.", "Šest skupina nakon 2. 5. 2025."),
+  baseGeneral: base("čl. 3. st. 1. podst. 3.", "Ostala roba i usluge na dan 10. 9. 2026."),
+  baseGeneralNew: base("čl. 3. st. 1. podst. 4.", "Ostala roba i usluge nakon 10. 9. 2026."),
+  baseLegacyDiscount: base("čl. 3. st. 2.", "Popust na dan 2. 5. 2025."),
+  baseLegacyNewDiscount: base("čl. 3. st. 3.", "Popust pri uvrštenju nakon 2. 5. 2025."),
+  baseGeneralDiscount: base("čl. 3. st. 4.", "Popust na dan 10. 9. 2026."),
+  baseGeneralNewDiscount: base("čl. 3. st. 5.", "Popust pri uvrštenju nakon 10. 9. 2026."),
+  baseExceptions: base("čl. 4. st. 1. i 2.", "Izuzeća za konkretnu cijenu"),
+  baseIntermediary: base("čl. 4. st. 3.", "Tuđe cijene na posredničkom kanalu"),
+  baseGoods: base("čl. 5. st. 1.–3.", "Prikaz bazne cijene robe"),
+  baseService: base("čl. 6. st. 1.–4.", "Prikaz bazne cijene usluge"),
+  baseMandatoryAd: base("čl. 7. st. 1.", "Tiskani i televizijski oglasi s cijenom"),
+  baseOptionalAd: base("čl. 7. st. 2.", "Dobrovoljan istak u ostalim oglasima s cijenom"),
+  baseOldPrint: base("čl. 8.", "Prijelaz za ranije izrađene tiskane oglase"),
+  listRule: list("čl. 3.–6.", "Sadržaj, izuzeća i način objave"),
+  listGoods: list("čl. 3. st. 1., 2. i 4.", "Objava i redoslijed podataka za robu"),
+  listService: list("čl. 3. st. 1., 3. i 4.", "Objava i redoslijed podataka za usluge"),
+  listLocations: list("čl. 3. st. 5.–7.", "Rok do 11:00, arhiva 15 dana i prodajna mjesta"),
+  listExceptions: list("čl. 4. st. 1. i 2.", "Izuzeća za konkretnu cijenu"),
+  listIntermediary: list("čl. 4. st. 3.", "Posredničke platforme i kanali"),
+  listAccess: list("čl. 5. i 6.", "Strojno dohvaćanje, isti URL i format datoteke"),
 };
 export type SourceId = keyof typeof sources;
-
-export const consultationReports: Record<"draftBase" | "draftList", string | null> = { draftBase: null, draftList: null };
+export const mainSources = ["consumer", "article7", "baseRule", "listRule", "unit", "discount", "discountChange", "euDiscount"] as const;
 
 export const questions = {
   buyers: ["Tko kod vas kupuje?", { consumer: "Građani koji kupuju za sebe", company: "Poslovni kupci (tvrtke i obrti)", institution: "Ustanove", buyer: "Otkupljivači", unknown: "Ne znam", other: "Drugo" }],
@@ -38,20 +56,27 @@ export const questions = {
   kinds: ["Što nudite?", { goods: "Roba", service: "Usluga", rent: "Najam", stay: "Smještaj", travel: "Prijevoz", ticket: "Ulaznice", digital: "Digitalni sadržaj", subscription: "Pretplata", bundle: "Paket robe i usluga", voucher: "Vaučer ili poklon bon", unknown: "Ne znam", other: "Drugo" }],
   goods: ["Kakvu robu prodajete i kako je pakirana?", { new: "Nova", used: "Rabljena", packed: "Pakirana", loose: "Rasuta roba (npr. jabuke na kilogram)", pieces: "Na komad, bez pakiranja", custom: "Po mjeri ili u više varijanti", defect: "Roba s greškom", expiry: "Lako kvarljiva ili pred istekom roka", auction: "Javna dražba, umjetnička djela ili antikviteti", standard: "Ništa od navedenoga", unknown: "Ne znam", other: "Drugo" }],
   activity: ["Koju djelatnost obavljate za ovu ponudu?", { retail: "Registrirana trgovina na malo", opg: "Upisani OPG koji prodaje izravno", service: "Pružam usluge", other: "Druga djelatnost", unknown: "Ne znam" }],
-  legacy: ["Prodajete li nešto iz ovih skupina?", { yes: "Da, iz popisa iznad", no: "Ne, druga roba", unknown: "Ne znam" }],
+  legacy: ["Pripada li roba koju provjeravate ovom popisu?", { yes: "Da, roba je iz popisa", no: "Ne, druga roba", mixed: "Imam robu iz popisa i drugu robu", unknown: "Ne znam" }],
   unit: ["Je li vaša roba na ovom popisu?", { yes: "Da, na popisu je", no: "Ne, nije na popisu", unknown: "Ne znam" }],
   unitException: ["Odnosi li se nešto od ovoga na vašu robu?", { same: "Cijena po kg, l ili drugoj jedinici jednaka je prodajnoj cijeni", small: "Manje od 50 g ili 50 ml", gift: "Poklon paket ili komplet", special: "Roba na akciji, sniženju ili u drugom posebnom obliku prodaje", treats: "Poslastice za kućne ljubimce ili kolači", limits: "Alkohol do 100 ml ili smrznuti desert do 500 ml", pieces: "Voće ili povrće na komad ili u svežnju", free: "Besplatna roba", none: "Nijedno", unknown: "Ne znam", other: "Drugo" }],
   pricing: ["Kako određujete cijenu kupcu?", { fixed: "Fiksna cijena (npr. 30 € za komad)", hour: "Satnica", measure: "Po količini (npr. €/kg ili €/m²)", fee: "Fiksna doplata ili izlazak", quote: "Zasebna ponuda za svakog kupca nakon procjene", dynamic: "Cijena se mijenja s terminom ili potražnjom", unknown: "Ne znam", other: "Drugo" }],
-  regulation: ["Određuje li poseban propis koliko smijete naplatiti?", { market: "Ne, cijenu određujem samostalno", regulated: "Da, cijenu uređuje poseban propis", unknown: "Ne znam", other: "Drugo" }],
-  sales: ["Gdje kupac može kupiti?", { shop: "Fizička poslovnica", outlet: "Outlet", stand: "Štand ili tržnica", fair: "Sajam", door: "Kod kupca ili na kućnom pragu", webshop: "Vlastiti webshop", booking: "Stranica za rezervacije", market: "Tuđa platforma za prodaju (marketplace)", social: "Društvena mreža (npr. Instagram)", messages: "Poruke, telefon ili e-pošta", none: "Još nema prodaje", unknown: "Ne znam", other: "Drugo" }],
+  regulation: ["Uređuje li cijenu poseban propis ili drugi pravni akt?", { market: "Ne, cijenu određujem samostalno", regulated: "Da, cijenu uređuje poseban propis ili drugi pravni akt", unknown: "Ne znam", other: "Drugo" }],
+  priceException: ["Vrijedi li nešto od ovoga za ovu cijenu?", {
+    group: "Popust samo za određenu skupinu kupaca", payment: "Popust samo za određeni način plaćanja",
+    personal: "Cijena je samo za jednog kupca i ne može se objektivno usporediti",
+    dynamic: "Cijena se mijenja i nema unaprijed usporedivih elemenata za povijesni datum",
+    none: "Ništa od navedenoga", unknown: "Ne znam",
+  }],
+  sales: ["Gdje kupac može kupiti?", { shop: "Fizička poslovnica", outlet: "Outlet", stand: "Štand ili tržnica", fair: "Sajam", door: "Kod kupca ili na kućnom pragu", webshop: "Vlastiti webshop", booking: "Stranica za rezervacije", market: "Tuđa platforma za prodaju (marketplace)", social: "Društvena mreža (npr. Instagram)", messages: "Poruke, telefon ili e-pošta", vending: "Prodajni automat", none: "Još nema prodaje", unknown: "Ne znam", other: "Drugo" }],
   website: ["Imate li svoj web?", { shop: "Vlastiti webshop", info: "Vlastiti web bez košarice", none: "Nemam vlastiti web", unknown: "Ne znam", other: "Drugo" }],
-  ads: ["Gdje objavljujete cijene za ovu ponudu?", { web: "Vlastiti web ili webshop", market: "Tuđa stranica za prodaju ili rezervacije", social: "Javne objave na društvenim mrežama", paid: "Plaćeni oglasi na internetu", mail: "Newsletter s ponudom za sve primatelje", print: "Letci, katalozi ili plakati", broadcast: "TV ili radio", none: "Nigdje ne oglašavam cijenu", unknown: "Ne znam", other: "Drugo" }],
+  ads: ["Gdje oglašavate ovu ponudu s cijenom?", { web: "Vlastiti web ili webshop", market: "Tuđa stranica za prodaju ili rezervacije", social: "Javne objave na društvenim mrežama", paid: "Plaćeni oglasi na internetu", mail: "Newsletter s ponudom za sve primatelje", print: "Letci, katalozi ili plakati", tv: "Televizija (TV)", radio: "Radio", none: "Nigdje ne oglašavam cijenu", unknown: "Ne znam", other: "Drugo" }],
+  printTiming: ["Kada su izrađeni tiskani oglasi?", { new: "Na dan početka primjene ili kasnije", old: "Prije 17. 11. 2026.", unknown: "Ne znam" }],
   territory: ["U kojim državama nudite ovu ponudu?", { hr: "Hrvatska", foreign: "Druge države", unknown: "Ne znam", other: "Drugo" }],
-  locations: ["Vrijedi li ista cijena na svim mjestima prodaje?", { one: "Prodajem samo na jednom mjestu", same: "Ista cijena na više mjesta", different: "Cijena ovisi o mjestu prodaje", sellers: "Više prodavatelja, svaki sa svojom cijenom", unknown: "Ne znam", other: "Drugo" }],
-  prior: ["Jeste li za isti artikl već morali prikazivati dodatnu (baznu) cijenu?", { yes: "Da", no: "Ne", unknown: "Ne znam" }],
-  history: ["Što je vrijedilo za ovu ponudu na navedeni datum?", { existing: "Već sam je nudio po redovnoj cijeni", stock: "Već sam je nudio, ali je bila rasprodana", new: "Počeo sam je nuditi nakon tog datuma", renamed: "Ista ponuda, promijenjen je samo naziv ili šifra", changed: "Proizvod ili sadržaj ponude se promijenio", promo: "Na taj je datum bila na akciji", unknown: "Ne znam", other: "Drugo" }],
-  proof: ["Imate li zapis o redovnoj ili prvoj cijeni?", { yes: "Da, imam cjenik ili drugi zapis s datumom", no: "Nemam zapis", unknown: "Ne znam gdje provjeriti" }],
-  discount: ["Nudite li popust?", { public: "Javno sniženje, akcija ili rasprodaja", coupon: "Kupon ili kod dostupan svima", personal: "Popust dogovoren s jednim kupcem", expiry: "Sniženje jer se roba brzo kvari ili joj istječe rok", none: "Nema sniženja", unknown: "Ne znam", other: "Drugo" }],
+  locations: ["Imate li isti cjenik na svim prodajnim mjestima?", { one: "Prodajem samo na jednom mjestu", same: "Isti cjenik na svim prodajnim mjestima", different: "Cjenici se razlikuju među prodajnim mjestima", sellers: "Više prodavatelja, svaki sa svojim cjenikom", unknown: "Ne znam", other: "Drugo" }],
+  history: ["Je li ista roba ili usluga tada već bila u ponudi?", { existing: "Da, već je bila u ponudi", stock: "Da, ali taj dan nije bilo zalihe", new: "Ne, prvi put je ponuđena poslije tog dana", renamed: "Da, poslije je promijenjen samo naziv ili šifra", changed: "Izmijenjeni proizvod ili usluga prvi put su ponuđeni poslije tog dana", unknown: "Ne znam" }],
+  referenceDiscount: ["Je li na taj dan za tu robu ili uslugu vrijedio popust za sve kupce?", { regular: "Ne, vrijedila je redovna cijena", promo: "Da, vrijedila je akcijska cijena ili drugi popust za tu robu ili uslugu", unknown: "Ne znam" }],
+  proof: ["Imate li podatke za utvrđivanje bazne cijene?", { yes: "Da, imam cjenik ili evidenciju cijena", no: "Nemam podatke", unknown: "Ne znam gdje provjeriti" }],
+  discount: ["Nudite li sada popust?", { public: "Javno sniženje, akcija ili rasprodaja", coupon: "Kupon ili kod dostupan svima", personal: "Popust dogovoren s jednim kupcem", targeted: "Popust samo za skupinu kupaca ili način plaćanja", expiry: "Sniženje jer se roba brzo kvari ili joj istječe rok", none: "Nema sniženja", unknown: "Ne znam", other: "Drugo" }],
   discountProof: ["Imate li cijene za svih 30 dana prije početka sniženja?", { full: "Da, imam cijelu evidenciju", partial: "Imam samo dio cijena", first: "Ovo je prva prodaja, ranije cijene nema", unknown: "Ne znam" }],
 } as const;
 

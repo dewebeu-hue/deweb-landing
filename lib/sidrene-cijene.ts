@@ -1,79 +1,107 @@
-import { ASSESSMENT_PERIOD, label, offerName, questions, selected, selects, sources, websiteDomain, websiteTypes, type Answers, type Offer, type QuestionId, type SourceId, type WebsiteType } from "./sidrene-cijene-podaci.ts";
+import { ASSESSMENT_PERIOD, GENERAL_REFERENCE, LEGACY_REFERENCE, label, offerName, questions, selected, selects, sources, websiteDomain, websiteTypes, type Answers, type Offer, type QuestionId, type SourceId, type WebsiteType } from "./sidrene-cijene-podaci.ts";
 
 export const obligations = { base: "Bazna (sidrena) cijena", unit: "Cijena po kg, litri ili drugoj jedinici", discount: "Najniža cijena prije sniženja", list: "Cjenik na webu" } as const;
-export const statusLabels = { applies: "Obveza vrijedi", outside: "Ova obveza ne vrijedi", check: "Treba provjeriti" } as const;
+export const statusLabels = { applies: "Obveza vrijedi", outside: "Ova obveza ne vrijedi", check: "Potrebna provjera" } as const;
 type Obligation = keyof typeof obligations;
 type Status = keyof typeof statusLabels;
 export type Guidance = {
   status: Status; reason: string; action: string; refs: SourceId[];
-  pending?: boolean; amountNeedsCheck?: boolean; example?: string; question?: QuestionId; shortAction?: string;
+  amountNeedsCheck?: boolean; example?: string; question?: QuestionId; shortAction?: string; priceLabel?: string;
 };
 export const amountCheckLabel = "Iznos treba provjeriti";
 type Channel = { type: "sale" | "ad"; key: string; name: string };
 export type ResultRow = Guidance & { obligation: Obligation };
 type Group = { title: string; items: ResultRow[]; website?: WebsiteType; placement?: { channel: Channel; scope: string } };
-const result = (status: Status, reason: string, action: string, refs: SourceId[], extra?: Pick<Guidance, "pending" | "amountNeedsCheck" | "example" | "question" | "shortAction">): Guidance => ({ status, reason, action, refs, ...extra });
+const result = (status: Status, reason: string, action: string, refs: SourceId[], extra?: Pick<Guidance, "amountNeedsCheck" | "example" | "question" | "shortAction" | "priceLabel">): Guidance => ({ status, reason, action, refs, ...extra });
 const isUnknown = (a: Answers, k: QuestionId) => !selected(a, k).length || selected(a, k).every(v => v === "unknown" || v === "other");
 const has = (a: Answers, k: QuestionId, ...values: string[]) => selected(a, k).some(v => values.includes(v));
 const withoutUncertain = (a: Answers, k: QuestionId) => selected(a, k).filter(v => !["unknown", "other"].includes(v));
 const either = (a: Answers, k: QuestionId, ...values: string[]) => values.filter(v => has(a, k, v)).length > 1;
 const direct = (a: Answers) => selects(a, "roles", "own", "platform");
 const fee = (a: Answers) => selects(a, "roles", "fee");
-const onlyThird = (a: Answers) => !direct(a) && !fee(a) && selects(a, "roles", "display") && !has(a, "roles", "unknown", "other");
 const ambiguousKind = (kind: string) => ["bundle", "voucher", "digital", "subscription", "unknown", "other"].includes(kind);
 const inPremises = ["shop", "outlet"];
 const blank = "______ €";
 const evidence = "Potražite iznos u starom cjeniku, blagajni, webshopu ili računima za to prodajno mjesto.";
 const scopeAction = "Dodajte zasebnu ponudu ako se razlikuju kupci, cijene, prodavatelji ili pravila.";
 const toCheck = (question: QuestionId, action: string, refs: SourceId[], shortAction?: string) => result("check", questions[question][0], action, refs, { question, shortAction });
-const general = (obligation: Obligation, a: Answers, territory: string): Guidance | undefined => {
+const general = (a: Answers, territory: string): Guidance | undefined => {
   if (isUnknown(a, "buyers") || (!selects(a, "buyers", "consumer") && has(a, "buyers", "unknown", "other"))) return toCheck("buyers", "Provjerite kupuje li itko kao fizička osoba za osobnu uporabu.", ["consumer"]);
   if (!selects(a, "buyers", "consumer")) return result("outside", "Ovu ponudu imaju samo poslovni kupci, ustanove ili otkupljivači.", "Provjerite ovu ponudu ponovno ako je počnete nuditi građanima za osobnu kupnju.", ["consumer"]);
   if (territory === "foreign") return result("check", "Ovaj pregled obrađuje hrvatsko tržište.", "Zabilježite države u kojima ciljate potrošače i za svaku provjerite mjerodavne propise prije objave.", ["consumer"]);
   if (territory !== "hr") return toCheck("territory", "Provjerite države dostave, uvjete ugovora i publiku oglasa.", ["consumer"]);
   if (isUnknown(a, "roles")) return toCheck("roles", "Na računu i u uvjetima provjerite tko je ugovorni prodavatelj i tko potrošaču naplaćuje naknadu.", ["consumer"]);
-  if (onlyThird(a)) return result("check", "Prikazujete tuđu ponudu. Ugovorni prodavatelj i posrednik mogu imati različite obveze.", `Utvrdite tko prodaje i tko ističe cijenu u ovom kanalu.${obligation === "base" ? " Pojašnjenje za ranije odluke razlikuje tuđe cijene od vlastitih naknada." : ""}`, obligation === "base" ? ["consumer", "ministry"] : ["consumer"]);
 };
 
-// The transition is deliberately centralized here. Replace these two decision branches
-// with verified clauses when their final texts and the cessation decisions are published.
-function nextBase(a: Answers, kind: string, ch: Channel, price: string): Guidance {
-  const refs: SourceId[] = ["article7", "draftBase", "consultation", "repeal"];
-  if (kind === "goods" && selects(a, "goods", "auction") && !selects(a, "goods", "standard")) return result("outside", "Čl. 7. st. 6. izuzima javnu dražbu, umjetnička djela i antikvitete od cijena iz st. 1.", "Provjerite druga pravila za svoju vrstu prodaje.", ["article7"]);
-  if (kind !== "goods" && selects(a, "regulation", "regulated") && !has(a, "regulation", "market", "unknown", "other")) return result("outside", "Cijena ove usluge uređena je posebnim propisom (čl. 7. st. 6.).", "Za ovu uslugu slijedite poseban propis. Tržišne stavke procijenite zasebno.", ["article7"]);
-  if (ch.key === "none") return result("outside", ch.type === "ad" ? "U ovom kanalu ne oglašavate iznos." : "Još nema prodajnog mjesta za ovu ponudu.", "Ponovno provjerite kada počnete prikazivati cijenu.", ["article7"]);
-  if (kind !== "goods" && either(a, "regulation", "market", "regulated")) return toCheck("regulation", `Za reguliranu cijenu usluge vrijedi izuzeće iz čl. 7. st. 6. ${scopeAction}`, ["article7"]);
-  if (isUnknown(a, "regulation")) return toCheck("regulation", "Utvrditi uređuje li sektorski propis točno ovaj iznos. Zatražite naziv i članak propisa.", ["article7"]);
-  if (isUnknown(a, "activity")) return toCheck("activity", "U registru i uvjetima prodaje provjerite u kojem svojstvu nastupate prema kupcu.", ["consumer", "article7"]);
-  const reference = kind === "goods" && selects(a, "legacy", "yes") && !selects(a, "legacy", "no") ? "2. 5. 2025." : kind !== "goods" || (selects(a, "legacy", "no") && !selects(a, "legacy", "yes")) ? "10. 9. 2026." : undefined;
-  const issues = [];
-  if (!reference) issues.push("koji je referentni dan za ovu skupinu");
-  if (kind === "goods" && selects(a, "legacy", "yes")) issues.push(selects(a, "prior", "yes") ? "nastavak korištenja ranije dokumentirane dodatne cijene" : "primjena datuma na robu bez potvrđene ranije obveze");
-  if (selects(a, "history", "new", "changed") || isUnknown(a, "history")) issues.push("postupanje s ponudom koja nije postojala na referentni dan");
-  if (selects(a, "history", "stock", "renamed", "promo")) issues.push("odabir dokazivog iznosa kod zalihe, promjene šifre ili akcije");
-  if (price === "quote" || price === "dynamic") issues.push("obuhvat pojedinačne ili dinamičke cijene");
-  if (["booking", "market", "social", "messages", "broadcast", "paid", "mail", "door"].includes(ch.key)) issues.push("primjena na ovaj kanal i ulogu prodavatelja ili posrednika");
-  if (selects(a, "locations", "different", "sellers")) issues.push("pravilo za različita mjesta i prodavatelje");
-  if (kind === "goods" && selects(a, "regulation", "regulated")) issues.push("izuzeće za reguliranu cijenu robe");
-  const split = price === "quote" ? " Odvojite individualni izračun od fiksnih stavki poput izlaska, satnice i materijala." : "";
-  const history = isUnknown(a, "history") || !selects(a, "proof", "yes") ? evidence : "Sačuvajte zapis o cijeni za ovo prodajno mjesto.";
+function priceExemption(a: Answers, price: string, rule: "base" | "list"): Guidance | undefined {
+  const refs: SourceId[] = [rule === "base" ? "baseExceptions" : "listExceptions"];
+  const applicability = rule === "base" ? "bazna cijena" : "objava u cjeniku";
+  if (either(a, "regulation", "market", "regulated")) return toCheck("regulation", `Provjerite koji iznos uređuje propis ili pravni akt. ${scopeAction}`, refs);
+  if (selects(a, "regulation", "regulated")) return result("outside", "Određivanje ove cijene uređeno je posebnim propisom ili drugim pravnim aktom.", "Za tu cijenu slijedite poseban akt. Ostale cijene procijenite zasebno.", refs);
+  const pricing = selected(a, "pricing");
+  const exception = selected(a, "priceException").filter(value =>
+    pricing.length < 2 || (value !== "personal" || !pricing.includes("quote") || price === "quote")
+      && (value !== "dynamic" || !pricing.includes("dynamic") || price === "dynamic"));
+  const qualifying = exception.filter(value => value !== "none" && value !== "unknown");
+  if (qualifying.length && exception.includes("none")) return toCheck("priceException", `Provjerite koje izuzeće vrijedi za ovaj iznos. ${scopeAction}`, refs);
+  if (qualifying.length) return result("outside", `Za ovaj iznos označeno je izuzeće. ${qualifying.map(value => label("priceException", value)).join(". ")}.`, `Za tu cijenu nije obvezna ${applicability}. Zasebno procijenite cijenu dostupnu svim kupcima.`, refs);
+  if (!selects(a, "regulation", "market")) return toCheck("regulation", "Provjerite uređuje li ovu cijenu poseban propis ili drugi pravni akt.", refs);
+  if (isUnknown(a, "priceException")) return toCheck("priceException", "Provjerite je li ta cijena namijenjena grupi ili načinu plaćanja, osobno određena ili dinamička bez usporedive osnove.", refs);
+}
+
+function basePrice(a: Answers, kind: string, ch: Channel, price: string): Guidance {
+  const formatRef: SourceId = kind === "goods" ? "baseGoods" : "baseService";
+  if (ch.key === "none") return result("outside", ch.type === "ad" ? "U ovom kanalu ne oglašavate cijenu." : "Još nema prodajnog mjesta za ovu ponudu.", "Ponovno provjerite prije prodaje ili oglašavanja cijene.", [ch.type === "ad" ? "baseMandatoryAd" : formatRef]);
+  if (ch.key === "vending") return result("outside", "Cijena je istaknuta na prodajnom automatu.", "Na automatu istaknite maloprodajnu cijenu. Primjenu na drugom mjestu provjerite zasebno.", ["baseExceptions", "article7"], { shortAction: "Na automatu istaknite maloprodajnu cijenu." });
+  const excluded = priceExemption(a, price, "base");
+  if (excluded?.status === "outside") return excluded;
+  if (kind === "goods" && selects(a, "goods", "auction") && !selects(a, "goods", "standard")) return result("outside", "Zakon izuzima javnu dražbu te umjetnička djela i antikvitete od obveze isticanja cijena iz čl. 7. st. 1.", "Provjerite ostala pravila za način prodaje koji primjenjujete.", ["article7"]);
+  if (ch.type === "ad" && !["print", "tv"].includes(ch.key)) return result("outside", "U ovom oglasu s cijenom prikaz bazne cijene je dobrovoljan.", "Ako je prikažete, označite je jasno prema pravilima za robu ili usluge. Zasebno provjerite aktualno sniženje.", ["baseOptionalAd", formatRef], { shortAction: "U ovom oglasu baznu cijenu možete prikazati dobrovoljno." });
+  const adRefs: SourceId[] = ch.type === "ad" ? ["baseMandatoryAd"] : [];
+  if (ch.key === "print") {
+    if (selects(a, "printTiming", "old") && !selects(a, "printTiming", "new")) return result("outside", "Tiskani materijal izrađen prije početka primjene ima prijelazni rok.", "Stari materijal koristite najdulje 30 dana od 17. 11. 2026. U novom materijalu s maloprodajnom cijenom istaknite i baznu cijenu.", ["baseOldPrint", ...adRefs], { shortAction: "Stari tiskani oglas koristite najdulje 30 dana od 17. 11. 2026." });
+    if (!selects(a, "printTiming", "new") || selects(a, "printTiming", "old")) return toCheck("printTiming", "Provjerite je li tiskani materijal izrađen prije 17. 11. 2026. Za stari materijal vrijedi prijelaz od najviše 30 dana.", ["baseOldPrint", ...adRefs]);
+  }
+  if (excluded) return excluded;
+  if (isUnknown(a, "activity")) return toCheck("activity", "Provjerite nudite li ovu cijenu kao trgovac u okviru djelatnosti.", ["consumer", "baseRule"]);
+  if (ambiguousKind(kind)) return toCheck("kinds", "Utvrditi radi li se o robi ili usluzi. Ako cijene robe i usluge nudite zasebno, unesite ih odvojeno.", ["baseRule", formatRef]);
+  if (kind === "goods" && (selected(a, "legacy").length !== 1 || selects(a, "legacy", "mixed", "unknown"))) return toCheck("legacy", "Provjerite pripada li artikl jednoj od šest skupina s datumom 2. 5. 2025. Robu iz tih i ostalih skupina unesite zasebno.", ["baseLegacy", "baseGeneral", ...adRefs]);
+
+  const olderGroup = kind === "goods" && selects(a, "legacy", "yes");
+  const reference = olderGroup ? LEGACY_REFERENCE : GENERAL_REFERENCE;
   const firstPrice = selects(a, "history", "new", "changed");
-  const prepare = firstPrice
-    ? "Zapišite prvu cijenu i datum kada ste ovu ponudu prvi put uvrstili u prodaju."
-    : reference ? `Pronađite cijenu koja je vrijedila ${reference}` : "Pronađite raniju cijenu za ovu ponudu.";
-  return result("check", `Zakon uvodi baznu cijenu. Konačni pravilnik određuje datum i način prikaza.${issues.length ? ` Još treba provjeriti ${issues.join(", ")}.` : ""}`, `${prepare} ${history}${split} U konačnom pravilniku provjerite koji iznos trebate prikazati.`, refs, {
-    pending: true,
-    shortAction: price === "quote" || price === "dynamic"
-      ? "Provjerite traži li pravilnik baznu cijenu za ovaj način naplate."
-      : reference && !firstPrice ? `Za baznu cijenu pripremite iznos od ${reference}` : prepare,
+  const existing = selects(a, "history", "existing", "stock", "renamed");
+  const datedRef = olderGroup ? "baseLegacy" : "baseGeneral";
+  const firstRef = olderGroup ? "baseLegacyNew" : "baseGeneralNew";
+  if (existing === firstPrice || selects(a, "history", "unknown")) return toCheck("history", `Provjerite je li ista roba ili usluga bila u ponudi na dan ${reference} Ako je uvedena kasnije, pronađite datum prvog uvrštenja.`, [datedRef, firstRef, ...adRefs]);
+
+  const sourceRef = firstPrice ? firstRef : datedRef;
+  const promoRef = olderGroup ? (firstPrice ? "baseLegacyNewDiscount" : "baseLegacyDiscount") : (firstPrice ? "baseGeneralNewDiscount" : "baseGeneralDiscount");
+  const day = firstPrice ? "na dan prvog uvrštenja u ponudu" : `na dan ${reference}`;
+  if (selected(a, "referenceDiscount").length !== 1 || selects(a, "referenceDiscount", "unknown")) return toCheck("referenceDiscount", `Provjerite je li za tu robu ili uslugu ${day} vrijedio popust.`, [sourceRef, promoRef, ...adRefs]);
+  const promo = selects(a, "referenceDiscount", "promo");
+  const basis = !promo ? `maloprodajnu cijenu koja je vrijedila ${day}`
+    : olderGroup ? "najnižu maloprodajnu cijenu iste robe u 30 dana prije početka tadašnjeg popusta"
+    : "maloprodajnu cijenu koja je vrijedila prije tadašnjeg popusta";
+  const where = ch.type === "ad" ? "U oglasu prikažite baznu cijenu uz maloprodajnu."
+    : kind !== "goods" ? "Na istom mjestu prikažite baznu i maloprodajnu cijenu usluge. Ako zbog broja i raznovrsnosti ne možete navesti sve usluge u cjeniku, navedite obje cijene u katalogu, brošuri ili prospektu na prodajnom mjestu."
+    : ch.key === "webshop" ? "Na webshopu jasno označite baznu cijenu uz maloprodajnu i, gdje je potrebna, jediničnu cijenu istog artikla."
+    : ["social", "market", "booking", "messages"].includes(ch.key) ? "U prikazu preko kojeg kupac može kupiti robu jasno označite baznu i maloprodajnu cijenu istog artikla te jediničnu cijenu ako je obvezna."
+    : "Na robi ili uz nju na istoj oznaci istaknite baznu i maloprodajnu cijenu te jediničnu cijenu ako je obvezna.";
+  const amountNeedsCheck = selected(a, "proof").length !== 1 || !selects(a, "proof", "yes");
+  const action = amountNeedsCheck ? `Utvrdite ${basis.replace(/\.$/, "")}. ${evidence} ${where}` : `${where} Za baznu uzmite ${basis.replace(/\.$/, "")}.`;
+  return result("applies", promo ? `Na odgovarajući dan (${day}) vrijedio je popust.` : "Za baznu cijenu uzima se maloprodajna cijena s odgovarajućeg dana.", action, [promo ? promoRef : sourceRef, ...adRefs, formatRef], {
+    amountNeedsCheck,
+    question: amountNeedsCheck ? "proof" : undefined,
+    shortAction: `${amountNeedsCheck ? "Utvrdite" : "Istaknite"} baznu cijenu uz aktualnu. Kao baznu uzmite ${basis.replace(/\.$/, "")}.`,
   });
 }
 
 function unit(a: Answers, kind: string, ch: Channel): Guidance {
   const refs: SourceId[] = ["article7", "unit"];
+  if (ch.key === "none") return result("outside", ch.type === "ad" ? "Nema oglašenog iznosa u ovom kanalu." : "Još nema prodajnog mjesta.", "Ponovno provjerite kad istaknete cijenu.", refs);
   if (ambiguousKind(kind)) return toCheck("kinds", "Odredite sastav ponude i nudi li se pojedina roba odvojeno.", refs);
   if (kind !== "goods") return result("outside", "Pravilnikova obveza označavanja jedinične cijene po čl. 7.–8. odnosi se na robu.", "U cjeniku usluge na prodajnom mjestu navedite fiksne iznose ili jasnu osnovu obračuna (npr. €/sat). Za cijene uređene posebnim propisom slijedite taj propis.", refs);
-  if (ch.key === "none") return result("outside", ch.type === "ad" ? "Nema oglašenog iznosa u ovom kanalu." : "Još nema prodajnog mjesta.", "Ponovno provjerite kad istaknete cijenu.", refs);
   if (selects(a, "goods", "auction") && !selects(a, "goods", "standard")) return result("outside", "Javna dražba, umjetnička djela i antikviteti izuzeti su čl. 7. st. 6. ZZP-a.", "Provjerite pravila za način prodaje koji primjenjujete.", refs);
   if (selects(a, "goods", "loose") && selects(a, "goods", "packed", "pieces")) return toCheck("goods", "Odvojite rasutu robu od pakirane ili komadne robe; pravilo nije isto za svaku stavku.", refs);
   if (selects(a, "goods", "loose")) return result("applies", "Rasuta roba ima izravnu obvezu isticanja jedinične cijene (čl. 7. st. 4. ZZP-a).", ch.type === "ad" ? "Navedite jasnu cijenu po odgovarajućoj jedinici uz oglašenu robu." : "Na prodajnom mjestu jasno navedite cijenu po odgovarajućoj jedinici.", refs, { example: `Rasuta roba\nCijena za 1 kg: ${blank}` });
@@ -89,20 +117,21 @@ function unit(a: Answers, kind: string, ch: Channel): Guidance {
 }
 
 function discount(a: Answers, kind: string, ch: Channel): Guidance {
-  const refs: SourceId[] = ["discount", "discountChange"];
+  const refs: SourceId[] = [kind !== "goods" ? "discountService" : ch.type === "ad" ? "discountAd" : "discountSale", "discount"];
   if (ch.key === "none") return result("outside", ch.type === "ad" ? "U ovom kanalu ne oglašavate iznos." : "Nema prodaje u ovom kanalu.", "Ponovno procijenite kada počnete oglašavati ili prodavati po sniženoj cijeni.", refs);
   if (ambiguousKind(kind)) return toCheck("kinds", "Odvojite robu od usluge kako biste mogli utvrditi pravila za prikaz sniženja.", refs);
   if (kind !== "goods" && (ch.type === "ad" || ["door", "webshop", "booking", "market", "social", "messages"].includes(ch.key))) return result("outside", "Čl. 19. st. 7.–8. izuzima oglašavanje usluge i ugovore o usluzi na daljinu ili izvan poslovnih prostorija.", "Jasno navedite cijenu i uvjete. Posebno provjerite eventualnu akciju iste usluge unutar poslovnih prostorija.", refs);
   const promotion = selects(a, "discount", "public", "coupon", "expiry");
   if ((promotion && selects(a, "discount", "none")) || isUnknown(a, "discount")) return toCheck("discount", "Provjerite nudite li ovdje javnu akciju ili kod dostupan svima. Ako akcija vrijedi samo na jednom mjestu, unesite je kao zasebnu ponudu.", [...refs, "euDiscount"], "Provjerite nudite li javnu akciju ili kupon dostupan svima.");
   if (!promotion && selects(a, "discount", "personal") && !has(a, "discount", "other", "unknown")) return result("outside", "Označen je stvarno individualni popust, bez javne najave sniženja.", "Opće dostupan kod ili široko oglašen popust procijenite kao javno sniženje.", [...refs, "euDiscount"]);
+  if (!promotion && selects(a, "discount", "targeted") && !has(a, "discount", "other", "unknown")) return result("outside", "Označen je popust vezan samo uz skupinu kupaca ili način plaćanja.", "Ako je akcija na artikl zapravo dostupna svim kupcima, provjerite je kao javno sniženje.", ["discountConditions", ...refs, "euDiscount"]);
   if (!promotion && selects(a, "discount", "none") && !has(a, "discount", "other", "unknown")) return result("outside", "Za ovaj kanal nije označeno sniženje.", "Sačuvajte povijest cijena za eventualnu buduću akciju.", refs);
   if (!promotion) return toCheck("discount", "Pregledajte oglas i uvjete popusta za ovaj kanal.", refs);
   if (kind !== "goods" && !inPremises.includes(ch.key)) return toCheck("sales", "Utvrdite je li prodaja usluge sklopljena unutar poslovnih prostorija ili izvan njih.", refs);
   if (kind === "goods" && selects(a, "discount", "expiry")) {
     if (selects(a, "discount", "public", "coupon")) return toCheck("discount", "Odvojite običnu javnu akciju od posebne prodaje koja je određena baš zbog kvarljivosti ili isteka.", refs);
-    if (ch.type === "ad") return result("check", "Izuzeće u čl. 19. st. 5. odnosi se na st. 4.; oglašavanje je uređeno zasebno u st. 6.", "Prije oglasa provjerite primjenu čl. 19. st. 6. i čl. 24. Istaknite krajnji rok uporabe na prodajnom mjestu.", refs);
-    return result("outside", "Poseban oblik prodaje određen je zbog kvarljivosti ili skorog isteka (čl. 19. st. 5.).", "Istaknite krajnji rok uporabe. Kod postupnog snižavanja unutar poslovnih prostorija provjerite čl. 24. st. 2.–4.: neposredna prethodna cijena i snižena cijena; za prodaju na daljinu i izvan prostorija to postupno snižavanje nije dopušteno.", refs);
+    if (ch.type === "ad") return result("check", "Izuzeće u čl. 19. st. 5. odnosi se na st. 4. Oglašavanje uređuje st. 6.", "Prije objave provjerite može li se ovaj iznos oglašavati kao sniženje i imate li primjenjivu povijest cijena. Na prodajnom mjestu istaknite krajnji rok uporabe.", [...refs, "discountExpiry"]);
+    return result("outside", "Poseban oblik prodaje određen je zbog kvarljivosti ili skorog isteka (čl. 19. st. 5.).", "Istaknite krajnji rok uporabe. Kod postupnog snižavanja unutar poslovnih prostorija koristite neposredno prethodnu cijenu i sniženu cijenu po čl. 24. Postupno snižavanje iz čl. 24. ne primjenjuje se u prodaji na daljinu ni izvan poslovnih prostorija.", ["discountExpiry", ...refs]);
   }
   const example = `Cijena na akciji: ${blank}\nNajniža cijena u 30 dana prije akcije: ${blank}`;
   const ads = ch.type === "ad" ? "U oglasu" : "Na prodajnom mjestu";
@@ -118,19 +147,28 @@ function discount(a: Answers, kind: string, ch: Channel): Guidance {
   });
 }
 
-function priceList(a: Answers, kind: string, site: string): Guidance {
-  const refs: SourceId[] = ["article7", "draftList", "repeal"];
-  if (site === "conflict") return toCheck("website", "Označeni su vlastiti web i izostanak vlastitog weba. Provjerite na kojoj domeni sami objavljujete sadržaj.", refs);
-  if (["unknown", "other"].includes(site)) return toCheck("website", "Utvrdite imate li svoju mrežnu stranicu ili samo profil/stranicu na tuđoj platformi.", refs);
-  if (site === "none" && selects(a, "sales", "webshop")) return toCheck("website", "Označen je vlastiti webshop, ali i da nema vlastitog weba. Ako prodajete na tuđoj platformi, označite marketplace.", refs);
-  if (site === "none") return result("outside", "Označili ste da nemate vlastitu mrežnu stranicu. Čl. 7. st. 9. obvezu veže uz vlastite mrežne stranice.", "Ako otvorite vlastiti web, procijenite obvezu ponovno. Za usluge zasebno provjerite cjenik na prodajnom mjestu.", ["article7", "unit"]);
-  if (isUnknown(a, "activity")) return toCheck("activity", "Provjerite djelatnost i ugovornog prodavatelja za ovu ponudu.", ["consumer", "article7"]);
-  if (isUnknown(a, "regulation")) return toCheck("regulation", "Provjerite uređuje li sektorski propis ovaj iznos i po kojem članku.", ["article7"]);
-  if (ambiguousKind(kind) || selects(a, "regulation", "regulated")) return result("check", "Čl. 7. st. 9. propisuje objavu cjenika na vlastitom webu. Za ovu vrstu ili regulaciju ponude treba potvrditi točan obuhvat.", "Pripremite odvojene popise proizvoda, tržišnih i reguliranih usluga. U konačnom pravilniku provjerite obuhvat svake stavke i način objave.", refs, { pending: true });
-  const quote = selects(a, "pricing", "quote") ? " Odvojite ponude po mjeri od fiksnih stavki poput satnice, izlaska i doplata." : "";
-  return result("applies", "Zakon traži važeći cjenik na vašem webu, čak i kad na njemu nemate košaricu. U konačnom pravilniku provjerite format datoteke, podatke koje treba navesti i koliko dugo treba čuvati stare cjenike.", `Pripremite stranicu „Cjenik” s aktualnim cijenama. Ako cijene ovise o prodajnom mjestu, označite za koje mjesto vrijede.${quote} U konačnom pravilniku provjerite kako objaviti i kada ažurirati cjenik.`, refs, {
-    pending: true, example: "Na web dodajte poveznicu „Cjenik”. Na stranici označite koji su iznosi za poslovnicu, a koji za webshop.",
-    shortAction: quote ? undefined : "Pripremite stranicu „Cjenik” s važećim cijenama. Provjerite format i rok ažuriranja.",
+function priceList(a: Answers, kind: string, site: string, price: string): Guidance {
+  const ownWeb: SourceId[] = ["listRule", "article7"];
+  const excluded = priceExemption(a, price, "list");
+  if (excluded?.status === "outside") return excluded;
+  const sales = selected(a, "sales");
+  if (sales.length === 1 && sales[0] === "vending") return result("outside", "U ponudi je označena samo cijena istaknuta na prodajnom automatu.", "Cijene drugih prodajnih mjesta procijenite zasebno.", ["listExceptions"]);
+  if (site === "conflict") return toCheck("website", "Provjerite imate li vlastiti web. Označili ste i vlastiti web i da ga nemate.", ownWeb);
+  if (["unknown", "other"].includes(site)) return toCheck("website", "Provjerite imate li vlastitu mrežnu stranicu ili samo profil na tuđoj platformi.", ownWeb);
+  if (site === "none" && selects(a, "sales", "webshop")) return toCheck("website", "Provjerite je li webshop vaš ili je stranica na tuđoj platformi.", ownWeb);
+  if (site === "none") return result("outside", "Nemate vlastitu mrežnu stranicu na kojoj biste objavili cjenik.", "Ako otvorite vlastiti web, provjerite obvezu ponovno. Cjenik na prodajnom mjestu provjerava se zasebno.", ownWeb);
+  if (excluded) return excluded;
+  if (isUnknown(a, "activity")) return toCheck("activity", "Provjerite nudite li ovu cijenu kao trgovac u okviru djelatnosti.", ["consumer", "listRule"]);
+  if (ambiguousKind(kind)) return toCheck("kinds", "Provjerite radi li se o robi ili usluzi kako biste koristili odgovarajuća polja cjenika.", ["listGoods", "listService"]);
+  const listings = selects(a, "locations", "different")
+    ? "Objavite zasebne cjenike za prodajna mjesta s različitim cjenicima."
+    : "Objavite zaseban cjenik za svako prodajno mjesto, osim ako isti cjenik vrijedi na svim mjestima.";
+  const fields = kind === "goods"
+    ? "Stupci redom: naziv, šifra*, marka*, neto količina ako je obvezna cijena po jedinici mjere, jedinica mjere*, maloprodajna cijena uz podatak je li u posebnom obliku prodaje, jedinična cijena*, barkod*, EAN barkod*, bazna cijena. Zvjezdica označava podatak koji se navodi ako je primjenjiv."
+    : "Stupci redom: naziv usluge, maloprodajna cijena uz podatak je li u posebnom obliku prodaje, bazna cijena.";
+  return result("applies", "Važeći cjenik objavljujete na vlastitom webu, uključujući web bez košarice.", `Na javnom URL-u objavite strojno čitljiv CSV ili XML. Izmijenjenu datoteku stavite na isti URL do 11:00 na dan izmjene. Zamijenjeni cjenik ostavite javno dostupan 15 dana od zamjene. ${listings}`, ["listLocations", kind === "goods" ? "listGoods" : "listService", "listAccess"], {
+    example: `${fields}\nOmogućite automatizirano dohvaćanje. Koristite UTF-8, točku sa zarezom za razdvajanje stupaca i jedinstvenu strukturu kroz prodajna mjesta. Dopušten je ZIP ili GZ.\nNaziv datoteke sadrži OIB pravne osobe ili matični broj trgovca fizičke osobe, vrstu, adresu i oznaku prodajnog mjesta, vrstu cjenika (roba ili usluge), broj pohrane te vrijeme objave GGGGMMDD_SSMM. Kod zajedničkog cjenika podatke o mjestu zamijenite oznakom ZA_SVA_PRODAJNA_MJESTA.`,
+    shortAction: `Objavite CSV ili XML. Izmjenu stavite na isti URL do 11:00 isti dan, a arhivu čuvajte dostupnom 15 dana. ${listings}`,
   });
 }
 
@@ -148,69 +186,95 @@ export function assessOffer(offer: Offer) {
   const groups: Group[] = [];
   const territory = selected(a, "territory").length ? selected(a, "territory") : ["unknown"];
   if (!selects(a, "buyers", "consumer") && !isUnknown(a, "buyers") && !has(a, "buyers", "unknown", "other")) {
-    return { groups: [{ title: "Kupci izvan potrošačke prodaje", items: (Object.keys(obligations) as Obligation[]).map(obligation => ({ obligation, ...general(obligation, a, "hr")! })) }], notes: [] as string[], showCta: false };
+    return { groups: [{ title: "Kupci izvan potrošačke prodaje", items: (Object.keys(obligations) as Obligation[]).map(obligation => ({ obligation, ...general(a, "hr")! })) }], notes: [] as string[], showCta: false };
   }
-  const kinds = direct(a) || !fee(a) ? (selected(a, "kinds").length ? selected(a, "kinds") : ["unknown"]) : [];
-  const parts = [...kinds.map(kind => ({ kind, title: label("kinds", kind), fee: false })), ...(fee(a) ? [{ kind: "service", title: "Vlastita naknada potrošaču", fee: true }] : [])];
+  const displayed = selects(a, "roles", "display");
+  const kinds = direct(a) || (!fee(a) && !displayed) ? (selected(a, "kinds").length ? selected(a, "kinds") : ["unknown"]) : [];
+  const parts = [
+    ...kinds.map(kind => ({ kind, title: label("kinds", kind), sharedFee: false })),
+    ...(fee(a) ? [{ kind: "service", title: "Vlastita naknada potrošaču", sharedFee: direct(a) }] : []),
+  ];
   const sites = selected(a, "website");
   const website = sites.length > 1 && sites.includes("none") ? ["conflict", ...sites.filter(key => key === "shop" || key === "info")] : sites.length ? sites : ["unknown"];
+  const offerChannels = channels(a);
 
   for (const part of parts) for (const area of territory) {
     const prefix = `${part.title}${area === "foreign" ? " · druge države" : area !== "hr" ? " · tržište nije utvrđeno" : ""}`;
-    for (const ch of channels(a)) {
-      const askChannel = ["unknown", "other", "conflict"].includes(ch.key) ? toCheck(ch.type === "sale" ? "sales" : "ads", `Utvrdite gdje je ponuda dostupna i gdje se javno prikazuju cijene. ${scopeAction}`, ["article7"]) : undefined;
-      const priceParts = part.fee ? ["fee"] : selected(a, "pricing").length ? selected(a, "pricing") : ["unknown"];
+    const scope = general(a, area);
+    const priceParts = part.sharedFee ? ["fee"] : selected(a, "pricing").length ? selected(a, "pricing") : ["unknown"];
+    for (const ch of offerChannels) {
+      const askChannel = ["unknown", "other", "conflict"].includes(ch.key) ? toCheck(ch.type === "sale" ? "sales" : "ads", `Utvrdite gdje je ponuda dostupna i gdje se javno prikazuju cijene. ${scopeAction}`, ["article7", "baseRule"]) : undefined;
       const items = priceParts.map(price => {
-        const base = general("base", a, area) ?? askChannel ?? nextBase(a, part.kind, ch, price);
-        const priced = priceParts.length > 1 && base.pending;
-        return { obligation: "base" as const, ...base, reason: priced ? `${label("pricing", price)}: ${base.reason}` : base.reason };
-      }).filter((row, i, all) => all.findIndex(other => other.reason === row.reason) === i);
+        const base = scope ?? askChannel ?? (part.sharedFee && ch.key !== "none" && (ch.type === "sale" || ["print", "tv"].includes(ch.key))
+          ? toCheck("roles", "Dodajte zasebnu ponudu samo za vlastitu naknadu i provjerite njezinu cijenu i povijest.", ["baseService", "baseRule"])
+          : basePrice(a, part.kind, ch, price));
+        return { obligation: "base" as const, ...base, priceLabel: priceParts.length > 1 ? label("pricing", price) : undefined };
+      });
       const section = ch.type === "sale" ? "Prodaja" : "Oglašavanje";
       groups.push({ title: `${prefix} · ${section}: ${ch.name}`, placement: { channel: ch, scope: prefix }, items: [
         ...items,
-        { obligation: "unit", ...(general("unit", a, area) ?? askChannel ?? unit(a, part.kind, ch)) },
-        { obligation: "discount", ...(general("discount", a, area) ?? askChannel ?? discount(a, part.kind, ch)) },
+        { obligation: "unit", ...(scope ?? askChannel ?? unit(a, part.kind, ch)) },
+        { obligation: "discount", ...(scope ?? askChannel ?? (part.sharedFee && ch.key !== "none" && ch.type === "sale" && !["door", "webshop", "booking", "market", "social", "messages"].includes(ch.key)
+          ? toCheck("roles", "Provjerite postoji li zasebno sniženje vlastite naknade na ovom prodajnom mjestu.", ["discountService"])
+          : discount(a, part.kind, ch))) },
       ] });
     }
-    for (const site of website) {
-      const generalGuidance = general("list", a, area);
+    for (const site of website) for (const price of priceParts) {
+      const guidance = scope ?? (part.sharedFee && (site === "shop" || site === "info")
+        ? toCheck("roles", "Dodajte zasebnu ponudu samo za vlastitu naknadu i provjerite pripada li njezin iznos u cjenik.", ["listService", "listExceptions"])
+        : priceList(a, part.kind, site, price));
       groups.push({
         title: `${prefix} · ${["unknown", "other", "conflict"].includes(site) ? "Vlastiti web" : label("website", site)}`,
-        website: !generalGuidance && (site === "shop" || site === "info") ? site : undefined,
-        items: [{ obligation: "list", ...(generalGuidance ?? priceList(a, part.kind, site)) }],
+        website: !scope && guidance.status !== "outside" && (site === "shop" || site === "info") ? site : undefined,
+        items: [{ obligation: "list", ...guidance, priceLabel: priceParts.length > 1 ? label("pricing", price) : undefined }],
       });
     }
   }
   const notes: string[] = [];
   if (selects(a, "buyers", "consumer") && selects(a, "buyers", "company", "institution", "buyer")) notes.push("Upute se odnose na prodaju građanima za osobnu uporabu. Dio za poslovne kupce, ustanove i otkupljivače izvan je ovih potrošačkih obveza.");
-  if (selects(a, "roles", "display") && (direct(a) || fee(a))) {
-    notes.push("Tuđe cijene provjerite prema ugovoru s prodavateljem. Ove upute za vlastitu ponudu ili naknadu nemojte prenijeti na stavke drugog prodavatelja.");
-    const third = { ...a, roles: ["display" as const] };
-    groups.push({ title: "Posredovanje · prikaz tuđih cijena", items: (Object.keys(obligations) as Obligation[]).map(obligation => ({ obligation, ...general(obligation, third, territory.includes("hr") ? "hr" : territory[0])! })) });
+  if (displayed) {
+    const prefix = "Posredovanje · prikaz tuđih cijena";
+    const channels = offerChannels.filter(ch => ch.key !== "none");
+    const outside = (ref: SourceId) => result("outside", "U ovom dijelu samo posredujete za drugog trgovca.", "Za cijenu treće strane provjerite tko je prodavatelj. Vlastitu naknadu procijenite zasebno.", [ref]);
+    for (const area of territory) {
+      const scope = general(a, area);
+      const scopeTitle = area === "hr" ? prefix : `${prefix} · ${area === "foreign" ? "druge države" : "tržište nije utvrđeno"}`;
+      for (const ch of channels) {
+        const section = ch.type === "sale" ? "Prodaja" : "Oglašavanje";
+        groups.push({ title: `${scopeTitle} · ${section}: ${ch.name}`, placement: { channel: ch, scope: scopeTitle }, items: [
+          { obligation: "base", ...(scope ?? outside("baseIntermediary")) },
+          { obligation: "unit", ...(scope ?? outside("consumer")) },
+          { obligation: "discount", ...(scope ?? outside("discount")) },
+        ] });
+      }
+      groups.push({ title: `${scopeTitle} · Cjenik`, items: [{ obligation: "list", ...(scope ?? outside("listIntermediary")) }] });
+    }
+    if (direct(a) || fee(a)) notes.push("Tuđe cijene, vlastitu prodaju i vlastitu naknadu procijenite odvojeno.");
   }
   if (selects(a, "locations", "different", "sellers") || (withoutUncertain(a, "sales").length > 1 && !selects(a, "locations", "same"))) notes.push("Usporedne cijene i dokaze vodite zasebno po mjestu, kanalu i prodavatelju. Za više poslovnica istog tipa s različitim cijenama dodajte zasebnu ponudu za svaku poslovnicu.");
   if (selects(a, "goods", "defect")) notes.push("Uz robu s greškom jasno označite nedostatak i objasnite kupcu o kojoj je grešci riječ (čl. 23. ZZP-a).");
-  if (parts.length > 1 || selects(a, "pricing", "quote") && selects(a, "pricing", "fixed", "fee", "hour", "measure")) notes.push("Odvojite standardne stavke i njihove cijene od drugih vrsta ponude i individualnih izračuna. Za različite kanale, propise ili prodavatelje dodajte zasebnu ponudu.");
+  if (parts.length > 1 || selects(a, "pricing", "quote") && selects(a, "pricing", "fixed", "fee", "hour", "measure")) notes.push("Odvojite standardne stavke i njihove cijene od drugih vrsta ponude i individualnih izračuna. Za različite kanale, cijene, propise ili prodavatelje dodajte zasebnu ponudu.");
   const showCta = groups.some(g => g.items.some(row => row.obligation === "list" && row.status === "applies"));
   return { groups, notes, showCta };
 }
 
-type WebsiteScope = { offerId: number; detail: string; row: ResultRow };
+type WebsiteScope = { offerId: number; detail: string; row: ResultRow; sales: string[]; locations: readonly string[] };
 
-function websiteDecisionKey({ status, action, pending, question, reason }: ResultRow) {
-  return JSON.stringify([status, action, pending, question, status === "check" ? reason : undefined]);
+function websiteDecisionKey({ status, action, question, reason, refs }: ResultRow) {
+  return status === "applies" ? JSON.stringify([status, refs]) : JSON.stringify([status, action, question, reason, refs]);
 }
 
 function quickSteps(rows: ResultRow[]) {
   const active = rows.filter(row => row.status !== "outside" || row.shortAction);
   active.sort((a, b) => Number(b.status === "outside") - Number(a.status === "outside"));
-  const steps = new Map<string, { action: string; note?: string }>();
+  const steps = new Map<string, { action: string; note?: string; ref: SourceId }>();
   for (const row of active) {
-    const action = row.shortAction ?? row.action;
+    const text = row.shortAction ?? row.action;
+    const action = row.priceLabel ? `${row.priceLabel} · ${text}` : text;
     const note = row.amountNeedsCheck ? `${statusLabels.applies} · ${amountCheckLabel}`
-      : row.pending ? row.status === "applies" ? "Obveza vrijedi · Detalji čekaju pravilnik" : "Čeka objavu pravilnika"
       : row.status === "check" ? statusLabels.check : undefined;
-    steps.set(JSON.stringify([action, note]), { action, note });
+    const ref = row.refs[0];
+    steps.set(JSON.stringify([action, note, ref]), { action, note, ref });
   }
   return [...steps.values()];
 }
@@ -248,7 +312,8 @@ export function assessResults(offers: readonly Offer[]) {
   const byWebsite = new Map<string, { title: string; assignDomain: boolean; scopes: WebsiteScope[] }>();
   const offerResults = assessments.map(({ groups, notes }, index) => {
     const offer = offers[index];
-    const sales = withoutUncertain(offer.answers, "sales").filter(value => value !== "none").map(value => label("sales", value));
+    const sales = withoutUncertain(offer.answers, "sales").filter(value => value !== "none" && value !== "vending").map(value => label("sales", value));
+    const locations = selected(offer.answers, "locations");
     for (const group of groups) {
       if (!group.website) continue;
       const domains = domainsByType.get(group.website)!;
@@ -256,18 +321,22 @@ export function assessResults(offers: readonly Offer[]) {
       const key = domain ?? `type:${group.website}`;
       const website = byWebsite.get(key) ?? { title: domain ?? label("website", group.website), assignDomain: !domain && domains.size > 1, scopes: [] };
       const name = offerName(offer, index);
-      website.scopes.push({ offerId: offer.id, detail: sales.length ? `${name} (${sales.join(", ")})` : name, row: group.items[0] });
+      const row = group.items[0];
+      const displayName = row.status === "check" && row.priceLabel ? `${name} · ${row.priceLabel}` : name;
+      website.scopes.push({ offerId: offer.id, detail: sales.length ? `${displayName} (${sales.join(", ")})` : displayName, row, sales, locations });
       byWebsite.set(key, website);
     }
     return { offer, name: offerName(offer, index), groups: groups.filter(group => !group.website), notes };
   });
 
   const websites = [...byWebsite].map(([key, { title, assignDomain, scopes }]) => {
-    const primary = scopes.find(scope => scope.row.status === "applies") ?? scopes[0];
+    const applies = scopes.filter(scope => scope.row.status === "applies");
+    const different = applies.find(scope => scope.locations.includes("different"));
+    const primary = different ?? applies[0] ?? scopes[0];
     const scopeNames = [...new Set(scopes.map(scope => scope.detail))];
     if (assignDomain) return {
       key, title: `${title} bez navedene domene`, offerId: primary.offerId, scopes: scopeNames, details: [],
-      row: { obligation: "list" as const, ...toCheck("website", "Upišite adresu weba na kojem ćete objaviti cijene za ove ponude.", ["article7"]) },
+      row: { obligation: "list" as const, ...toCheck("website", "Upišite adresu weba na kojem ćete objaviti cijene za ove ponude.", ["listRule", "article7"]) },
     };
 
     const primaryKey = websiteDecisionKey(primary.row);
@@ -278,6 +347,17 @@ export function assessResults(offers: readonly Offer[]) {
       const detail = distinct.get(key) ?? { key, row: scope.row, scopes: [] };
       if (!detail.scopes.some(previous => previous.offerId === scope.offerId && previous.detail === scope.detail)) detail.scopes.push(scope);
       distinct.set(key, detail);
+    }
+    const places = new Set(applies.flatMap(scope => scope.sales));
+    const uncertain = applies.filter(({ sales, locations }) => locations.some(value => ["unknown", "other", "sellers"].includes(value))
+      || sales.length > 1 && !locations.includes("same") && !locations.includes("different"));
+    if (!different && applies.length && (
+      uncertain.length > 0 || places.size > 1 && !applies.every(scope => scope.locations.includes("same") && scope.sales.length === places.size)
+    )) {
+      const key = "locations";
+      const row: ResultRow = { obligation: "list", ...toCheck("locations", "Usporedite cjenike svih označenih prodajnih mjesta. Ako se razlikuju, objavite zaseban cjenik za svako prodajno mjesto.", ["listLocations"]) };
+      const affected = uncertain.length ? uncertain : applies;
+      distinct.set(key, { key, row, scopes: affected.filter((scope, index) => affected.findIndex(other => other.offerId === scope.offerId) === index) });
     }
     return { key, title, row: primary.row, offerId: primary.offerId, details: [...distinct.values()], scopes: scopeNames };
   });
@@ -298,7 +378,7 @@ export function assessResults(offers: readonly Offer[]) {
 
 function formatGuidance(row: ResultRow) {
   return [
-    `${obligations[row.obligation]} — ${statusLabels[row.status]}${row.amountNeedsCheck ? ` · ${amountCheckLabel}` : ""}${row.pending ? " · Čeka objavu pravilnika" : ""}`,
+    `${obligations[row.obligation]} — ${statusLabels[row.status]}${row.amountNeedsCheck ? ` · ${amountCheckLabel}` : ""}${row.priceLabel ? ` · ${row.priceLabel}` : ""}`,
     row.action, row.reason, row.example,
     ...row.refs.map(id => `${sources[id].title}, ${sources[id].section} (${sources[id].type}): ${sources[id].url}`),
   ].filter(Boolean).join("\n");
@@ -312,7 +392,7 @@ export function formatResults(offers: readonly Offer[]) {
     ...websites.flatMap(site => [
       `\n${site.title}`, `Ponude za koje trebate provjeriti što ulazi u cjenik: ${site.scopes.join("; ")}`,
       formatGuidance(site.row),
-      ...site.details.map(({ scopes, row }) => `${scopes.map(scope => scope.detail).join("; ")} — ${statusLabels[row.status]}. ${row.reason}\n${row.action}`),
+      ...site.details.map(({ scopes, row }) => `${scopes.map(scope => scope.detail).join("; ")}\n${formatGuidance(row)}`),
     ]),
   ].filter(Boolean).join("\n");
 }

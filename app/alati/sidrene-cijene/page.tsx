@@ -33,7 +33,7 @@ export default function AnchorPricePage() {
       <PriceQuestionnaire />
       <section className="mt-12 max-w-3xl border-t border-line pt-7 print:hidden" aria-labelledby="price-guide">
         <h2 id="price-guide" className="text-2xl font-black">Što je sidrena (bazna) cijena?</h2>
-        <p className="mt-3 leading-7 text-muted">To je cijena koju ste imali na dan određen propisom. Prikazuje se uz cijenu koju kupac danas plaća. Upitnik pokriva pravila od 17. studenoga 2026. nadalje. <a className={sourceLink} href={sources.article7.url}>Izmjene Zakona o zaštiti potrošača</a></p>
+        <p className="mt-3 leading-7 text-muted">Bazna cijena polazi od cijene na određeni datum ili na dan kada ste prvi put ponudili proizvod. Ako je tada bio na akciji, pravilnik određuje koji raniji iznos treba uzeti. Upitnik primjenjuje pravila od 17. studenoga 2026. <a className={sourceLink} href={sources.baseRule.url}>Pravilnik o baznoj cijeni</a></p>
         <dl className="mt-5 grid gap-5">
           <div>
             <dt className="font-extrabold">Najniža cijena prije sniženja</dt>
@@ -45,7 +45,7 @@ export default function AnchorPricePage() {
           </div>
           <div>
             <dt className="font-extrabold">Mrežni cjenik</dt>
-            <dd className="mt-1 leading-7 text-muted">Ako imate vlastiti web, upitnik će provjeriti trebate li na njemu objaviti aktualni cjenik.</dd>
+            <dd className="mt-1 leading-7 text-muted">Ako imate vlastiti web, upitnik će provjeriti trebate li na njemu objaviti aktualni cjenik. <a className={sourceLink} href={sources.listRule.url}>Pravilnik o objavi cjenika</a></dd>
           </div>
         </dl>
       </section>
