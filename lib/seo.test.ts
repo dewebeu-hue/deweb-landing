@@ -24,9 +24,9 @@ test("production is indexable and Vercel preview/development are not", () => {
   assert.equal(deploymentRobots(), undefined);
 });
 
-test("sitemap contains only the public canonical landing URL", () => {
+test("sitemap includes canonical landing and published tool URLs, excluding draft tools", () => {
   assert.equal(SITE_ORIGIN, "https://deweb.hr");
-  assert.deepEqual(sitemap(), [{ url: "https://deweb.hr/" }]);
+  assert.deepEqual(sitemap(), [{ url: "https://deweb.hr/" }, { url: "https://deweb.hr/alati/sidrene-cijene" }]);
 });
 
 test("robots allows crawlers to see noindex on draft pages", () => {

@@ -137,6 +137,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
                 <div className="p-6"><p className="text-xs font-black uppercase tracking-widest text-teal-dark">Vlastiti prototip · razvojna verzija</p><h3 className="mt-3 text-xl font-black text-ink">Kalkulator opsega webshopa</h3><p className="mt-3 leading-7 text-muted">Interaktivni prototip pretvara četiri kratka odgovora u strukturirani sažetak zahtjeva. Korisnik može pregledati i kopirati sažetak prije nego što odluči poslati upit.</p><a href="/alati/kalkulator-cijene-webshopa" className="mt-5 inline-flex min-h-11 items-center font-extrabold text-teal-dark underline underline-offset-4">Isprobajte prototip <span aria-hidden="true" className="ml-2">↗</span></a></div>
               </article>
             </div>
+            <p className="mt-5 leading-7 text-muted">Prodajete robu ili usluge? <a href="/alati/sidrene-cijene" className="font-extrabold text-teal-dark underline underline-offset-4">Provjerite trebate li isticati sidrenu cijenu</a>.</p>
           </div>
         </section>
 
