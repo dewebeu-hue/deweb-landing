@@ -1,13 +1,46 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { Icon } from "./ui-icon";
 
 export function MobileMenu({ links }: { links: readonly (readonly [string, string])[] }) {
-  const menuRef = useRef<HTMLDetailsElement>(null);
-  return <details ref={menuRef} className="mobile-menu relative lg:hidden">
-    <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-lg border border-line bg-white px-4 text-sm font-extrabold text-ink focus-visible:outline focus-visible:outline-4 focus-visible:outline-orange-dark">Izbornik <span aria-hidden="true" className="ml-2">☰</span></summary>
-    <nav aria-label="Mobilna navigacija" className="absolute right-0 top-12 z-40 grid w-[min(82vw,260px)] gap-1 rounded-lg border border-line bg-white p-3 shadow-soft">
-      {links.map(([label, href]) => <a key={href} href={href} onClick={() => { if (menuRef.current) menuRef.current.open = false; }} className="rounded-md px-3 py-3 text-sm font-bold text-ink hover:bg-teal-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">{label}</a>)}
-    </nav>
-  </details>;
+  const menu = useRef<HTMLDetailsElement>(null);
+
+  function closeMenu() {
+    if (menu.current) menu.current.open = false;
+  }
+
+  useEffect(() => {
+    function closeOutside(event: PointerEvent) {
+      if (menu.current?.open && event.target instanceof Node && !menu.current.contains(event.target)) menu.current.open = false;
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape" && menu.current?.open) {
+        menu.current.open = false;
+        menu.current.querySelector("summary")?.focus();
+      }
+    }
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, []);
+
+  return (
+    <details ref={menu} className="mobile-menu">
+      <summary aria-label="Izbornik"><Icon name="menu" className="menu-open" /><Icon name="close" className="menu-close" /></summary>
+      <nav aria-label="Mobilna navigacija">
+        {links.map(([label, href]) => (
+          <a key={href} href={href} onClick={closeMenu}>
+            {label} <Icon name="up-right" />
+          </a>
+        ))}
+        <a className="mobile-hero-contact" href="/#kontakt" onClick={closeMenu}>
+          Zatražite ponudu <Icon name="up-right" />
+        </a>
+      </nav>
+    </details>
+  );
 }

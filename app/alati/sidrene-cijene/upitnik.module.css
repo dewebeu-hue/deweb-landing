@@ -1,0 +1,100 @@
+.tool :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.tool :is(h2, h3, h4, fieldset, [tabindex='-1']) {
+  scroll-margin-top: 100px;
+}
+
+.tool { padding-bottom: var(--section); }
+.tool h2 { font-size: clamp(1.65rem, 2.7vw, 2.4rem); font-weight: 620; }
+.tool h3 { font-size: 1.35rem; font-weight: 620; }
+.tool h4 { font-size: 1rem; font-weight: 650; letter-spacing: 0; }
+.tool :global(.font-black) { font-weight: 650; }
+.tool :global(.font-extrabold) { font-weight: 650; }
+.tool :global(.bg-\[\#edf6f7\]) { background-color: var(--mist); }
+.heading h1 { max-width: 15ch; font-size: clamp(2.6rem, 5.2vw, 5rem); }
+.heading :global(.text-link) { margin-top: 18px; }
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 9px 18px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--white);
+  color: var(--teal);
+  text-align: center;
+  font-size: .93rem;
+  font-weight: 650;
+}
+.secondary:hover { background: var(--mist); }
+.option { border-radius: 9px; }
+.resultHelp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+  padding: 24px;
+  border-radius: var(--radius);
+  background: var(--mint);
+}
+.resultHelp p { font-weight: 600; }
+.help { margin-top: var(--section); padding-top: 36px; border-top: 1px solid var(--line); }
+.helpIntro { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gutter); margin-bottom: 28px; }
+.helpIntro p { color: var(--muted); max-width: 55ch; }
+.helpOptions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; list-style: none; padding: 0; }
+.helpOptions li { min-width: 0; }
+.helpOptions a {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  height: 100%;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.helpOptions a:hover { background: var(--mist); border-color: var(--teal); }
+.helpOptions strong { display: block; font-size: 1.1rem; font-weight: 650; }
+.helpOptions span span { display: block; margin-top: 8px; color: var(--muted); line-height: 1.6; }
+.helpNote { margin-top: 20px; max-width: 80ch; color: var(--muted); font-size: .94rem; }
+
+.tool ::selection {
+  background: var(--mint);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .option { transition: background-color 130ms ease, border-color 130ms ease; }
+  .press { transition: transform 125ms cubic-bezier(.23, 1, .32, 1), background-color 130ms ease; }
+  .press:active { transform: scale(.98); }
+  .arrive { animation: arrive 165ms cubic-bezier(.23, 1, .32, 1) both; }
+}
+
+@keyframes arrive {
+  from { opacity: .78; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 639px) {
+  .helpIntro, .helpOptions { grid-template-columns: minmax(0, 1fr); }
+  .tool:has([data-showing-results]) > header p { display: none; }
+  .tool:has([data-showing-results]) > header { padding-block: 1rem; }
+}
+
+@media print {
+  .help, .resultHelp { display: none; }
+  .tool { width: 100%; min-height: auto; color: black; padding: 0; }
+  .tool section { margin-top: 0; }
+  .tool [data-result-row] { break-inside: avoid; }
+  .tool :is(h2, h3, h4) { break-after: avoid; }
+  .tool [data-result-status] { color: black; background: transparent; border: 1px solid #888; }
+  .tool details::details-content { display: contents; content-visibility: visible; }
+  .tool details summary { display: none; }
+  .tool a { color: black; }
+}

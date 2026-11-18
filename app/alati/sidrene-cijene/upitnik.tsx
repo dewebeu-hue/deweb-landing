@@ -1,0 +1,417 @@
+"use client";
+
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import Link from "next/link";
+import { amountCheckLabel, assessResults, formatResults, obligations, statusLabels, type Guidance, type ResultRow } from "../../../lib/sidrene-cijene";
+import { ASSESSMENT_PERIOD, GENERAL_REFERENCE, LEGACY_REFERENCE, mainSources, offerName as nameOf, questions, selected, selects, sources, websiteDomain, websiteTypes, type Answers, type Offer, type QuestionId, type SourceId, type WebsiteType } from "../../../lib/sidrene-cijene-podaci";
+import styles from "./upitnik.module.css";
+import { priceHelpHref } from "../../../lib/price-help";
+
+const steps = ["Kupci i ponuda", "Gdje prodajete i oglašavate", "Roba i cijene", "Ranije cijene i popusti"];
+const primary = `${styles.press} button`;
+const secondary = `${styles.press} ${styles.secondary}`;
+const link = "inline-flex min-h-11 items-center text-sm font-bold text-teal-dark underline decoration-teal/40 underline-offset-4 hover:decoration-teal-dark";
+const statusStyle = { applies: "bg-teal-soft text-teal-dark", outside: "bg-slate-100 text-slate-700", check: "bg-[#fff0dc] text-[#7b3c09]" };
+const singular: QuestionId[] = ["legacy", "unit", "regulation", "history", "referenceDiscount", "proof", "printTiming", "discountProof"];
+const sole = ["none", "unknown", "standard"];
+const prompts: Partial<Record<QuestionId, string>> = {
+  buyers: "Ako građanima i tvrtkama nudite različite cijene, dodajte ih kao dvije ponude.",
+  roles: "Posebno unesite vlastitu prodaju i vlastitu naknadu ako za njih vrijede različite cijene ili uvjeti.",
+  goods: "Primjer za majicu: „Nova” i „Na komad, bez pakiranja”.",
+  website: "Ako imate samo Instagram, Facebook ili stranicu na tuđoj platformi, odaberite „Nemam vlastiti web”.",
+  sales: "Primjer: outlet i sajam. Ako se cijene razlikuju, dodajte zasebnu ponudu za svako mjesto.",
+  ads: "Ovdje označite oglase s cijenom. Ako se preko Instagrama može i kupiti, označite ga i u pitanju o prodaji.",
+  regulation: "Ako propis određuje cijenu samo za dio ponude, taj dio dodajte zasebno.",
+  priceException: "Odgovorite za cijenu koju provjeravate. Redovnu cijenu i cijenu samo za određene kupce unesite zasebno.",
+  locations: "Usporedite cijele cjenike. Ako imate zasebne cijene na više prodajnih mjesta, označite da se razlikuju.",
+  legacy: "O ovom odgovoru ovisi datum za provjeru bazne cijene.",
+  unit: "Provjeravamo treba li prikazati cijenu po kilogramu, litri ili drugoj jedinici.",
+  discount: "Ovo je trenutačni popust. Ako vrijedi samo na jednom mjestu, unesite tu ponudu zasebno.",
+  discountProof: "Gledajte cijene iste robe ili usluge na mjestu na kojem je snižavate.",
+};
+const productLists: Partial<Record<QuestionId, string[]>> = {
+  legacy: ["Hrana i piće", "Kozmetika, proizvodi za čišćenje i toaletne potrepštine", "Proizvodi za kućanstvo"],
+  unit: ["Hrana za ljude i životinje", "Deterdženti, pelene te proizvodi za njegu i higijenu tijela, kose ili zubi", "Boje i lakovi (osim slikarskih), motorna ulja i tekućine te destilirana voda"],
+};
+
+function stepQuestions(a: Answers): QuestionId[][] {
+  const customer = selects(a, "buyers", "consumer");
+  if (!customer) return [["buyers"]];
+  const own = selects(a, "roles", "own", "platform");
+  const feeOnly = !own && selects(a, "roles", "fee");
+  const thirdOnly = !own && selects(a, "roles", "display") && !feeOnly;
+  const goods = !feeOnly && selects(a, "kinds", "goods");
+  const hasSales = selected(a, "sales").some(value => value !== "none");
+  const partial = hasSales || !selects(a, "ads", "none");
+  const dated = !goods || selects(a, "legacy", "yes", "no") || selected(a, "kinds").length > 1;
+  const needsHistory = dated && !selects(a, "regulation", "regulated") && (
+    selected(a, "sales").some(value => !["none", "vending"].includes(value))
+    || selects(a, "ads", "tv") || (selects(a, "ads", "print") && !selects(a, "printTiming", "old"))
+  );
+  const historyKnown = selected(a, "history").length === 1 && !selects(a, "history", "unknown");
+  const referenceDiscountKnown = selects(a, "referenceDiscount", "regular", "promo");
+  return [
+    ["buyers", "roles", ...(!feeOnly && !thirdOnly ? ["kinds" as const] : [])],
+    ["territory", "sales", ...(!thirdOnly ? ["website" as const] : []), "ads",
+      ...(!thirdOnly && selects(a, "ads", "print") ? ["printTiming" as const] : []),
+      ...(!thirdOnly && hasSales && (selects(a, "website", "shop", "info") || selected(a, "sales").filter(x => !sole.includes(x)).length > 1 || selects(a, "sales", "shop", "outlet", "market")) ? ["locations" as const] : [])],
+    thirdOnly ? [] : ["activity", "pricing", "regulation", ...(!selects(a, "regulation", "regulated") ? ["priceException" as const] : []), ...(goods ? ["goods", "legacy"] as const : []),
+      ...(goods && !selects(a, "goods", "loose", "auction") ? ["unit" as const] : []),
+      ...(goods && selects(a, "unit", "yes") && !selects(a, "goods", "loose", "auction") ? ["unitException" as const] : [])],
+    !partial || thirdOnly ? [] : [
+      ...(needsHistory ? ["history" as const] : []),
+      ...(needsHistory && historyKnown ? ["referenceDiscount" as const] : []),
+      ...(needsHistory && historyKnown && referenceDiscountKnown ? ["proof" as const] : []),
+      "discount", ...(selects(a, "discount", "public", "coupon") && (goods || selects(a, "sales", "shop", "outlet", "stand", "fair")) ? ["discountProof" as const] : []),
+    ],
+  ];
+}
+
+function usableAnswers(a: Answers): Answers {
+  const active = new Set(stepQuestions(a).flat());
+  return Object.fromEntries(Object.entries(a).filter(([key]) => active.has(key as QuestionId))) as Answers;
+}
+
+export function PriceQuestionnaire() {
+  const nextId = useRef(2);
+  const [offers, setOffers] = useState<Offer[]>([{ id: 1, name: "", answers: {} }]);
+  const [activeId, setActiveId] = useState(1);
+  const [step, setStep] = useState(0);
+  const [view, setView] = useState<"questions" | "results">("questions");
+  const [invalid, setInvalid] = useState<QuestionId>();
+  const [invalidDomain, setInvalidDomain] = useState<WebsiteType>();
+  const [announce, setAnnounce] = useState("");
+  const [move, setMove] = useState(false);
+  const [focusId, setFocusId] = useState("");
+  const [copyFallback, setCopyFallback] = useState(false);
+  const index = offers.findIndex(offer => offer.id === activeId);
+  const offer = offers[index];
+  const a = offer.answers;
+  const activeSteps = stepQuestions(a);
+  const questionsNow = activeSteps[step] ?? [];
+  const nextStep = activeSteps.findIndex((entry, i) => i > step && entry.length > 0);
+  const assessmentOffers = offers.map(item => ({ ...item, answers: usableAnswers(item.answers) }));
+  const results = view === "results" ? assessResults(assessmentOffers) : undefined;
+
+  useEffect(() => {
+    if (!focusId) return;
+    const target = document.getElementById(focusId);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: "start", behavior: "instant" });
+    setFocusId("");
+  }, [focusId, step, activeId, view]);
+
+  function goTo(index: number, target = "questionnaire-title", animate = false) {
+    setInvalid(undefined);
+    setInvalidDomain(undefined);
+    setMove(animate);
+    setView("questions");
+    setStep(index);
+    setFocusId(target);
+  }
+
+  function updateOffer(update: (item: Offer) => Offer) {
+    setOffers(current => current.map(item => item.id === activeId ? update(item) : item));
+  }
+
+  function toggle(key: QuestionId, value: string) {
+    setInvalid(undefined);
+    updateOffer(item => {
+      const values = selected(item.answers, key);
+      const options = singular.includes(key) || sole.includes(value) ? [value] : values.includes(value)
+        ? values.filter(v => v !== value) : [...values.filter(v => !sole.includes(v)), value];
+      return { ...item, answers: { ...item.answers, [key]: options } };
+    });
+  }
+
+  function addOffer(event: MouseEvent<HTMLButtonElement>) {
+    const id = nextId.current++;
+    setOffers(current => [...current, { id, name: "", answers: {} }]);
+    setActiveId(id);
+    setAnnounce(`Dodana je ponuda ${offers.length + 1}.`);
+    goTo(0, "offer-name", event.detail > 0);
+  }
+
+  function editOffer(id: number, key?: QuestionId) {
+    const item = offers.find(x => x.id === id);
+    if (!item) return;
+    const at = key ? stepQuestions(item.answers).findIndex(section => section.includes(key)) : -1;
+    setActiveId(id);
+    goTo(Math.max(at, 0), at >= 0 ? `question-${key}` : "questionnaire-title");
+  }
+
+  function removeOffer() {
+    if (offers.length < 2) return;
+    const remaining = offers.filter(item => item.id !== activeId);
+    setOffers(remaining);
+    setActiveId(remaining[Math.max(index - 1, 0)].id);
+    setAnnounce(`Uklonjena je ponuda „${nameOf(offer, index)}”.`);
+    goTo(0);
+  }
+
+  function finish() {
+    setCopyFallback(false);
+    setView("results");
+    setFocusId("results-title");
+  }
+
+  function advance(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const missing = questionsNow.find(key => !selected(a, key).length);
+    if (missing) {
+      setInvalid(missing);
+      setFocusId(`question-${missing}`);
+      return;
+    }
+    if (questionsNow.includes("website")) {
+      const invalidSite = websiteTypes.find(type => selects(a, "website", type) && offer.websiteDomains?.[type]?.trim() && !websiteDomain(offer.websiteDomains[type]));
+      if (invalidSite) {
+        setInvalidDomain(invalidSite);
+        setFocusId(`website-domain-${invalidSite}`);
+        return;
+      }
+    }
+    if (nextStep >= 0) goTo(nextStep, undefined, move);
+    else finish();
+  }
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(formatResults(assessmentOffers));
+      setCopyFallback(false);
+      setAnnounce("Rezultat je kopiran.");
+    } catch {
+      setCopyFallback(true);
+      setAnnounce("Automatsko kopiranje nije dostupno. Označite i kopirajte tekst.");
+      setFocusId("copy-result");
+    }
+  }
+
+  function printResults() {
+    const closedDetails = [...document.querySelectorAll<HTMLDetailsElement>("[data-showing-results] details:not([open])")];
+    window.addEventListener("afterprint", () => closedDetails.forEach(details => { details.open = false; }), { once: true });
+    closedDetails.forEach(details => { details.open = true; });
+    window.print();
+  }
+
+  return <>
+    <p role="status" className="sr-only">{announce}</p>
+    {!results ? <div className="grid items-start gap-5 print:hidden md:grid-cols-[minmax(13rem,15rem)_minmax(0,1fr)] lg:gap-8">
+      <aside className="min-w-0 rounded-xl bg-[#edf6f7] p-4 sm:p-5" aria-label="Ponude i datum">
+        <p className="text-sm font-bold text-teal-dark">{ASSESSMENT_PERIOD}</p>
+        <div className="mt-4 border-t border-teal/20 pt-3">
+          <p className="text-sm font-bold">Vaše ponude <span className="ml-1 font-medium text-teal-dark">({offers.length})</span></p>
+          <ul className="mt-2 flex flex-wrap gap-2 md:flex-col">
+            {offers.map((item, i) => <li key={item.id} className="min-w-0 max-w-full">
+              <button type="button" className={`${secondary} max-w-full !justify-start !text-left [overflow-wrap:anywhere] md:w-full ${item.id === activeId ? "!border-teal-dark !bg-teal-dark !text-white" : ""}`} aria-current={item.id === activeId ? "true" : undefined} onClick={() => editOffer(item.id)}>{nameOf(item, i)}</button>
+            </li>)}
+          </ul>
+          <button type="button" onClick={addOffer} className={`${link} mt-1 text-left`}><span aria-hidden="true" className="mr-1.5 text-lg">+</span> Dodaj ponudu</button>
+        </div>
+      </aside>
+      <section className="min-w-0 rounded-xl border border-line bg-white p-4 sm:p-7 lg:p-8" aria-labelledby="questionnaire-title">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-4">
+          <div className="min-w-0 text-sm font-semibold text-teal-dark [overflow-wrap:anywhere]">{nameOf(offer, index)}</div>
+          <div className="flex gap-1.5" aria-label={`Korak ${step + 1} od ${steps.length}`} role="img">
+            {steps.map((title, i) => <span key={title} className={`h-1.5 w-6 rounded-full sm:w-8 ${i === step ? "bg-orange-dark" : i < step ? "bg-teal" : "bg-line"}`} />)}
+          </div>
+        </div>
+        <form onSubmit={advance} className="mt-5">
+          <div key={`${activeId}-${step}`} className={move ? styles.arrive : undefined}>
+            <h2 id="questionnaire-title" tabIndex={-1} className="break-words text-2xl font-black leading-tight tracking-[-.025em] outline-none sm:text-3xl">{steps[step]}</h2>
+            {step === 0 && <label className="mt-4 block max-w-md text-sm font-semibold" htmlFor="offer-name">Naziv ponude <span className="font-normal text-muted">(neobavezno)</span>
+              <input id="offer-name" type="text" maxLength={80} value={offer.name} onChange={e => updateOffer(item => ({ ...item, name: e.target.value }))} className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 px-3 text-base" placeholder="Npr. Odjeća u outletu" />
+            </label>}
+            {questionsNow.map(key => {
+              const reference = selects(a, "legacy", "yes") ? LEGACY_REFERENCE : GENERAL_REFERENCE;
+              const first = selects(a, "history", "new", "changed");
+              const hint = key === "history" ? `Provjerite ponudu na dan ${reference} Ako imate više proizvoda s različitim datumima, unesite ih zasebno.`
+                : key === "referenceDiscount" ? first ? "Gledajte dan kada ste tu robu ili uslugu prvi put uvrstili u ponudu." : `Gledajte cijenu na dan ${reference} Popust samo za pojedinu skupinu kupaca ili način plaćanja procjenjuje se zasebno.`
+                : key === "proof" && selects(a, "referenceDiscount", "promo") ? selects(a, "legacy", "yes")
+                  ? "Potražite najnižu cijenu u 30 dana prije početka tadašnjeg popusta." : "Potražite maloprodajnu cijenu koja je vrijedila prije tadašnjeg popusta."
+                : key === "proof" ? first ? "Potražite cijenu koja je vrijedila na dan prvog uvrštenja u ponudu." : `Potražite cijenu koja je vrijedila na dan ${reference}`
+                : prompts[key];
+              const multi = !singular.includes(key);
+              const items = productLists[key];
+              const description = [invalid === key && `error-${key}`, (multi || hint) && `hint-${key}`, items && `items-${key}`].filter(Boolean).join(" ");
+              return <fieldset key={key} id={`question-${key}`} tabIndex={-1} aria-describedby={description || undefined} className="mt-6 min-w-0 outline-none">
+                <legend className="text-base font-extrabold leading-snug sm:text-lg">{questions[key][0]}</legend>
+                {(multi || hint) && <p id={`hint-${key}`} className="mt-1.5 text-sm leading-6 text-muted">{multi ? "Možete označiti više odgovora. " : ""}{hint}</p>}
+                {items && <ul id={`items-${key}`} className="mt-1.5 list-disc space-y-0.5 pl-5 text-sm leading-6 text-muted">{items.map(item => <li key={item}>{item}</li>)}</ul>}
+                {invalid === key && <p id={`error-${key}`} role="alert" className="mt-2 text-sm font-bold text-[#9c2a0b]">Odaberite odgovor ili označite „Ne znam”.</p>}
+                <div className="mt-2.5 grid gap-2 sm:grid-cols-2">
+                  {Object.entries(questions[key][1]).map(([value, name]) => {
+                    const checked = selected(a, key).includes(value);
+                    return <label key={value} className={`${styles.option} flex min-h-12 min-w-0 cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 text-[.9375rem] font-semibold leading-6 focus-within:ring-2 focus-within:ring-teal focus-within:ring-offset-1 ${checked ? "border-teal bg-teal-soft text-teal-dark" : "border-line bg-[#fcfefe] hover:border-teal/60"}`}>
+                      <input type={multi ? "checkbox" : "radio"} name={key} checked={checked} onChange={() => toggle(key, value)} className="mt-[.2rem] h-[1.15rem] w-[1.15rem] shrink-0 accent-teal-dark" />
+                      <span className="min-w-0 break-words">{name}</span>
+                    </label>;
+                  })}
+                </div>
+                {key === "website" && websiteTypes.some(type => selects(a, "website", type)) && <div className="mt-4 max-w-md space-y-3">
+                  <p id="website-domain-help" className="text-sm leading-6 text-muted">Ako imate više webova iste vrste, upišite adresu weba koji koristite za ovu ponudu.</p>
+                  {websiteTypes.filter(type => selects(a, "website", type)).map(type => <label key={type} htmlFor={`website-domain-${type}`} className="block text-sm font-bold">
+                    {type === "shop" ? "Adresa webshopa" : "Adresa weba bez košarice"} <span className="font-normal text-muted">(neobavezno)</span>
+                    <input id={`website-domain-${type}`} type="text" inputMode="url" maxLength={253} autoCapitalize="none" spellCheck={false} placeholder="npr. trgovina.hr" aria-invalid={invalidDomain === type || undefined} aria-describedby={invalidDomain === type ? `website-domain-help website-domain-error-${type}` : "website-domain-help"}
+                      className="mt-1.5 block min-h-11 w-full rounded-lg border border-slate-400 px-3 text-base" value={offer.websiteDomains?.[type] ?? ""} onChange={event => {
+                        const value = event.target.value;
+                        setInvalidDomain(undefined);
+                        updateOffer(item => ({ ...item, websiteDomains: { ...item.websiteDomains, [type]: value } }));
+                      }} />
+                    {invalidDomain === type && <span id={`website-domain-error-${type}`} role="alert" className="mt-1 block text-[#9c2a0b]">Upišite adresu poput trgovina.hr.</span>}
+                  </label>)}
+                </div>}
+              </fieldset>;
+            })}
+          </div>
+          <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-line pt-4">
+            {step > 0 && <button type="button" className={secondary} onClick={e => goTo(activeSteps.findLastIndex((entry, i) => i < step && entry.length > 0), undefined, e.detail > 0)}>Natrag</button>}
+            <button type="submit" className={primary} onClick={e => setMove(e.detail > 0)}>{nextStep >= 0 ? "Nastavi" : "Prikaži rezultate"}</button>
+            {step === 0 && offers.length > 1 && <button type="button" className={`${link} ml-auto`} onClick={removeOffer}>Ukloni ovu ponudu</button>}
+          </div>
+        </form>
+      </section>
+    </div> : <section data-showing-results aria-labelledby="results-title" className="min-w-0 print:text-[10pt]">
+      <div className="rounded-xl bg-[#edf6f7] p-4 sm:p-6 print:bg-white print:p-0">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-xl">
+            <h2 id="results-title" tabIndex={-1} className="text-2xl font-black tracking-[-.025em] outline-none sm:text-3xl print:text-lg">Što trebate napraviti</h2>
+            <p className="mt-2 text-sm leading-6 text-muted print:text-black">{ASSESSMENT_PERIOD}</p>
+          </div>
+        </div>
+        <QuickPlan plan={results.quickPlan} />
+        <div className="mt-4 flex flex-wrap gap-2 print:hidden">
+          <button type="button" className={primary} onClick={copy}>Kopiraj rezultat</button>
+          <button type="button" className={secondary} onClick={printResults}>Ispiši</button>
+          <button type="button" className={secondary} onClick={addOffer}>Dodaj ponudu</button>
+          <a href="#pomoc" className={secondary}>Trebam pomoć s provedbom</a>
+        </div>
+        {announce === "Rezultat je kopiran." && <p aria-hidden="true" className="mt-3 text-sm font-semibold text-teal-dark print:hidden">{announce}</p>}
+        {copyFallback && <label className="mt-4 block text-sm font-bold print:hidden" htmlFor="copy-result">Označite i kopirajte tekst rezultata
+          <textarea readOnly id="copy-result" rows={5} value={formatResults(assessmentOffers)} onFocus={e => e.currentTarget.select()} className="mt-2 w-full rounded-lg border border-teal bg-white p-3 text-base" />
+        </label>}
+      </div>
+      {results.offerResults.map(({ offer: item, name, groups, notes }) => <article key={item.id} id={`offer-result-${item.id}`} className="mt-7 min-w-0 scroll-mt-4 border-t border-line print:mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+          <h3 className="min-w-0 text-xl font-black [overflow-wrap:anywhere] sm:text-2xl print:text-base">{name}</h3>
+          <button type="button" className={`${secondary} print:hidden`} onClick={() => editOffer(item.id)} aria-label={`Uredi odgovore: ${name}`}>Uredi odgovore</button>
+        </div>
+        {notes.length > 0 && <details className="mb-2 rounded-lg bg-[#edf6f7] px-3 text-sm leading-6 text-teal-dark sm:px-4 print:bg-white print:text-black">
+          <summary className="min-h-11 cursor-pointer py-2.5 font-bold">Napomene za ovu ponudu</summary>
+          <ul className="grid gap-1 pb-3">{notes.map(note => <li key={note}>{note}</li>)}</ul>
+        </details>}
+        {groups.map((group, j) => {
+          const outside = group.items.filter(row => row.status === "outside");
+          return <div key={`${group.title}-${j}`} className="mt-3 min-w-0 rounded-xl border border-line bg-white print:border-0">
+            <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold leading-snug sm:px-5 print:bg-white print:px-0">{group.title}</h4>
+            <div className="divide-y divide-line">
+              {group.items.filter(row => row.status !== "outside").map((row, k) => <GuidanceRow key={`${row.obligation}-${k}`} row={row} edit={row.question && stepQuestions(item.answers).flat().includes(row.question) ? () => editOffer(item.id, row.question) : undefined} />)}
+              {outside.length > 0 && <details>
+                <summary className="min-h-11 cursor-pointer px-3 py-3 text-sm font-bold text-teal-dark sm:px-5 print:px-0">Obveze koje ovdje ne vrijede ({outside.length})</summary>
+                <div className="divide-y divide-line">{outside.map((row, k) => <GuidanceRow key={`${row.obligation}-${k}`} row={row} />)}</div>
+              </details>}
+            </div>
+          </div>;
+        })}
+      </article>)}
+      {results.websites.length > 0 && <section id="website-results" aria-labelledby="website-title" className="mt-7 min-w-0 border-t border-line pt-3">
+        <h3 id="website-title" className="text-xl font-black sm:text-2xl print:text-base">Cjenik na webu</h3>
+        {results.websites.map((site, index) => <div key={site.key} id={`website-result-${index}`} data-website-result className="mt-3 min-w-0 scroll-mt-4 rounded-xl border border-line bg-white print:border-0">
+          <h4 className="rounded-t-xl bg-slate-50 px-3 py-2.5 text-[.9375rem] font-extrabold [overflow-wrap:anywhere] sm:px-5 print:bg-white print:px-0">{site.title}</h4>
+          <div className="border-b border-line px-3 py-2 text-sm leading-6 text-muted sm:px-5 print:px-0 print:text-black">
+            <p><strong>Ponude i prodajna mjesta</strong></p>
+            <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1">{site.scopes.map(scope => <li key={scope} className="[overflow-wrap:anywhere]">{scope}</li>)}</ul>
+          </div>
+          <GuidanceRow row={site.row} edit={site.row.question ? () => editOffer(site.offerId, site.row.question) : undefined} />
+          {site.details.length > 0 && <ul className="border-t border-line px-3 py-2 text-sm leading-6 sm:px-5 print:px-0">
+            {site.details.map(({ key, scopes, row }) => <li key={key} className="py-1">
+              <p><strong>{scopes.map(scope => scope.detail).join("; ")}</strong> · {statusLabels[row.status]}</p><p>{row.action}</p>
+              <RuleLink id={row.refs[0]} />
+              <ResultDetails row={row} />
+              {row.question && scopes.map(scope => <button key={scope.offerId} type="button" className={`${link} mr-3 print:hidden`} onClick={() => editOffer(scope.offerId, row.question)}>Dopuni odgovor za {scope.detail}</button>)}
+            </li>)}
+          </ul>}
+        </div>)}
+      </section>}
+      <div className={`${styles.resultHelp} print:hidden`}>
+        <p>Želite pomoć s baznim cijenama ili objavom cjenika?</p>
+        <Link className="button" href={priceHelpHref()}>Opišite što trebate</Link>
+      </div>
+    </section>}
+    <details className="mt-7 rounded-xl border border-line bg-white px-4 py-2 sm:px-6 print:hidden">
+      <summary className="min-h-11 cursor-pointer py-3 text-sm font-extrabold text-teal-dark">Propisi i službeni izvori</summary>
+      <p className="leading-7 text-muted">Upitnik primjenjuje objavljene pravilnike za prodaju u Hrvatskoj od 17. studenoga 2026. Uz svaku uputu naveden je propis.</p>
+      <ul className="mt-3 divide-y divide-line text-sm leading-6">{mainSources.map(id => <li key={id} className="py-2">
+        <RuleLink id={id} />
+        <p className="text-muted">{sources[id].type} · {sources[id].scope}. Primjena {sources[id].applies}.</p>
+      </li>)}</ul>
+    </details>
+  </>;
+}
+
+type ResultPlan = ReturnType<typeof assessResults>["quickPlan"];
+type PlanSteps = ResultPlan["websites"][number]["steps"];
+
+function QuickPlan({ plan }: { plan: ResultPlan }) {
+  return <ul aria-label="Kratki popis koraka" className="mt-4 divide-y divide-teal/20 rounded-lg border border-teal/20 bg-white px-3 sm:px-5 print:px-0">
+    {plan.offers.map(({ id, name, groups }) => <li key={id} className="py-2.5 [overflow-wrap:anywhere]">
+      <h3 className="text-base font-extrabold"><a href={`#offer-result-${id}`} className={link}>{name}</a></h3>
+      {groups.map(({ title, steps }, index) => <div key={`${title}-${index}`} className="mb-2">
+        {title !== name && <h4 className="text-sm font-semibold text-muted">{title}</h4>}
+        <QuickSteps steps={steps} />
+      </div>)}
+      {!groups.length && <p className="mb-2 text-sm text-muted">U ovom pregledu nema dodatnih koraka.</p>}
+    </li>)}
+    {plan.websites.map(({ key, title, steps, details }, index) => <li key={key} className="py-2.5 [overflow-wrap:anywhere]">
+      <h3 className="text-base font-extrabold"><a href={`#website-result-${index}`} className={link}>Cjenik na webu · {title}</a></h3>
+      <QuickSteps steps={steps} />
+      {details.map(({ key, title, steps }) => <div key={key} className="mt-2">
+        <h4 className="text-sm font-semibold text-muted">{title}</h4>
+        <QuickSteps steps={steps} />
+      </div>)}
+    </li>)}
+  </ul>;
+}
+
+function QuickSteps({ steps }: { steps: PlanSteps }) {
+  return <ul className="mt-1 list-disc space-y-1 pl-5 text-sm leading-6">
+    {steps.map(({ action, note, ref }) => <li key={JSON.stringify([action, note, ref])}>
+      {action}
+      {note && <span className="block text-xs font-bold leading-5 text-[#7b3c09]">{note}</span>}
+      <RuleLink id={ref} small />
+    </li>)}
+  </ul>;
+}
+
+function GuidanceRow({ row, edit }: { row: ResultRow; edit?: () => void }) {
+  return <div data-result-row className="grid min-w-0 gap-1.5 px-3 py-3 sm:grid-cols-[minmax(10rem,14rem)_minmax(0,1fr)] sm:gap-4 sm:px-5 print:block print:px-0 print:py-2">
+    <div className="min-w-0">
+      <p className="text-sm font-extrabold">{obligations[row.obligation]}</p>
+      {row.priceLabel && <p className="mt-1 text-xs text-muted">{row.priceLabel}</p>}
+      <span data-result-status className={`mt-1 inline-block rounded px-2 py-1 text-xs font-bold ${statusStyle[row.status]}`}>{statusLabels[row.status]}</span>
+      {row.amountNeedsCheck && <p className="mt-1 text-xs font-bold text-[#7b3c09]">{amountCheckLabel}</p>}
+    </div>
+    <div className="min-w-0">
+      <p className="text-[.9375rem] font-semibold leading-6">{row.action}</p>
+      <RuleLink id={row.refs[0]} />
+      <ResultDetails row={row} />
+      {edit && <button type="button" className={`${link} print:hidden`} aria-label={`Uredi odgovor za: ${obligations[row.obligation]}`} onClick={edit}>Uredi odgovor</button>}
+    </div>
+  </div>;
+}
+
+function RuleLink({ id, small }: { id: SourceId; small?: boolean }) {
+  const source = sources[id];
+  return <a href={source.url} className={`block font-semibold text-teal-dark underline underline-offset-4 ${small ? "text-xs leading-5" : "text-sm leading-6"}`}>{source.title} · {source.section}</a>;
+}
+
+function ResultDetails({ row }: { row: Guidance }) {
+  return <details data-result-sources>
+    <summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-teal-dark">{row.example ? "Detalji i izvori" : row.refs.length > 1 ? "Zašto i izvori" : "Zašto"}</summary>
+    <p className="text-sm leading-6 text-muted print:text-black">{row.reason}</p>
+    {row.example && <p className="mt-2 whitespace-pre-wrap break-words rounded bg-[#edf6f7] px-3 py-2 text-sm leading-6 text-teal-dark print:text-black"><strong className="block">Primjer</strong>{row.example}</p>}
+    {row.refs.length > 1 && <ul className="mt-2 space-y-1 text-sm leading-6">
+      {row.refs.slice(1).map(id => <li key={id}><RuleLink id={id} /></li>)}
+    </ul>}
+  </details>;
+}

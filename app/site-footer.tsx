@@ -1,24 +1,32 @@
-const footerLink = "inline-flex min-h-11 items-center font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark";
+import Image from "next/image";
+import { Icon } from "./ui-icon";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-[#f5f9fa] py-8">
-      <div className="mx-auto grid w-[min(100%-36px,1120px)] gap-6">
-        <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
-          <div className="text-sm">
-            <p className="m-0 font-extrabold text-ink">deweb j.d.o.o.</p>
-            <p className="mb-1 mt-3 leading-6 text-muted">Web-stranice i poslovni alati po mjeri</p>
-            <a className={footerLink} href="mailto:dinko@deweb.hr">dinko@deweb.hr</a>
+    <footer className="site-footer">
+      <div className="frame">
+        <div className="footer-upper">
+          <div>
+            <a className="footer-brand" href="/" aria-label="deweb — naslovnica">
+              <Image src="/deweb-logo.svg" alt="deweb" width={210} height={49} />
+            </a>
+            <p>Web-stranice i poslovni alati po mjeri</p>
           </div>
-          <nav aria-label="Pravne i informativne stranice" className="flex flex-wrap items-center gap-x-3 text-sm">
-            <a className={footerLink} href="/privatnost">Politika privatnosti</a>
-            <span aria-hidden="true" className="text-muted">·</span>
-            <a className={footerLink} href="/uvjeti">Uvjeti korištenja</a>
-            <span aria-hidden="true" className="text-muted">·</span>
-            <a className={footerLink} href="/pravna-obavijest">Podaci o društvu</a>
+          <div className="footer-contact">
+            <a href="mailto:dinko@deweb.hr">dinko@deweb.hr <Icon name="up-right" /></a>
+            <a href="/tehnicka-provjera-weba">Tehnička provjera weba</a>
+            <a href="/alati/sidrene-cijene">Bazne cijene i cjenik</a>
+            <a href="/alati/kalkulator-cijene-webshopa">Kalkulator cijene webshopa</a>
+          </div>
+        </div>
+        <div className="footer-lower">
+          <p>© 2026 deweb j.d.o.o.</p>
+          <nav aria-label="Pravne i informativne stranice">
+            <a href="/privatnost">Politika privatnosti</a>
+            <a href="/uvjeti">Uvjeti korištenja</a>
+            <a href="/pravna-obavijest">Podaci o društvu</a>
           </nav>
         </div>
-        <p className="m-0 text-xs leading-5 text-muted">© 2026 deweb j.d.o.o.</p>
       </div>
     </footer>
   );

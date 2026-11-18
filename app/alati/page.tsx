@@ -1,33 +1,36 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 import { webshopPricingForEnvironment } from "../../lib/webshop-price-config";
+import { Icon } from "../ui-icon";
 
 export const metadata: Metadata = {
   title: "Besplatni alati | deweb",
-  description: "Jednostavni deweb alati za pripremu digitalnog projekta. Prvi alat pomaže opisati zahtjeve za webshop.",
+  description: "Provjerite obveze za bazne cijene i mrežni cjenik ili pripremite zahtjeve za webshop.",
   robots: { index: false, follow: false },
 };
 
 export default function ToolsPage() {
   const showPrices = webshopPricingForEnvironment(process.env.VERCEL_ENV).approval !== "draft";
   return (
-    <main className="mx-auto min-h-screen w-[min(100%-36px,1120px)] pb-20 text-ink">
-      <div className="flex items-center justify-between border-b border-line py-5">
-        <Link href="/" aria-label="deweb početna"><Image src="/deweb-logo.svg" alt="deweb" width={136} height={31} /></Link>
-        <span className="text-xs font-extrabold uppercase tracking-[.14em] text-teal-dark">Alati</span>
+    <main id="sadrzaj" className="tools-directory">
+      <div className="page-heading">
+        <div className="frame section-intro"><h1>Besplatni alati</h1><p>Provjerite koje cijene trebate prikazati kupcima ili pripremite zahtjeve prije razgovora o webshopu.</p></div>
       </div>
-      <section className="max-w-3xl pt-14 sm:pt-20" aria-labelledby="tools-title">
-        <p className="mb-4 text-sm font-black uppercase tracking-wide text-teal-dark">deweb / besplatni alati</p>
-        <h1 id="tools-title" className="m-0 text-[2.6rem] font-black leading-[1.08] text-ink sm:text-[4rem]">Manje nagađanja.<br />Jasniji prvi korak.</h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">Kratki alati koji vam pomažu složiti zahtjeve prije razgovora o digitalnom rješenju. Za početak pripremite opseg webshopa.</p>
-      </section>
-      <section className="mt-12 max-w-3xl" aria-label="Dostupni alat">
-        <article className="rounded-xl border border-line bg-white p-6 shadow-soft sm:p-8">
-          <p className="m-0 text-xs font-black uppercase tracking-[.14em] text-teal-dark">Webshop / priprema opsega</p>
-          <h2 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">Kalkulator cijene webshopa</h2>
-          <p className="mt-3 max-w-xl leading-7 text-muted">{showPrices ? "Procijenite cijenu izrade, redizajna ili preseljenja webshopa prema zahtjevima." : "Odaberite osnovne zahtjeve i pripremite sažetak za ponudu."}</p>
-          <Link href="/alati/kalkulator-cijene-webshopa" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-lg bg-orange px-6 py-3 font-extrabold text-white outline-offset-4 transition hover:bg-orange-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-teal-dark">Otvori alat <span aria-hidden="true" className="ml-3">↗</span></Link>
+      <section className="frame section">
+        <article className="tool-feature mb-8">
+          <div>
+            <h2>Moram li isticati baznu cijenu?</h2>
+            <p>Provjerite obveze za poslovnicu, webshop i sajam. Dobit ćete kratak popis koraka uz članke propisa.</p>
+            <a className="button button-light" href="/alati/sidrene-cijene">Provjerite svoje obveze <Icon name="right" /></a>
+          </div>
+          <div className="tool-inventory"><h3>Što ćete provjeriti</h3><ul><li>Baznu cijenu</li><li>Najnižu cijenu prije akcije</li><li>Cijenu po jedinici mjere</li><li>Cjenik na webu</li></ul></div>
+        </article>
+        <article className="tool-feature">
+          <div>
+            <h2>Kalkulator cijene webshopa</h2>
+            <p>{showPrices ? "Saznajte okvirnu cijenu novog webshopa, redizajna ili preseljenja. Odabir i procjenu možete poslati zajedno s upitom." : "Složite zahtjeve za novi webshop, redizajn ili preseljenje. Svoj odabir možete poslati zajedno s upitom."}</p>
+            <a className="button button-light" href="/alati/kalkulator-cijene-webshopa">Otvorite kalkulator <Icon name="right" /></a>
+          </div>
+          <div className="tool-inventory"><h3>Što ćete odabrati</h3><ul><li>Vrstu projekta</li><li>Veličinu kataloga</li><li>Način unosa proizvoda</li><li>Dodatne funkcije</li></ul></div>
         </article>
       </section>
     </main>

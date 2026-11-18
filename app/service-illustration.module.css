@@ -11,32 +11,6 @@
   transition: --deweb-wheel-angle 620ms var(--wheel-ease);
 }
 
-/* The light sits beside the arrow, in the direction of the illustration. */
-.choice {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-}
-
-.choice::before {
-  position: absolute;
-  inset: -40% -8% -40% auto;
-  z-index: -1;
-  width: 58%;
-  border-radius: 50%;
-  background: #bdebed;
-  filter: blur(30px);
-  opacity: 0;
-  pointer-events: none;
-  content: "";
-  transition: opacity 180ms var(--wheel-ease);
-}
-
-.choice:focus-visible::before {
-  opacity: 1;
-  transition: none;
-}
-
 .platform {
   position: absolute;
   inset: 73% 4% 7%;
@@ -231,52 +205,17 @@
   content: "";
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .choice:hover::before { opacity: 1; }
+/* Keep each icon upright while the turntable changes its depth and position. */
+.art[data-active] {
+  --receding-opacity: 0.3;
 }
 
-.art:has([data-service-choice="web"]:focus-visible) {
-  --deweb-wheel-angle: 180deg;
-  --receding-opacity: 0.32;
-}
-.art:has([data-service-choice="shop"]:focus-visible) {
-  --deweb-wheel-angle: 60deg;
-  --receding-opacity: 0.32;
-}
-.art:has([data-service-choice="tool"]:focus-visible) {
-  --deweb-wheel-angle: -60deg;
-  --receding-opacity: 0.32;
-}
-.art:has([data-service-choice="web"]:focus-visible) .web,
-.art:has([data-service-choice="shop"]:focus-visible) .shop,
-.art:has([data-service-choice="tool"]:focus-visible) .tool {
+.art[data-active="web"] .web,
+.art[data-active="shop"] .shop,
+.art[data-active="tool"] .tool {
   --piece-opacity: 1;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .art:not(:has([data-service-choice]:focus-visible)):has([data-service-choice="web"]:hover) {
-    --deweb-wheel-angle: 180deg;
-    --receding-opacity: 0.32;
-  }
-  .art:not(:has([data-service-choice]:focus-visible)):has([data-service-choice="shop"]:hover) {
-    --deweb-wheel-angle: 60deg;
-    --receding-opacity: 0.32;
-  }
-  .art:not(:has([data-service-choice]:focus-visible)):has([data-service-choice="tool"]:hover) {
-    --deweb-wheel-angle: -60deg;
-    --receding-opacity: 0.32;
-  }
-  .art:not(:has([data-service-choice]:focus-visible)):has([data-service-choice="web"]:hover) .web,
-  .art:not(:has([data-service-choice]:focus-visible)):has([data-service-choice="shop"]:hover) .shop,
-  .art:not(:has([data-service-choice]:focus-visible)):has([data-service-choice="tool"]:hover) .tool {
-    --piece-opacity: 1;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .art,
-  .choice::before,
-  .piece {
-    transition: none;
-  }
+  .art, .piece { transition: none; }
 }

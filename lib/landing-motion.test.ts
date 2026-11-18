@@ -14,5 +14,6 @@ test("landing page keeps subtle reveal and reduced-motion fallback", () => {
   assert.match(page, /hero-surface/);
   assert.match(globals, /\.reveal-on-scroll/);
   assert.match(globals, /\.hero-surface/);
-  assert.match(globals, /prefers-reduced-motion: reduce/);
+  const responsive = readFileSync(join(root, "app", "surfaces.css"), "utf8");
+  assert.match(responsive, /prefers-reduced-motion: reduce/);
 });
