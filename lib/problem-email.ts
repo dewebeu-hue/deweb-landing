@@ -1,11 +1,13 @@
 import { webPackages } from "./web-packages.ts";
+import { priceHelpOptions } from "./price-help.ts";
 
-export const projectTypes = ["web", "shop", "tool", "saas", "unsure"] as const;
+export const projectTypes = ["web", "shop", "tool", "saas", "prices", "unsure"] as const;
 export type ProjectType = (typeof projectTypes)[number];
 
 export type ProblemFormData = {
   projectType: ProjectType | "";
   selectedPackage?: string;
+  selectedHelp?: string;
   fullName: string;
   companyName?: string;
   email: string;
@@ -37,7 +39,7 @@ export function normalizeFormValue(value: FormDataEntryValue | string | undefine
 }
 
 export function validateProblemForm(data: Partial<ProblemFormData>) {
-  const missingFields = requiredProblemFields.filter(field => !normalizeFormValue(data[field]));
+  const missingFields: Array<keyof ProblemFormData> = requiredProblemFields.filter(field => !normalizeFormValue(data[field]));
   const errors: Array<keyof ProblemFormData> = [...missingFields];
   const type = normalizeFormValue(data.projectType);
   if (type && !projectTypes.includes(type as ProjectType)) errors.push("projectType");
@@ -47,6 +49,12 @@ export function validateProblemForm(data: Partial<ProblemFormData>) {
   if (problem && problem.length < minProblemLength) errors.push("problem");
   const selectedPackage = normalizeFormValue(data.selectedPackage);
   if (selectedPackage && (type !== "web" || !webPackages.some(item => item.id === selectedPackage))) errors.push("selectedPackage");
+  const selectedHelp = normalizeFormValue(data.selectedHelp);
+  if (selectedHelp && (type !== "prices" || !priceHelpOptions.some(item => item.id === selectedHelp))) errors.push("selectedHelp");
+  if (type === "prices" && !normalizeFormValue(data.companyName)) {
+    missingFields.push("companyName");
+    errors.push("companyName");
+  }
   return { valid: errors.length === 0, missingFields, errors: [...new Set(errors)] };
 }
 
@@ -63,6 +71,7 @@ export function prepareProblemSubmission(data: Partial<ProblemFormData>): Proble
   return {
     projectType: normalizeFormValue(data.projectType) as ProblemFormData["projectType"],
     selectedPackage: normalizeFormValue(data.selectedPackage),
+    selectedHelp: normalizeFormValue(data.selectedHelp),
     fullName: normalizeFormValue(data.fullName),
     companyName: normalizeFormValue(data.companyName),
     email: normalizeFormValue(data.email),
@@ -78,7 +87,7 @@ export function prepareProblemSubmission(data: Partial<ProblemFormData>): Proble
 
 function projectTypeLabel(type: ProjectType | "") {
   if (!type) return "Nije navedeno";
-  return { web: "Web-stranica", shop: "Webshop", tool: "Interni alat ili poslovna aplikacija", saas: "SaaS rješenje", unsure: "Nisam još siguran" }[type];
+  return { web: "Web-stranica", shop: "Webshop", tool: "Interni alat ili poslovna aplikacija", saas: "SaaS rješenje", prices: "Bazne cijene i mrežni cjenik", unsure: "Nisam još siguran" }[type];
 }
 
 function subjectDetail(submission: ProblemSubmission) {
@@ -108,6 +117,7 @@ export function buildContactEmailPayload(data: ProblemFormData, config: ContactE
       submission.phone && `Telefon: ${submission.phone}`,
       `Vrsta projekta: ${projectTypeLabel(submission.projectType)}`,
       selected && `Odabrani paket: ${selected.name} — ${selected.price.toLocaleString("hr-HR")} €`,
+      submission.projectType === "prices" && submission.selectedHelp && `Potrebna pomoć: ${priceHelpOptions.find(item => item.id === submission.selectedHelp)?.title ?? ""}`,
       submission.currentWebsite && `Postojeći web: ${submission.currentWebsite}`,
       (submission.projectType === "tool" || submission.projectType === "saas") && submission.manualProcess && `Trenutni ručni postupak: ${submission.manualProcess}`,
       (submission.projectType === "tool" || submission.projectType === "saas") && submission.solutionUsers && `Korisnici rješenja: ${submission.solutionUsers}`,

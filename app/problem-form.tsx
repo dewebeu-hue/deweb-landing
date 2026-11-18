@@ -12,6 +12,7 @@ import { webPackages } from "../lib/web-packages";
 import { readProjectSelection, type ProjectSelection } from "../lib/project-selection";
 import { projectSelectionEvent } from "./project-link";
 import { InquiryConfirmation } from "./inquiry-confirmation";
+import { priceHelpOptions } from "../lib/price-help";
 
 const fieldWrapperClass = "grid content-start gap-2";
 const labelClass = "flex min-h-5 items-center gap-1 text-sm font-extrabold leading-5 text-ink";
@@ -23,6 +24,7 @@ function collectProblemFormData(form: HTMLFormElement): ProblemFormData {
   return {
     projectType: value(data, "projectType") as ProblemFormData["projectType"],
     selectedPackage: value(data, "selectedPackage"),
+    selectedHelp: value(data, "selectedHelp"),
     fullName: value(data, "fullName"),
     companyName: value(data, "companyName"),
     email: value(data, "email"),
@@ -37,15 +39,17 @@ function collectProblemFormData(form: HTMLFormElement): ProblemFormData {
 
 function selectionFromLocation() {
   const params = new URLSearchParams(window.location.search);
-  return readProjectSelection({ vrsta: params.get("vrsta") ?? undefined, paket: params.get("paket") ?? undefined });
+  return readProjectSelection({ vrsta: params.get("vrsta") ?? undefined, paket: params.get("paket") ?? undefined, pomoc: params.get("pomoc") ?? undefined });
 }
 
-function replaceSelectionInUrl(type: ProjectType | "", packageId: string) {
+function replaceSelectionInUrl(type: ProjectType | "", packageId: string, helpId = "") {
   const url = new URL(window.location.href);
   if (type) url.searchParams.set("vrsta", type);
   else url.searchParams.delete("vrsta");
   if (type === "web" && packageId) url.searchParams.set("paket", packageId);
   else url.searchParams.delete("paket");
+  if (type === "prices" && helpId) url.searchParams.set("pomoc", helpId);
+  else url.searchParams.delete("pomoc");
   window.history.replaceState(null, "", url);
 }
 
@@ -57,6 +61,7 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
   const isWebshopQuote = webshopSummary !== undefined;
   const [projectType, setProjectType] = useState<ProjectType | "">(initialSelection?.type ?? "shop");
   const [selectedPackage, setSelectedPackage] = useState<string>(initialSelection?.packageId ?? "");
+  const [selectedHelp, setSelectedHelp] = useState<string>(initialSelection?.helpId ?? "");
   const [errors, setErrors] = useState<Array<keyof ProblemFormData>>([]);
   const [status, setStatus] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -68,12 +73,14 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
       const detail = (event as CustomEvent<{ type: ProjectType; packageId: string }>).detail;
       setProjectType(detail.type);
       setSelectedPackage(detail.type === "web" ? detail.packageId : "");
+      setSelectedHelp("");
       setErrors([]);
     }
     function restoreSelection() {
       const selection = selectionFromLocation();
       setProjectType(selection.type);
       setSelectedPackage(selection.packageId);
+      setSelectedHelp(selection.helpId ?? "");
       setErrors([]);
     }
     window.addEventListener(projectSelectionEvent, selectProject);
@@ -158,6 +165,7 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
             const type = event.target.value as ProjectType | "";
             setProjectType(type);
             setSelectedPackage("");
+            setSelectedHelp("");
             replaceSelectionInUrl(type, "");
           }}
           aria-invalid={hasError("projectType") || undefined}
@@ -168,13 +176,27 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
           <option value="shop">Trebam webshop</option>
           <option value="tool">Trebam interni alat ili poslovnu aplikaciju</option>
           <option value="saas">Trebam drugo poslovno rješenje</option>
+          <option value="prices">Trebam pomoć s baznim cijenama i cjenikom</option>
           <option value="unsure">Nisam još siguran</option>
         </select>
         <FieldError name="projectType" show={hasError("projectType")} />
       </div>}
+      {!isWebshopQuote && projectType === "prices" && <div className={`${fieldWrapperClass} sm:col-span-2`}>
+        <label className={labelClass} htmlFor="selectedHelp">S čime trebate pomoć?</label>
+        <select id="selectedHelp" name="selectedHelp" className={controlClass} value={selectedHelp} onChange={event => {
+          setSelectedHelp(event.target.value);
+          replaceSelectionInUrl("prices", "", event.target.value);
+        }} aria-invalid={hasError("selectedHelp") || undefined} aria-describedby="selectedHelp-description">
+          <option value="">Odaberite ili opišite potrebu ispod</option>
+          {priceHelpOptions.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
+        </select>
+        <p id="selectedHelp-description" className="text-sm text-muted">{priceHelpOptions.find(item => item.id === selectedHelp)?.description ?? "Navedite gdje prodajete i koji sustav koristite. Predložit ćemo opseg tehničke pomoći."}</p>
+        <FieldError name="selectedHelp" show={hasError("selectedHelp")} />
+      </div>}
       {!isWebshopQuote && projectType === "web" && <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor="selectedPackage">Web-paket <span className="font-normal text-muted">(neobavezno)</span></label><select id="selectedPackage" name="selectedPackage" className={controlClass} value={selectedPackage} onChange={event => { setSelectedPackage(event.target.value); replaceSelectionInUrl("web", event.target.value); }} aria-invalid={hasError("selectedPackage") || undefined}><option value="">Još nisam odabrao paket</option>{webPackages.map(item => <option key={item.id} value={item.id}>{item.name} — {item.price.toLocaleString("hr-HR")} €</option>)}</select><FieldError name="selectedPackage" show={hasError("selectedPackage")} /></div>}
       <Field name="fullName" label="Ime i prezime *" error={hasError("fullName")} wide={isWebshopQuote} />
       <Field name="email" label="E-pošta *" type="email" error={hasError("email")} wide={isWebshopQuote} />
+      {!isWebshopQuote && projectType === "prices" && <Field name="companyName" label="Naziv tvrtke ili obrta *" required error={hasError("companyName")} wide />}
       {isWebshopQuote ? (
         <TextField name="problem" label="Napomena (neobavezno)" error={hasError("problem")} />
       ) : (
@@ -185,7 +207,7 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
               Dodajte detalje <span aria-hidden="true" className="group-open:rotate-45">+</span>
             </summary>
             <div className="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2">
-              <Field name="companyName" label="Tvrtka ili obrt (neobavezno)" />
+              {projectType !== "prices" && <Field name="companyName" label="Tvrtka ili obrt (neobavezno)" />}
               <Field name="phone" label="Telefon (neobavezno)" type="tel" />
               <Field name="currentWebsite" label="Postojeći web (neobavezno)" type="url" wide />
             </div>
@@ -213,7 +235,7 @@ function FieldError({ name, show }: { name: keyof ProblemFormData; show: boolean
   if (!show) return null;
   return <p id={`${name}-error`} className="text-sm font-bold text-orange-dark">Provjerite ovo polje.</p>;
 }
-function Field({ name, label, error = false, type = "text", wide = false }: { name: keyof ProblemFormData; label: string; error?: boolean; type?: string; wide?: boolean }) { const autoComplete: Partial<Record<keyof ProblemFormData, string>> = { fullName: "name", companyName: "organization", email: "email", phone: "tel", currentWebsite: "url" }; return <div className={`${fieldWrapperClass} ${wide ? "sm:col-span-2" : ""}`}><label className={labelClass} htmlFor={name}>{label}</label><input className={controlClass} id={name} name={name} type={type} required={name === "fullName" || name === "email"} autoComplete={autoComplete[name]} aria-invalid={error || undefined} aria-describedby={error ? `${name}-error` : undefined} /><FieldError name={name} show={error} /></div>; }
+function Field({ name, label, error = false, type = "text", wide = false, required = false }: { name: keyof ProblemFormData; label: string; error?: boolean; type?: string; wide?: boolean; required?: boolean }) { const autoComplete: Partial<Record<keyof ProblemFormData, string>> = { fullName: "name", companyName: "organization", email: "email", phone: "tel", currentWebsite: "url" }; return <div className={`${fieldWrapperClass} ${wide ? "sm:col-span-2" : ""}`}><label className={labelClass} htmlFor={name}>{label}</label><input className={controlClass} id={name} name={name} type={type} required={required || name === "fullName" || name === "email"} autoComplete={autoComplete[name]} aria-invalid={error || undefined} aria-describedby={error ? `${name}-error` : undefined} /><FieldError name={name} show={error} /></div>; }
 function TextField({ name, label, error = false, help }: { name: "problem" | "manualProcess"; label: string; error?: boolean; help?: string }) { return <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor={name}>{label}</label><textarea className={`${controlClass} min-h-28 resize-y`} id={name} name={name} rows={4} required={name === "problem" && Boolean(help)} aria-invalid={error || undefined} aria-describedby={[help ? `${name}-help` : "", error ? `${name}-error` : ""].filter(Boolean).join(" ") || undefined} />{help && <p id={`${name}-help`} className="text-xs leading-5 text-muted">{help}</p>}<FieldError name={name} show={error} /></div>; }
 
 export { requiredProblemFields };

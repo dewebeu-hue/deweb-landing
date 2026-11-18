@@ -4,7 +4,7 @@ import { Icon } from "../ui-icon";
 
 export const metadata: Metadata = {
   title: "Besplatni alati | deweb",
-  description: "Jednostavni deweb alati za pripremu digitalnog projekta. Prvi alat pomaže opisati zahtjeve za webshop.",
+  description: "Provjerite obveze za bazne cijene i mrežni cjenik ili pripremite zahtjeve za webshop.",
   robots: { index: false, follow: false },
 };
 
@@ -13,9 +13,17 @@ export default function ToolsPage() {
   return (
     <main id="sadrzaj" className="tools-directory">
       <div className="page-heading">
-        <div className="frame section-intro"><h1>Besplatni alati</h1><p>Pripremite zahtjeve prije razgovora o projektu. Za webshop možete odmah složiti pregled kataloga, načina prodaje i potrebnih funkcija.</p></div>
+        <div className="frame section-intro"><h1>Besplatni alati</h1><p>Provjerite koje cijene trebate prikazati kupcima ili pripremite zahtjeve prije razgovora o webshopu.</p></div>
       </div>
       <section className="frame section">
+        <article className="tool-feature mb-8">
+          <div>
+            <h2>Moram li isticati baznu cijenu?</h2>
+            <p>Provjerite obveze za poslovnicu, webshop i sajam. Dobit ćete kratak popis koraka uz članke propisa.</p>
+            <a className="button button-light" href="/alati/sidrene-cijene">Provjerite svoje obveze <Icon name="right" /></a>
+          </div>
+          <div className="tool-inventory"><h3>Što ćete provjeriti</h3><ul><li>Baznu cijenu</li><li>Najnižu cijenu prije akcije</li><li>Cijenu po jedinici mjere</li><li>Cjenik na webu</li></ul></div>
+        </article>
         <article className="tool-feature">
           <div>
             <h2>Kalkulator cijene webshopa</h2>

@@ -13,6 +13,20 @@ const valid: ProblemFormData = {
 };
 const config: ContactEmailConfig = { apiKey: "re_test", toEmail: "owner@example.com", fromEmail: "deweb <kontakt@example.com>" };
 
+test("price inquiries validate the business and selected help and carry them into email", () => {
+  const data: ProblemFormData = { ...valid, projectType: "prices", selectedPackage: "", selectedHelp: "cjenik" };
+  assert.equal(validateContactPayload(data).valid, true);
+  assert.ok(validateContactPayload({ ...data, companyName: "" }).errors.includes("companyName"));
+  assert.ok(validateContactPayload({ ...data, selectedHelp: "invalid" }).errors.includes("selectedHelp"));
+  assert.ok(validateContactPayload({ ...data, projectType: "web" }).errors.includes("selectedHelp"));
+  assert.ok(validateContactPayload({ ...data, selectedPackage: "business" }).errors.includes("selectedPackage"));
+  const email = buildContactEmailPayload(data, config);
+  assert.match(email.subject, /Bazne cijene i mrežni cjenik/);
+  assert.match(email.text, /Potrebna pomoć: Mrežni cjenik i arhiva/);
+  assert.match(email.text, /Tvrtka ili obrt: Servis Horvat/);
+  assert.equal(email.reply_to, data.email);
+});
+
 test("client and server reject missing type, invalid email, short description, and inconsistent package", () => {
   const missing = validateProblemForm({ fullName: "Ana", email: "", problem: "" });
   assert.deepEqual(missing.missingFields, ["projectType", "email", "problem"]);

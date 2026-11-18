@@ -15,6 +15,7 @@ export function SiteFooter() {
           <div className="footer-contact">
             <a href="mailto:dinko@deweb.hr">dinko@deweb.hr <Icon name="up-right" /></a>
             <a href="/tehnicka-provjera-weba">Tehnička provjera weba</a>
+            <a href="/alati/sidrene-cijene">Bazne cijene i cjenik</a>
             <a href="/alati/kalkulator-cijene-webshopa">Kalkulator cijene webshopa</a>
           </div>
         </div>

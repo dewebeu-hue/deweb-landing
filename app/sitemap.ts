@@ -5,5 +5,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${SITE_ORIGIN}/` },
     { url: `${SITE_ORIGIN}/tehnicka-provjera-weba` },
+    { url: `${SITE_ORIGIN}/alati/sidrene-cijene` },
   ];
 }

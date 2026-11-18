@@ -1,6 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { projectSelectionHref, readProjectSelection } from "./project-selection.ts";
+import { priceHelpHref, priceHelpOptions } from "./price-help.ts";
+
+test("price help links preserve the selected need and ignore unrelated packages", () => {
+  for (const item of priceHelpOptions) {
+    const url = new URL(priceHelpHref(item.id), "https://deweb.hr");
+    assert.equal(url.hash, "#kontakt");
+    assert.deepEqual(readProjectSelection({
+      vrsta: url.searchParams.get("vrsta") ?? undefined,
+      pomoc: url.searchParams.get("pomoc") ?? undefined,
+      paket: "business",
+    }), { type: "prices", packageId: "", helpId: item.id });
+  }
+  assert.deepEqual(readProjectSelection({ vrsta: "prices", pomoc: ["webshop", "cjenik"] }), { type: "prices", packageId: "", helpId: "" });
+  assert.deepEqual(readProjectSelection({ vrsta: "prices", pomoc: "invalid" }), { type: "prices", packageId: "", helpId: "" });
+  assert.deepEqual(readProjectSelection({ vrsta: "web", pomoc: "cjenik" }), { type: "web", packageId: "" });
+});
 
 test("Service and package links preserve the intended selection without JavaScript", () => {
   const cases = [

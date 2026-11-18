@@ -29,6 +29,7 @@ test("sitemap contains the public canonical landing and technical review URLs", 
   assert.deepEqual(sitemap(), [
     { url: "https://deweb.hr/" },
     { url: "https://deweb.hr/tehnicka-provjera-weba" },
+    { url: "https://deweb.hr/alati/sidrene-cijene" },
   ]);
 });
 
