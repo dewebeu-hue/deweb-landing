@@ -91,7 +91,6 @@ summary::marker { content: ""; }
 .hero-copy { padding-block: 12px; }
 .hero-copy h1 { font-size: clamp(3.45rem, 6.05vw, 6.1rem); }
 .hero-copy p { max-width: 42ch; margin-top: 24px; color: var(--muted); font-size: clamp(1.08rem, 1.52vw, 1.4rem); line-height: 1.5; }
-.hero-copy p a { color: var(--ink); text-underline-offset: .15em; text-decoration: underline; text-decoration-color: #88a9a0; white-space: nowrap; }
 .hero-actions { flex-wrap: wrap; gap: 8px 25px; margin-top: 28px; }
 .service-stage { min-width: 0; overflow: hidden; background: var(--mint); border-radius: 22px; color: #183d38; }
 .stage-space { height: clamp(245px, 25vw, 365px); position: relative; }

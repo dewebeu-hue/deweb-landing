@@ -48,7 +48,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
       <link rel="canonical" href={`${SITE_ORIGIN}/`} />
       <ScrollReveal />
       <section id="vrh" className="hero-surface" aria-labelledby="hero-title">
-        <ServiceHero startingPrice={webPackages[0].price.toLocaleString("hr-HR")} />
+        <ServiceHero />
       </section>
 
       <Portfolio />

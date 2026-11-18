@@ -20,7 +20,7 @@ function turn(wheel: Wheel, index: number): Wheel {
   return { index, angle: wheel.angle + difference };
 }
 
-export function ServiceHero({ startingPrice }: { startingPrice: string }) {
+export function ServiceHero() {
   const [wheel, setWheel] = useState<Wheel>({ index: null, angle: 0 });
   const active = wheel.index === null ? null : services[wheel.index];
 
@@ -36,7 +36,7 @@ export function ServiceHero({ startingPrice }: { startingPrice: string }) {
       style={{ "--deweb-wheel-angle": wheel.angle + "deg" } as CSSProperties}>
       <div className="hero-copy">
         <h1 id="hero-title">Web za kupce.<br />Alati za vaš tim.</h1>
-        <p>Izrađujemo web-stranice <a href="#web-stranice">od {startingPrice} €</a>, webshopove i poslovne alate po mjeri. O projektu razgovarate izravno s Dinkom Vukovićem.</p>
+        <p>Pomažemo kupcima da pronađu pravu uslugu ili naruče proizvod. Vašem timu olakšavamo praćenje upita i pripremu ponuda.</p>
         <div className="hero-actions">
           <a href="#kontakt" className="button">Zatražite ponudu <Icon name="up-right" /></a>
           <a href="#radovi" className="text-link">Pogledajte radove <Icon name="down" /></a>
