@@ -104,23 +104,23 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
         <div className="tools-grid">
           <div className="tools-intro">
             <h2 id="tools-title">Poslovni alati po mjeri</h2>
-            <p className="lede">Kad se isti podaci prepisuju u više tablica, posao lako zapne. Izrađujemo alate za praćenje upita, pripremu ponuda i vođenje radnih naloga.</p>
-            <ProjectLink type="tool" className="text-link">Opišite svoj proces <Icon name="up-right" /></ProjectLink>
+            <p className="lede">Pokažite nam kako danas radite ili opišite što tek želite uvesti. Zajedno određujemo što alat treba omogućiti ljudima koji ga koriste i koje podatke trebaju imati pri ruci.</p>
+            <ProjectLink type="tool" className="text-link">Opišite što vam treba <Icon name="up-right" /></ProjectLink>
           </div>
-          <article className="workflow">
-            <h3>Kako nastaje ponuda</h3>
-            <p>Primjer iz pilot-aplikacije Ponude</p>
-            <ol>
-              <li>Odaberite artikle iz kataloga.</li>
-              <li>Složite ponudu sa slikama.</li>
-              <li>Preuzmite dokument u PDF-u.</li>
-              <li>Postavite podsjetnik za razgovor s kupcem.</li>
-            </ol>
+          <article className="tool-examples">
+            <h3>Što alat može olakšati?</h3>
+            <ul>
+              <li>Planiranje smjena i raspoređivanje ekipa na terenu</li>
+              <li>Praćenje zaliha i opreme na više lokacija</li>
+              <li>Slanje dokumenata na odobrenje i praćenje rokova</li>
+              <li>Pripremu izvještaja iz podataka u više programa</li>
+            </ul>
           </article>
         </div>
         <details className="disclosure experiments">
           <summary>Piloti, prototipi i razvoj <Icon name="plus" /></summary>
           <div className="experiment-list">
+            <div><h4>Ponude</h4><p>U pilot-aplikaciji tim odabire artikle iz kataloga, sastavlja ponudu sa slikama, preuzima PDF i postavlja podsjetnik za razgovor s kupcem.</p></div>
             <div><h4>Konfiguratori za ponude</h4><p>Demonstracije u kojima kupac bira opcije proizvoda, a prodaja dobiva strukturiran upit.</p></div>
             <div><h4>VSME Passport</h4><p>Alat u razvoju za organiziranje podataka o održivosti malih i srednjih poduzeća.</p></div>
           </div>

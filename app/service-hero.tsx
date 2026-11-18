@@ -8,7 +8,7 @@ import art from "./service-illustration.module.css";
 const services = [
   { id: "web", name: "Web-stranice", goal: "Predstavite posao i primajte upite", href: "#web-stranice", angle: 180, icon: "web" },
   { id: "shop", name: "Webshopovi", goal: "Prodajte proizvode online", href: "#webshopovi", angle: 60, icon: "bag" },
-  { id: "tool", name: "Poslovni alati", goal: "Smanjite ručni rad u timu", href: "#interni-alati", angle: -60, icon: "tool" },
+  { id: "tool", name: "Poslovni alati", goal: "Organizirajte posao na svoj način", href: "#interni-alati", angle: -60, icon: "tool" },
 ] as const;
 
 type Wheel = { index: number | null; angle: number };
@@ -36,7 +36,7 @@ export function ServiceHero() {
       style={{ "--deweb-wheel-angle": wheel.angle + "deg" } as CSSProperties}>
       <div className="hero-copy">
         <h1 id="hero-title">Web za kupce.<br />Alati za vaš tim.</h1>
-        <p>Pomažemo kupcima da pronađu pravu uslugu ili naruče proizvod. Vašem timu olakšavamo praćenje upita i pripremu ponuda.</p>
+        <p>Pomažemo kupcima da pronađu pravu uslugu ili naruče proizvod. Poslovne alate izrađujemo prema načinu na koji vaš tim radi.</p>
         <div className="hero-actions">
           <a href="#kontakt" className="button">Zatražite ponudu <Icon name="up-right" /></a>
           <a href="#radovi" className="text-link">Pogledajte radove <Icon name="down" /></a>

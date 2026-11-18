@@ -156,11 +156,10 @@ summary::marker { content: ""; }
 .shop-tool { padding: clamp(24px,3.4vw,52px); background: #205257; border-radius: var(--radius); }
 .shop-tool h3 { font-size: clamp(1.9rem,3.1vw,3rem); }
 .shop-tool p { font-size: 1.06rem; }
-.workflow { background: var(--mist); border-radius: var(--radius); padding: clamp(25px,3.1vw,48px); }
-.workflow > p { color: var(--muted); margin: 5px 0 20px; }
-.workflow ol { list-style: decimal; margin-left: 1.4em; }
-.workflow li { padding: 5px 0 5px 4px; }
-.workflow li::marker { color: var(--teal); font-weight: 670; }
+.tool-examples { background: var(--mist); border-radius: var(--radius); padding: clamp(25px,3.1vw,48px); }
+.tool-examples ul { list-style: disc; margin: 18px 0 0 1.2em; }
+.tool-examples li { padding: 5px 0 5px 4px; }
+.tool-examples li::marker { color: var(--teal); }
 .disclosure { border-bottom: 1px solid var(--line); }
 .disclosure:first-child { border-top: 1px solid var(--line); }
 .disclosure summary { display: flex; gap: 20px; justify-content: space-between; align-items: center; min-height: 58px; padding: 14px 2px; font-weight: 630; font-size: clamp(1.02rem,1.35vw,1.22rem); line-height: 1.4; }
@@ -169,7 +168,7 @@ summary::marker { content: ""; }
 .disclosure[open] > summary svg { transform: rotate(45deg); }
 .disclosure > p, .experiment-list { padding: 0 0 22px; max-width: 70ch; color: var(--muted); }
 .experiments { margin-top: 30px; border-top: 1px solid var(--line); }
-.experiment-list { max-width: none; display: grid; gap: 24px; grid-template-columns: 1fr 1fr; }
+.experiment-list { max-width: none; display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
 .experiment-list h4 { font-weight: 650; color: var(--ink); }
 .process-section { background: #e9ede6; }
 .process-list { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--gutter); list-style: decimal-leading-zero inside; margin-top: clamp(28px,3.6vw,54px); }
