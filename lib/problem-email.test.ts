@@ -8,7 +8,7 @@ import {
 
 const valid: ProblemFormData = {
   projectType: "web", selectedPackage: "business", fullName: "Ana Horvat",
-  companyName: "Servis Horvat", email: "ana@example.com", phone: "", currentWebsite: "",
+  companyName: "Servis Horvat", companyType: "Obrt", email: "ana@example.com", phone: "", currentWebsite: "",
   problem: "Trebamo jasno predstaviti usluge i omogućiti kupcima da nam se jave.", website: "",
 };
 const config: ContactEmailConfig = { apiKey: "re_test", toEmail: "owner@example.com", fromEmail: "deweb <kontakt@example.com>" };
@@ -29,7 +29,9 @@ test("price inquiries validate the business and selected help and carry them int
 
 test("client and server reject missing type, invalid email, short description, and inconsistent package", () => {
   const missing = validateProblemForm({ fullName: "Ana", email: "", problem: "" });
-  assert.deepEqual(missing.missingFields, ["projectType", "email", "problem"]);
+  assert.deepEqual(missing.missingFields, ["projectType", "email", "companyName", "companyType", "problem"]);
+  assert.deepEqual(validateContactPayload({ ...valid, companyName: " ", companyType: "" }).errors, ["companyName", "companyType"]);
+  assert.deepEqual(validateContactPayload({ ...valid, companyType: "Potrošač" }).errors, ["companyType"]);
   assert.deepEqual(validateContactPayload({ ...valid, email: "bad", problem: "short" }).errors, ["email", "problem"]);
   assert.deepEqual(validateContactPayload({ ...valid, projectType: "tool", selectedPackage: "business" }).errors, ["selectedPackage"]);
   assert.deepEqual(validateContactPayload({ ...valid, selectedPackage: "made-up" }).errors, ["selectedPackage"]);
@@ -40,7 +42,7 @@ test("client and server reject missing type, invalid email, short description, a
 
 test("optional fields and all project types are accepted", () => {
   for (const projectType of ["web", "shop", "tool", "saas", "unsure"] as const) {
-    assert.equal(validateContactPayload({ ...valid, projectType, selectedPackage: "", companyName: "", phone: "" }).valid, true);
+    assert.equal(validateContactPayload({ ...valid, projectType, selectedPackage: "", phone: "" }).valid, true);
   }
 });
 
@@ -57,6 +59,7 @@ test("email handoff carries selected web package and business-tool answers", () 
   assert.equal(webEmail.subject, "Novi Deweb upit — Poslovni web 1.290 €");
   assert.equal(buildContactEmailPayload({ ...valid, selectedPackage: "simple" }, config).subject, "Novi Deweb upit — Jednostavni web 790 €");
   assert.match(webEmail.text, /Vrsta projekta: Web-stranica/);
+  assert.match(webEmail.text, /Naziv poslovnog subjekta: Servis Horvat\nVrsta subjekta: Obrt/);
   assert.match(webEmail.text, /Odabrani paket: Poslovni web — 1\.290 €/);
   assert.doesNotMatch(webEmail.text, /Trenutni ručni postupak|Korisnici rješenja|Nije navedeno|Zaprimljeno:/);
   const shopEmail = buildContactEmailPayload({ ...valid, projectType: "shop", selectedPackage: "" }, config);
@@ -84,7 +87,6 @@ test("TEST A/B/C email drafts keep the right package, Croatian text, and Reply-T
       projectType: item.type,
       selectedPackage: item.packageId,
       fullName: item.tag,
-      companyName: "",
       email: "dinko@deweb.hr",
       problem: `${item.tag}: Č, ć, ž, š i đ ostaju čitljivi u opisu upita.`,
     };

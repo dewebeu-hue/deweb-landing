@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import {
+  companyTypes,
   requiredProblemFields,
   successMessage,
   validateProblemForm,
@@ -27,6 +28,7 @@ function collectProblemFormData(form: HTMLFormElement): ProblemFormData {
     selectedHelp: value(data, "selectedHelp"),
     fullName: value(data, "fullName"),
     companyName: value(data, "companyName"),
+    companyType: value(data, "companyType"),
     email: value(data, "email"),
     phone: value(data, "phone"),
     currentWebsite: value(data, "currentWebsite"),
@@ -196,7 +198,17 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
       {!isWebshopQuote && projectType === "web" && <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor="selectedPackage">Web-paket <span className="font-normal text-muted">(neobavezno)</span></label><select id="selectedPackage" name="selectedPackage" className={controlClass} value={selectedPackage} onChange={event => { setSelectedPackage(event.target.value); replaceSelectionInUrl("web", event.target.value); }} aria-invalid={hasError("selectedPackage") || undefined}><option value="">Još nisam odabrao paket</option>{webPackages.map(item => <option key={item.id} value={item.id}>{item.name} — {item.price.toLocaleString("hr-HR")} €</option>)}</select><FieldError name="selectedPackage" show={hasError("selectedPackage")} /></div>}
       <Field name="fullName" label="Ime i prezime *" error={hasError("fullName")} wide={isWebshopQuote} />
       <Field name="email" label="E-pošta *" type="email" error={hasError("email")} wide={isWebshopQuote} />
-      {!isWebshopQuote && projectType === "prices" && <Field name="companyName" label="Naziv tvrtke ili obrta *" required error={hasError("companyName")} wide />}
+      <Field name="companyName" label="Naziv poslovnog subjekta *" error={hasError("companyName")} wide={isWebshopQuote} />
+      <div className={`${fieldWrapperClass} ${isWebshopQuote ? "sm:col-span-2" : ""}`}>
+        <label className={labelClass} htmlFor="companyType">Vrsta subjekta *</label>
+        <select id="companyType" name="companyType" required defaultValue="" className={controlClass}
+          aria-invalid={hasError("companyType") || undefined}
+          aria-describedby={hasError("companyType") ? "companyType-error" : undefined}>
+          <option value="">Odaberite vrstu subjekta</option>
+          {companyTypes.map(type => <option key={type} value={type}>{type}</option>)}
+        </select>
+        <FieldError name="companyType" show={hasError("companyType")} />
+      </div>
       {isWebshopQuote ? (
         <TextField name="problem" label="Napomena (neobavezno)" error={hasError("problem")} />
       ) : (
@@ -207,9 +219,8 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
               Dodajte detalje <span aria-hidden="true" className="group-open:rotate-45">+</span>
             </summary>
             <div className="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2">
-              {projectType !== "prices" && <Field name="companyName" label="Tvrtka ili obrt (neobavezno)" />}
               <Field name="phone" label="Telefon (neobavezno)" type="tel" />
-              <Field name="currentWebsite" label="Postojeći web (neobavezno)" type="url" wide />
+              <Field name="currentWebsite" label="Postojeći web (neobavezno)" type="url" />
             </div>
           </details>
         </>
@@ -233,9 +244,20 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
 
 function FieldError({ name, show }: { name: keyof ProblemFormData; show: boolean }) {
   if (!show) return null;
-  return <p id={`${name}-error`} className="text-sm font-bold text-orange-dark">Provjerite ovo polje.</p>;
+  const businessErrors = { companyName: "Unesite naziv poslovnog subjekta.", companyType: "Odaberite vrstu subjekta." };
+  const message = name === "companyName" || name === "companyType" ? businessErrors[name] : "Provjerite ovo polje.";
+  return <p id={`${name}-error`} className="text-sm font-bold text-orange-dark">{message}</p>;
 }
-function Field({ name, label, error = false, type = "text", wide = false, required = false }: { name: keyof ProblemFormData; label: string; error?: boolean; type?: string; wide?: boolean; required?: boolean }) { const autoComplete: Partial<Record<keyof ProblemFormData, string>> = { fullName: "name", companyName: "organization", email: "email", phone: "tel", currentWebsite: "url" }; return <div className={`${fieldWrapperClass} ${wide ? "sm:col-span-2" : ""}`}><label className={labelClass} htmlFor={name}>{label}</label><input className={controlClass} id={name} name={name} type={type} required={required || name === "fullName" || name === "email"} autoComplete={autoComplete[name]} aria-invalid={error || undefined} aria-describedby={error ? `${name}-error` : undefined} /><FieldError name={name} show={error} /></div>; }
+function Field({ name, label, error = false, type = "text", wide = false }: { name: keyof ProblemFormData; label: string; error?: boolean; type?: string; wide?: boolean }) {
+  const autoComplete: Partial<Record<keyof ProblemFormData, string>> = { fullName: "name", companyName: "organization", email: "email", phone: "tel", currentWebsite: "url" };
+  return <div className={`${fieldWrapperClass} ${wide ? "sm:col-span-2" : ""}`}>
+    <label className={labelClass} htmlFor={name}>{label}</label>
+    <input className={controlClass} id={name} name={name} type={type}
+      required={requiredProblemFields.some(field => field === name)} autoComplete={autoComplete[name]}
+      aria-invalid={error || undefined} aria-describedby={error ? `${name}-error` : undefined} />
+    <FieldError name={name} show={error} />
+  </div>;
+}
 function TextField({ name, label, error = false, help }: { name: "problem" | "manualProcess"; label: string; error?: boolean; help?: string }) { return <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor={name}>{label}</label><textarea className={`${controlClass} min-h-28 resize-y`} id={name} name={name} rows={4} required={name === "problem" && Boolean(help)} aria-invalid={error || undefined} aria-describedby={[help ? `${name}-help` : "", error ? `${name}-error` : ""].filter(Boolean).join(" ") || undefined} />{help && <p id={`${name}-help`} className="text-xs leading-5 text-muted">{help}</p>}<FieldError name={name} show={error} /></div>; }
 
 export { requiredProblemFields };

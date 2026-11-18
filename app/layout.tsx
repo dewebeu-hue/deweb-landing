@@ -6,6 +6,9 @@ import "./surfaces.css";
 import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
 
+// Every HTML document must be rendered with the nonce for its own response.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: "deweb — Web-stranice i poslovne aplikacije po mjeri",

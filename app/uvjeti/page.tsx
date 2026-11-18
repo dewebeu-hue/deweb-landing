@@ -15,6 +15,9 @@ export default function TermsPage() {
       <p className={legalParagraph}>
         Slanje kontaktnog obrasca ili zahtjeva za ponudu ne predstavlja sklapanje ugovora niti obvezuje korisnika ili deweb na ugovaranje projekta.
       </p>
+      <h2 className={legalHeading}>Tko može ugovoriti uslugu?</h2>
+      <p className={legalParagraph}>deweb ugovara usluge isključivo s naručiteljima koji ih koriste za svoju poslovnu ili profesionalnu djelatnost. S fizičkim osobama koje nastupaju kao potrošači deweb ne sklapa ugovore o pružanju usluga.</p>
+      <p className={legalParagraph}>Prije prihvaćanja ponude deweb provjerava podatke o naručitelju i ugovara li naručitelj uslugu za potrebe svoje poslovne ili profesionalne djelatnosti.</p>
       <h2 className={legalHeading}>Web-paketi i cijene</h2>
       <p className={legalParagraph}>Objavljene cijene odnose se isključivo na opseg naveden uz pojedini paket.</p>
       <p className={legalParagraph}>Ako zahtjev izlazi iz tog opsega, deweb prije početka rada dostavlja zasebnu ponudu.</p>
