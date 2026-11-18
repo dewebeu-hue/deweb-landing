@@ -75,7 +75,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
             ))}
           </div>
           <div className="package-notes">
-            <p>{webOfferTerms.tax} Domena, hosting i licence ugovaraju se zasebno.</p>
+            <div>
+              <p>Usluge su namijenjene isključivo poslovnim korisnicima — trgovačkim društvima, obrtima i drugim subjektima koji ih ugovaraju za potrebe svoje poslovne ili profesionalne djelatnosti.</p>
+              <p>{webOfferTerms.tax} Domena, hosting i licence ugovaraju se zasebno.</p>
+            </div>
             <a className="text-link" href="#pitanja">Detalji paketa i troškova <Icon name="down" /></a>
           </div>
           <aside className="review-link">

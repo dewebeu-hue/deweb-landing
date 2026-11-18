@@ -2,12 +2,20 @@ import { webPackages } from "./web-packages.ts";
 
 export const projectTypes = ["web", "shop", "tool", "saas", "unsure"] as const;
 export type ProjectType = (typeof projectTypes)[number];
+export const companyTypes = [
+  "Trgovačko društvo",
+  "Obrt",
+  "Samostalna profesionalna djelatnost",
+  "Obiteljsko poljoprivredno gospodarstvo",
+  "Drugi poslovni subjekt",
+];
 
 export type ProblemFormData = {
   projectType: ProjectType | "";
   selectedPackage?: string;
   fullName: string;
-  companyName?: string;
+  companyName: string;
+  companyType: string;
   email: string;
   phone?: string;
   currentWebsite?: string;
@@ -22,7 +30,7 @@ export type ContactEmailConfig = { apiKey: string; toEmail: string; fromEmail: s
 export type ContactEmailPayload = { from: string; to: string[]; reply_to: string; subject: string; text: string };
 
 export const successMessage = "Hvala. Upit je predan za slanje. Javit ćemo vam se kad ga primimo.";
-export const requiredProblemFields = ["projectType", "fullName", "email", "problem"] as const satisfies readonly (keyof ProblemFormData)[];
+export const requiredProblemFields = ["projectType", "fullName", "email", "companyName", "companyType", "problem"] as const satisfies readonly (keyof ProblemFormData)[];
 export type RequiredProblemField = (typeof requiredProblemFields)[number];
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,6 +51,8 @@ export function validateProblemForm(data: Partial<ProblemFormData>) {
   if (type && !projectTypes.includes(type as ProjectType)) errors.push("projectType");
   const email = normalizeFormValue(data.email);
   if (email && !validReplyTo(email)) errors.push("email");
+  const companyType = normalizeFormValue(data.companyType);
+  if (companyType && !companyTypes.includes(companyType)) errors.push("companyType");
   const problem = normalizeFormValue(data.problem);
   if (problem && problem.length < minProblemLength) errors.push("problem");
   const selectedPackage = normalizeFormValue(data.selectedPackage);
@@ -65,6 +75,7 @@ export function prepareProblemSubmission(data: Partial<ProblemFormData>): Proble
     selectedPackage: normalizeFormValue(data.selectedPackage),
     fullName: normalizeFormValue(data.fullName),
     companyName: normalizeFormValue(data.companyName),
+    companyType: normalizeFormValue(data.companyType),
     email: normalizeFormValue(data.email),
     phone: normalizeFormValue(data.phone),
     currentWebsite: normalizeFormValue(data.currentWebsite),
@@ -103,7 +114,8 @@ export function buildContactEmailPayload(data: ProblemFormData, config: ContactE
     text: [
       options.test ? "TEST — provjera kontaktnog obrasca" : "Novi kontaktni upit", "",
       `Ime: ${submission.fullName}`,
-      submission.companyName && `Tvrtka ili obrt: ${submission.companyName}`,
+      `Naziv poslovnog subjekta: ${submission.companyName}`,
+      `Vrsta subjekta: ${submission.companyType}`,
       `Email: ${submission.email}`,
       submission.phone && `Telefon: ${submission.phone}`,
       `Vrsta projekta: ${projectTypeLabel(submission.projectType)}`,
