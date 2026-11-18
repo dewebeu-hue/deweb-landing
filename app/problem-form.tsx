@@ -200,11 +200,11 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
       <Field name="email" label="E-pošta *" type="email" error={hasError("email")} wide={isWebshopQuote} />
       <Field name="companyName" label="Naziv poslovnog subjekta *" error={hasError("companyName")} wide={isWebshopQuote} />
       <div className={`${fieldWrapperClass} ${isWebshopQuote ? "sm:col-span-2" : ""}`}>
-        <label className={labelClass} htmlFor="companyType">Vrsta subjekta *</label>
-        <select id="companyType" name="companyType" required defaultValue="" className={controlClass}
+        <label className={labelClass} htmlFor="companyType">Vrsta subjekta <span className="font-normal text-muted">(neobavezno)</span></label>
+        <select id="companyType" name="companyType" defaultValue="" className={controlClass}
           aria-invalid={hasError("companyType") || undefined}
           aria-describedby={hasError("companyType") ? "companyType-error" : undefined}>
-          <option value="">Odaberite vrstu subjekta</option>
+          <option value="">Odaberite ako želite</option>
           {companyTypes.map(type => <option key={type} value={type}>{type}</option>)}
         </select>
         <FieldError name="companyType" show={hasError("companyType")} />

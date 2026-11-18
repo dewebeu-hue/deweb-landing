@@ -30,8 +30,9 @@ test("price inquiries validate the business and selected help and carry them int
 
 test("client and server reject missing type, invalid email, short description, and inconsistent package", () => {
   const missing = validateProblemForm({ fullName: "Ana", email: "", problem: "" });
-  assert.deepEqual(missing.missingFields, ["projectType", "email", "companyName", "companyType", "problem"]);
-  assert.deepEqual(validateContactPayload({ ...valid, companyName: " ", companyType: "" }).errors, ["companyName", "companyType"]);
+  assert.deepEqual(missing.missingFields, ["projectType", "email", "companyName", "problem"]);
+  assert.deepEqual(validateContactPayload({ ...valid, companyName: " ", companyType: "" }).errors, ["companyName"]);
+  assert.equal(validateContactPayload({ ...valid, companyType: undefined }).valid, true);
   assert.deepEqual(validateContactPayload({ ...valid, companyType: "Potrošač" }).errors, ["companyType"]);
   assert.deepEqual(validateContactPayload({ ...valid, email: "bad", problem: "short" }).errors, ["email", "problem"]);
   assert.deepEqual(validateContactPayload({ ...valid, projectType: "tool", selectedPackage: "business" }).errors, ["selectedPackage"]);
@@ -61,6 +62,7 @@ test("email handoff carries selected web package and business-tool answers", () 
   assert.equal(buildContactEmailPayload({ ...valid, selectedPackage: "simple" }, config).subject, "Novi Deweb upit — Jednostavni web 790 €");
   assert.match(webEmail.text, /Vrsta projekta: Web-stranica/);
   assert.match(webEmail.text, /Naziv poslovnog subjekta: Servis Horvat\nVrsta subjekta: Obrt/);
+  assert.doesNotMatch(buildContactEmailPayload({ ...valid, companyType: "" }, config).text, /Vrsta subjekta:/);
   assert.match(webEmail.text, /Odabrani paket: Poslovni web — 1\.290 €/);
   assert.doesNotMatch(webEmail.text, /Trenutni ručni postupak|Korisnici rješenja|Nije navedeno|Zaprimljeno:/);
   const shopEmail = buildContactEmailPayload({ ...valid, projectType: "shop", selectedPackage: "" }, config);
