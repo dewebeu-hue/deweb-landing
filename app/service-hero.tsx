@@ -20,6 +20,10 @@ function turn(wheel: Wheel, index: number): Wheel {
   return { index, angle: wheel.angle + difference };
 }
 
+function QuoteLink() {
+  return <a href="#kontakt" className="button">Zatražite ponudu <Icon name="up-right" /></a>;
+}
+
 export function ServiceHero() {
   const [wheel, setWheel] = useState<Wheel>({ index: null, angle: 0 });
   const active = wheel.index === null ? null : services[wheel.index];
@@ -35,10 +39,10 @@ export function ServiceHero() {
     <div className={"frame hero-grid " + art.art} data-active={active?.id}
       style={{ "--deweb-wheel-angle": wheel.angle + "deg" } as CSSProperties}>
       <div className="hero-copy">
-        <h1 id="hero-title">Web za kupce.<br />Alati za vaš tim.</h1>
+        <h1 id="hero-title">Web za kupce.<br /><span>Alati za vaš tim.</span></h1>
         <p>Pomažemo kupcima da pronađu pravu uslugu ili naruče proizvod. Poslovne alate izrađujemo prema načinu na koji vaš tim radi.</p>
         <div className="hero-actions">
-          <a href="#kontakt" className="button">Zatražite ponudu <Icon name="up-right" /></a>
+          <QuoteLink />
           <a href="#radovi" className="text-link">Pogledajte radove <Icon name="down" /></a>
         </div>
       </div>
@@ -61,7 +65,7 @@ export function ServiceHero() {
               </div>
             </div>
             <div className={art.piece + " " + art.shop}>
-              <Image src="/deweb-usluge.webp" alt="" fill loading="eager" sizes="(min-width: 850px) 450px, 320px" className={art.texture} />
+              <Image src="/deweb-usluge.webp" alt="" fill loading="lazy" sizes="(min-width: 850px) 450px, 320px" className={art.texture} />
             </div>
             <div className={art.piece + " " + art.tool}><div className={art.toolTile} /></div>
           </div>
@@ -87,6 +91,7 @@ export function ServiceHero() {
           </a>
         ))}
       </nav>
+      <div className="mobile-hero-action"><QuoteLink /></div>
     </div>
   );
 }

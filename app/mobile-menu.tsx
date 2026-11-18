@@ -6,6 +6,10 @@ import { Icon } from "./ui-icon";
 export function MobileMenu({ links }: { links: readonly (readonly [string, string])[] }) {
   const menu = useRef<HTMLDetailsElement>(null);
 
+  function closeMenu() {
+    if (menu.current) menu.current.open = false;
+  }
+
   useEffect(() => {
     function closeOutside(event: PointerEvent) {
       if (menu.current?.open && event.target instanceof Node && !menu.current.contains(event.target)) menu.current.open = false;
@@ -29,10 +33,13 @@ export function MobileMenu({ links }: { links: readonly (readonly [string, strin
       <summary aria-label="Izbornik"><Icon name="menu" className="menu-open" /><Icon name="close" className="menu-close" /></summary>
       <nav aria-label="Mobilna navigacija">
         {links.map(([label, href]) => (
-          <a key={href} href={href} onClick={() => { if (menu.current) menu.current.open = false; }}>
+          <a key={href} href={href} onClick={closeMenu}>
             {label} <Icon name="up-right" />
           </a>
         ))}
+        <a className="mobile-hero-contact" href="/#kontakt" onClick={closeMenu}>
+          Zatražite ponudu <Icon name="up-right" />
+        </a>
       </nav>
     </details>
   );
