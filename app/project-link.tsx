@@ -26,6 +26,7 @@ export function ProjectLink({
     window.history.pushState(null, "", href);
     window.dispatchEvent(new CustomEvent(projectSelectionEvent, { detail: { type, packageId: packageId ?? "" } }));
     document.getElementById("kontakt")?.scrollIntoView();
+    document.getElementById("contact-title")?.focus({ preventScroll: true });
   }
 
   return <a className={className} href={href} onClick={handleClick}>{children}</a>;

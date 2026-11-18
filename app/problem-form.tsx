@@ -11,10 +11,11 @@ import {
 import { webPackages } from "../lib/web-packages";
 import { readProjectSelection, type ProjectSelection } from "../lib/project-selection";
 import { projectSelectionEvent } from "./project-link";
+import { InquiryConfirmation } from "./inquiry-confirmation";
 
 const fieldWrapperClass = "grid content-start gap-2";
 const labelClass = "flex min-h-5 items-center gap-1 text-sm font-extrabold leading-5 text-ink";
-const controlClass = "min-h-12 w-full rounded-lg border border-[#9db9c2] bg-white px-3 py-2 text-base text-ink outline-none focus-visible:border-teal focus-visible:ring-4 focus-visible:ring-teal/15 aria-[invalid=true]:border-orange-dark aria-[invalid=true]:ring-4 aria-[invalid=true]:ring-orange/15";
+const controlClass = "field-control";
 
 function value(form: FormData, key: string) { return String(form.get(key) ?? ""); }
 function collectProblemFormData(form: HTMLFormElement): ProblemFormData {
@@ -134,11 +135,11 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
     }
   }
 
-  const formLayout = isWebshopQuote ? "gap-y-3" : "gap-y-2 rounded-2xl border border-line bg-white p-5 shadow-soft sm:p-7";
+  const formLayout = isWebshopQuote ? "" : "contact-panel";
 
-  return <div className="grid gap-3">
+  return <div className="inquiry">
     <form
-      className={`grid items-start gap-x-4 sm:grid-cols-2 ${formLayout}`}
+      className={`inquiry-form items-start ${formLayout}`}
       aria-labelledby={isWebshopQuote ? "webshop-quote-title" : undefined}
       method="post"
       onSubmit={handleSubmit}
@@ -150,6 +151,7 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
         <select
           id="projectType"
           name="projectType"
+          required
           className={controlClass}
           value={projectType}
           onChange={event => {
@@ -172,13 +174,13 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
       </div>}
       {!isWebshopQuote && projectType === "web" && <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor="selectedPackage">Web-paket <span className="font-normal text-muted">(neobavezno)</span></label><select id="selectedPackage" name="selectedPackage" className={controlClass} value={selectedPackage} onChange={event => { setSelectedPackage(event.target.value); replaceSelectionInUrl("web", event.target.value); }} aria-invalid={hasError("selectedPackage") || undefined}><option value="">Još nisam odabrao paket</option>{webPackages.map(item => <option key={item.id} value={item.id}>{item.name} — {item.price.toLocaleString("hr-HR")} €</option>)}</select><FieldError name="selectedPackage" show={hasError("selectedPackage")} /></div>}
       <Field name="fullName" label="Ime i prezime *" error={hasError("fullName")} wide={isWebshopQuote} />
-      <Field name="email" label="Email *" type="email" error={hasError("email")} wide={isWebshopQuote} />
+      <Field name="email" label="E-pošta *" type="email" error={hasError("email")} wide={isWebshopQuote} />
       {isWebshopQuote ? (
         <TextField name="problem" label="Napomena (neobavezno)" error={hasError("problem")} />
       ) : (
         <>
           <TextField name="problem" label="Kratak opis potrebe *" error={hasError("problem")} help="Barem 20 znakova. Nemojte slati povjerljive poslovne podatke." />
-          <details className="group mb-3 rounded-lg border border-line px-3 py-2 sm:col-span-2">
+          <details className="group optional-details sm:col-span-2">
             <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-teal-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-dark">
               Dodajte detalje <span aria-hidden="true" className="group-open:rotate-45">+</span>
             </summary>
@@ -192,21 +194,26 @@ export function ProblemForm({ initialSelection, webshopSummary }: ProblemFormPro
       )}
       <div className={`grid gap-3 sm:col-span-2 ${isWebshopQuote ? "" : "sm:flex sm:items-center"}`}>
         <button
-          className="min-h-[52px] rounded-lg bg-teal px-6 py-3 text-base font-extrabold text-white transition hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark disabled:cursor-not-allowed disabled:opacity-60"
+          className="button"
           type="submit"
           disabled={isSubmitting || isSuccess || webshopSummary === null}
         >
           {isSubmitting ? "Šaljem..." : isSuccess ? "Poslano" : "Pošaljite upit"}
         </button>
-        <p role="status" aria-live="polite" className={`m-0 rounded-lg text-sm font-bold leading-6 ${status ? "px-3 py-2" : ""} ${isSuccess ? "bg-teal-soft text-teal-dark" : errors.length ? "bg-[#fff1e9] text-orange-dark" : "text-muted"}`}>{status}</p>
+        <p role="status" aria-live="polite" className={"form-status " + (isSuccess ? "form-success" : "form-error")}>
+          {isSuccess && <InquiryConfirmation />}{status}
+        </p>
       </div>
     </form>
-    <p className="m-0 px-1 text-sm leading-6 text-muted">Slanjem upita potvrđujete da ste upoznati s načinom obrade podataka opisanim u <a className="font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark" href="/privatnost">Politici privatnosti</a>.</p>
+    <p className="form-privacy">Slanjem upita potvrđujete da ste upoznati s načinom obrade podataka opisanim u <a className="font-bold text-teal-dark underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark" href="/privatnost">Politici privatnosti</a>.</p>
   </div>;
 }
 
-function FieldError({ name, show }: { name: keyof ProblemFormData; show: boolean }) { return <p id={`${name}-error`} className="min-h-4 text-xs font-bold text-orange-dark" aria-hidden={!show}>{show ? "Provjerite ovo polje." : ""}</p>; }
-function Field({ name, label, error = false, type = "text", wide = false }: { name: keyof ProblemFormData; label: string; error?: boolean; type?: string; wide?: boolean }) { const autoComplete: Partial<Record<keyof ProblemFormData, string>> = { fullName: "name", companyName: "organization", email: "email", phone: "tel", currentWebsite: "url" }; return <div className={`${fieldWrapperClass} ${wide ? "sm:col-span-2" : ""}`}><label className={labelClass} htmlFor={name}>{label}</label><input className={controlClass} id={name} name={name} type={type} autoComplete={autoComplete[name]} aria-invalid={error || undefined} aria-describedby={error ? `${name}-error` : undefined} /><FieldError name={name} show={error} /></div>; }
-function TextField({ name, label, error = false, help }: { name: "problem" | "manualProcess"; label: string; error?: boolean; help?: string }) { return <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor={name}>{label}</label><textarea className={`${controlClass} min-h-28 resize-y`} id={name} name={name} rows={4} aria-invalid={error || undefined} aria-describedby={[help ? `${name}-help` : "", error ? `${name}-error` : ""].filter(Boolean).join(" ") || undefined} />{help && <p id={`${name}-help`} className="text-xs leading-5 text-muted">{help}</p>}<FieldError name={name} show={error} /></div>; }
+function FieldError({ name, show }: { name: keyof ProblemFormData; show: boolean }) {
+  if (!show) return null;
+  return <p id={`${name}-error`} className="text-sm font-bold text-orange-dark">Provjerite ovo polje.</p>;
+}
+function Field({ name, label, error = false, type = "text", wide = false }: { name: keyof ProblemFormData; label: string; error?: boolean; type?: string; wide?: boolean }) { const autoComplete: Partial<Record<keyof ProblemFormData, string>> = { fullName: "name", companyName: "organization", email: "email", phone: "tel", currentWebsite: "url" }; return <div className={`${fieldWrapperClass} ${wide ? "sm:col-span-2" : ""}`}><label className={labelClass} htmlFor={name}>{label}</label><input className={controlClass} id={name} name={name} type={type} required={name === "fullName" || name === "email"} autoComplete={autoComplete[name]} aria-invalid={error || undefined} aria-describedby={error ? `${name}-error` : undefined} /><FieldError name={name} show={error} /></div>; }
+function TextField({ name, label, error = false, help }: { name: "problem" | "manualProcess"; label: string; error?: boolean; help?: string }) { return <div className={`${fieldWrapperClass} sm:col-span-2`}><label className={labelClass} htmlFor={name}>{label}</label><textarea className={`${controlClass} min-h-28 resize-y`} id={name} name={name} rows={4} required={name === "problem" && Boolean(help)} aria-invalid={error || undefined} aria-describedby={[help ? `${name}-help` : "", error ? `${name}-error` : ""].filter(Boolean).join(" ") || undefined} />{help && <p id={`${name}-help`} className="text-xs leading-5 text-muted">{help}</p>}<FieldError name={name} show={error} /></div>; }
 
 export { requiredProblemFields };

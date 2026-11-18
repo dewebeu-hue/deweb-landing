@@ -5,17 +5,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#081832",
-        muted: "#5d6e82",
-        line: "#d8e5eb",
+        ink: "#142f33",
+        muted: "#435c5d",
+        line: "#cad5ce",
         teal: {
-          DEFAULT: "#006d7b",
-          dark: "#004d58",
-          soft: "#e1f4f5",
+          DEFAULT: "#075c61",
+          dark: "#074f53",
+          soft: "#e2eee5",
         },
         orange: {
           DEFAULT: "#e95616",
-          dark: "#bd3d08",
+          dark: "#a63d0b",
         },
       },
       boxShadow: {
@@ -23,7 +23,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "Inter",
+          "DM Sans Variable",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",

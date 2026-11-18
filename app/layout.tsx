@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { deploymentRobots, SITE_ORIGIN } from "../lib/seo-policy";
+import "@fontsource-variable/dm-sans";
 import "./globals.css";
+import "./surfaces.css";
+import { SiteHeader } from "./site-header";
+import { SiteFooter } from "./site-footer";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -20,7 +24,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hr">
-      <body>{children}</body>
+      <body>
+        <SiteHeader />
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }

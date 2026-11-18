@@ -32,8 +32,11 @@ test("marketing footer uses only the approved brand, domain, and legal links", (
   const page = readFileSync(join(root, "app", "page.tsx"), "utf8");
 
   assert.doesNotMatch(page, /deweb j\.d\.o\.o\./);
-  assert.match(page, /deweb-logo\.svg/);
-  assert.match(page, /<SiteFooter \/>/);
+  const layout = readFileSync(join(root, "app", "layout.tsx"), "utf8");
+  const header = readFileSync(join(root, "app", "site-header.tsx"), "utf8");
+  assert.match(layout, /<SiteHeader \/>/);
+  assert.match(header, /deweb-logo\.svg/);
+  assert.match(layout, /<SiteFooter \/>/);
   const footer = readFileSync(join(root, "app", "site-footer.tsx"), "utf8");
   assert.match(footer, /Web-stranice i poslovni alati po mjeri/);
   assert.match(footer, /deweb j\.d\.o\.o\./);

@@ -10,9 +10,9 @@ import {
 } from "../../../lib/webshop-price";
 
 type Option = { value: string; label: string; detail?: string };
-const optionClass = "flex min-h-14 min-w-0 cursor-pointer items-start gap-3 rounded-lg border border-line bg-white px-3.5 py-3 transition-colors duration-150 hover:border-teal focus-within:border-teal has-[:checked]:border-teal has-[:checked]:bg-teal-soft motion-reduce:transition-none";
+const optionClass = "calc-option";
 const controlClass = "mt-0.5 h-5 w-5 shrink-0 accent-teal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-dark";
-const actionClass = "inline-flex min-h-12 items-center justify-center rounded-lg bg-teal px-5 py-3 text-center font-extrabold text-white transition-colors duration-150 hover:bg-teal-dark focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-3 focus-visible:outline-orange-dark motion-reduce:transition-none";
+const actionClass = "button";
 
 function RadioQuestion({ title, hint, name, options, value, error, onChange }: {
   title: string; hint?: string; name: AnswerField; options: Option[]; value: string;
@@ -87,10 +87,10 @@ export function WebshopCalculator({ config }: { config: PriceConfig }) {
   }
 
   return (
-    <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] lg:items-start lg:gap-8">
-      <form aria-labelledby="questions-title" onSubmit={submitEstimate} className="min-w-0 rounded-xl border border-line bg-white p-5 sm:p-7">
-        <h2 id="questions-title" className="text-2xl font-black">Vaši zahtjevi</h2>
-        <div className="mt-6 space-y-7">
+    <div className="calc-grid">
+      <form aria-labelledby="questions-title" onSubmit={submitEstimate} className="calc-form">
+        <h2 id="questions-title">Vaši zahtjevi</h2>
+        <div className="calc-questions">
           <RadioQuestion title="Što trebate?" name="projectType" options={projectOptions} value={answers.projectType} error={errors.projectType} onChange={value => update("projectType", value as Answers["projectType"])} />
           <RadioQuestion title="Koliko proizvoda planirate pri pokretanju?" hint="Veličine i boje istog artikla računajte kao jedan proizvod." name="catalogSize" options={catalogOptions} value={answers.catalogSize} error={errors.catalogSize} onChange={value => update("catalogSize", value as Answers["catalogSize"])} />
           <RadioQuestion title="Kako ćemo unijeti proizvode?" name="contentSupport" options={contentOptions} value={answers.contentSupport} error={errors.contentSupport} onChange={value => update("contentSupport", value as Answers["contentSupport"])} />
@@ -122,8 +122,8 @@ export function WebshopCalculator({ config }: { config: PriceConfig }) {
         <button type="submit" className={`${actionClass} mt-7 w-full sm:w-auto`}>{actionLabel}</button>
       </form>
 
-      <section aria-labelledby="result-title" className={`min-w-0 rounded-xl bg-[#edf6f7] p-5 sm:p-7 ${quoteOpened ? "" : "lg:sticky lg:top-6"}`}>
-        <h2 id="result-title" className="text-2xl font-black">Vaša procjena</h2>
+      <section aria-labelledby="result-title" className={quoteOpened ? "calc-result" : "calc-result calc-result-pinned"}>
+        <h2 id="result-title">Vaša procjena</h2>
         <div ref={resultRef} tabIndex={-1} className="mt-4 scroll-mt-6 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-teal" aria-live="polite">
           {!showResult && <p className="leading-7 text-teal-dark">Odgovorite na pitanja za pregled stavki i procjene.</p>}
           {showResult && estimate.status === "pricing_unavailable" && <p className="leading-7 text-teal-dark">Pošaljite sažetak zahtjeva za ponudu.</p>}
@@ -141,7 +141,7 @@ export function WebshopCalculator({ config }: { config: PriceConfig }) {
               <p className="mt-1 text-[clamp(1.75rem,4vw,2.65rem)] font-black leading-tight tracking-[-0.03em] tabular-nums">{formatWebshopRange(estimate.range)}</p>
               <dl className="mt-5 space-y-2.5">
                 {estimate.items?.map(({ label, range }) => (
-                  <div key={label} className="grid grid-cols-[1fr_auto] items-baseline gap-3 text-sm leading-5">
+                  <div key={label} className="quote-breakdown">
                     <dt>{label}</dt>
                     <dd className="whitespace-nowrap text-right font-bold tabular-nums">{formatWebshopRange(range)}</dd>
                   </div>
