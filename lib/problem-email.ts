@@ -15,7 +15,7 @@ export type ProblemFormData = {
   selectedPackage?: string;
   fullName: string;
   companyName: string;
-  companyType: string;
+  companyType?: string;
   email: string;
   phone?: string;
   currentWebsite?: string;
@@ -30,7 +30,7 @@ export type ContactEmailConfig = { apiKey: string; toEmail: string; fromEmail: s
 export type ContactEmailPayload = { from: string; to: string[]; reply_to: string; subject: string; text: string };
 
 export const successMessage = "Hvala. Upit je predan za slanje. Javit ćemo vam se kad ga primimo.";
-export const requiredProblemFields = ["projectType", "fullName", "email", "companyName", "companyType", "problem"] as const satisfies readonly (keyof ProblemFormData)[];
+export const requiredProblemFields = ["projectType", "fullName", "email", "companyName", "problem"] as const satisfies readonly (keyof ProblemFormData)[];
 export type RequiredProblemField = (typeof requiredProblemFields)[number];
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -115,7 +115,7 @@ export function buildContactEmailPayload(data: ProblemFormData, config: ContactE
       options.test ? "TEST — provjera kontaktnog obrasca" : "Novi kontaktni upit", "",
       `Ime: ${submission.fullName}`,
       `Naziv poslovnog subjekta: ${submission.companyName}`,
-      `Vrsta subjekta: ${submission.companyType}`,
+      submission.companyType ? `Vrsta subjekta: ${submission.companyType}` : undefined,
       `Email: ${submission.email}`,
       submission.phone && `Telefon: ${submission.phone}`,
       `Vrsta projekta: ${projectTypeLabel(submission.projectType)}`,
