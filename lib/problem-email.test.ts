@@ -23,7 +23,8 @@ test("price inquiries validate the business and selected help and carry them int
   const email = buildContactEmailPayload(data, config);
   assert.match(email.subject, /Bazne cijene i mrežni cjenik/);
   assert.match(email.text, /Potrebna pomoć: Mrežni cjenik i arhiva/);
-  assert.match(email.text, /Tvrtka ili obrt: Servis Horvat/);
+  assert.match(email.text, /Naziv poslovnog subjekta: Servis Horvat/);
+  assert.match(email.text, /Vrsta subjekta: Obrt/);
   assert.equal(email.reply_to, data.email);
 });
 
