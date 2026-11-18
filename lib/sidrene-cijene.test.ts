@@ -293,7 +293,7 @@ test("MOIRA ima jedan mrežni cjenik za tri potrošačka kanala, a veleprodaja o
   const copied = formatResults(offers);
   assert.equal((copied.match(/^Cjenik na webu — Obveza vrijedi/gm) ?? []).length, 1);
   assert.match(copied, /Najniža cijena prije sniženja — Obveza vrijedi · Iznos treba provjeriti/);
-  assert.match(copied, /Pravila od 17\. 11\. 2026\. nadalje/);
+  assert.match(copied, /^Pravila od 17\. 11\. 2026\.$/m);
 });
 
 test("različite domene ostaju odvojene, a nepoznata pripadnost traži dopunu", () => {

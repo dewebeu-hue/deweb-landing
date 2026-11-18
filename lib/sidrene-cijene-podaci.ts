@@ -1,5 +1,5 @@
 export const VERIFIED = "2026-11-17";
-export const ASSESSMENT_PERIOD = "Pravila od 17. 11. 2026. nadalje";
+export const ASSESSMENT_PERIOD = "Pravila od 17. 11. 2026.";
 export const LEGACY_REFERENCE = "2. 5. 2025.";
 export const GENERAL_REFERENCE = "10. 9. 2026.";
 
