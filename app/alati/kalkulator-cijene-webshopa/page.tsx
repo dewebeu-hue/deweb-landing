@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { webshopPricingForEnvironment } from "../../../lib/webshop-price-config";
 import { estimateWebshop, formatWebshopRange, projectLabels } from "../../../lib/webshop-price";
 import { WebshopCalculator } from "./webshop-calculator";
+import { FeatureIcon } from "../../feature-icon";
 import { Icon } from "../../ui-icon";
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ export default function WebshopCalculatorPage() {
         <div className="frame">
           <a className="back-link" href="/alati"><Icon name="left" /> Svi alati</a>
           <div className="section-intro">
-            <h1>Koliko košta webshop?</h1>
+            <h1 className="icon-heading"><FeatureIcon name="calculator" /><span>Koliko košta webshop?</span></h1>
             <div><p>{showPrices ? "Odaberite veličinu kataloga, način unosa proizvoda i dodatke. Odmah ćete vidjeti okvirnu cijenu ili što zahtijeva zasebnu procjenu." : "Odaberite veličinu kataloga, unos proizvoda i dodatke koje trebate za izradu ponude."}</p><a className="text-link" href="#odabir">Prijeđite na odabir <Icon name="down" /></a></div>
           </div>
           {showPrices && (

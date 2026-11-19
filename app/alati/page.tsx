@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { webshopPricingForEnvironment } from "../../lib/webshop-price-config";
+import { FeatureIcon } from "../feature-icon";
 import { Icon } from "../ui-icon";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export default function ToolsPage() {
       <section className="frame section">
         <article className="tool-feature mb-8">
           <div>
-            <h2>Moram li isticati baznu cijenu?</h2>
+            <h2 className="icon-heading"><FeatureIcon name="price" /><span>Moram li isticati baznu cijenu?</span></h2>
             <p>Provjerite obveze za poslovnicu, webshop i sajam. Dobit ćete kratak popis koraka uz članke propisa.</p>
             <a className="button button-light" href="/alati/sidrene-cijene">Provjerite svoje obveze <Icon name="right" /></a>
           </div>
@@ -26,7 +27,7 @@ export default function ToolsPage() {
         </article>
         <article className="tool-feature">
           <div>
-            <h2>Kalkulator cijene webshopa</h2>
+            <h2 className="icon-heading"><FeatureIcon name="calculator" /><span>Kalkulator cijene webshopa</span></h2>
             <p>{showPrices ? "Saznajte okvirnu cijenu novog webshopa, redizajna ili preseljenja. Odabir i procjenu možete poslati zajedno s upitom." : "Složite zahtjeve za novi webshop, redizajn ili preseljenje. Svoj odabir možete poslati zajedno s upitom."}</p>
             <a className="button button-light" href="/alati/kalkulator-cijene-webshopa">Otvorite kalkulator <Icon name="right" /></a>
           </div>

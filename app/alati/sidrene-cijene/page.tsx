@@ -5,6 +5,7 @@ import { sources } from "../../../lib/sidrene-cijene-podaci";
 import { PriceQuestionnaire } from "./upitnik";
 import styles from "./upitnik.module.css";
 import { PriceHelp } from "./pomoc";
+import { FeatureIcon } from "../../feature-icon";
 import { Icon } from "../../ui-icon";
 
 const title = "Sidrena (bazna) cijena: kada je obvezna? | deweb";
@@ -27,7 +28,7 @@ export default function AnchorPricePage() {
         <div className="frame">
           <Link href="/alati" className="back-link print:hidden"><Icon name="left" /> Svi alati</Link>
           <div className="section-intro">
-            <h1>Moram li isticati baznu cijenu?</h1>
+            <h1 className="icon-heading"><FeatureIcon name="price" /><span>Moram li isticati baznu cijenu?</span></h1>
             <div><p>Odgovorite na pitanja o svojoj prodaji. Saznat ćete koje cijene prikazati i trebate li objaviti cjenik na webu.</p>
               <a href="#pomoc" className="text-link print:hidden">Trebam pomoć s provedbom <Icon name="right" /></a>
             </div>

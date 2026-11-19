@@ -4,6 +4,7 @@ import { ProjectLink } from "./project-link";
 import { ScrollReveal } from "./scroll-reveal";
 import { Portfolio } from "./portfolio";
 import { ServiceHero } from "./service-hero";
+import { FeatureIcon } from "./feature-icon";
 import { Icon } from "./ui-icon";
 import { readProjectSelection, type ProjectSelectionParams } from "../lib/project-selection";
 import { webOfferTerms, webPackages } from "../lib/web-packages";
@@ -56,7 +57,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
       <section id="web-stranice" className="pricing-section section" aria-labelledby="web-title">
         <div className="frame">
           <div className="section-intro">
-            <h2 id="web-title">Web-stranice i redizajn</h2>
+            <h2 id="web-title" className="icon-heading"><FeatureIcon name="web" /><span>Web-stranice i redizajn</span></h2>
             <p>Jedna stranica za sažetu ponudu ili zasebne stranice za usluge, radove i kontakt. Oba paketa uključuju pripremu za mobitel i objavu.</p>
           </div>
           <div className="plans">
@@ -83,7 +84,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
           </div>
           <aside className="review-link">
             <div><h3>Već imate web?</h3><p>Možemo provjeriti postavke, obrasce i ključne funkcije prije dorade.</p></div>
-            <a className="text-link" href="/tehnicka-provjera-weba">Tehnička provjera weba <Icon name="right" /></a>
+            <a className="text-link" href="/tehnicka-provjera-weba"><FeatureIcon name="audit" />Tehnička provjera weba <Icon name="right" /></a>
           </aside>
         </div>
       </section>
@@ -91,12 +92,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
       <section id="webshopovi" className="section shop-section" aria-labelledby="shop-title">
         <div className="frame shop-grid">
           <div className="shop-intro">
-            <h2 id="shop-title">Webshopovi po mjeri</h2>
+            <h2 id="shop-title" className="icon-heading"><FeatureIcon name="shop" /><span>Webshopovi po mjeri</span></h2>
             <p>Katalog, plaćanje i dostavu povezujemo u trgovinu koju možete voditi svaki dan. Novi webshop, redizajn ili preseljenje procjenjujemo prema vašim proizvodima i načinu rada.</p>
             <ProjectLink type="shop" className="text-link">Zatražite ponudu za webshop <Icon name="up-right" /></ProjectLink>
           </div>
           <div className="shop-tool">
-            <h3>Kalkulator cijene webshopa</h3>
+            <h3 className="icon-heading"><FeatureIcon name="calculator" /><span>Kalkulator cijene webshopa</span></h3>
             <p>Odaberite veličinu kataloga, način unosa proizvoda i dodatne funkcije. Svoj odabir možete priložiti upitu.</p>
             <a className="button button-light" href="/alati/kalkulator-cijene-webshopa">Otvorite kalkulator <Icon name="right" /></a>
           </div>
@@ -106,7 +107,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Pro
       <section id="interni-alati" className="frame section" aria-labelledby="tools-title">
         <div className="tools-grid">
           <div className="tools-intro">
-            <h2 id="tools-title">Poslovni alati po mjeri</h2>
+            <h2 id="tools-title" className="icon-heading"><FeatureIcon name="tool" /><span>Poslovni alati po mjeri</span></h2>
             <p className="lede">Pokažite nam kako danas radite ili opišite što tek želite uvesti. Zajedno određujemo što alat treba omogućiti ljudima koji ga koriste i koje podatke trebaju imati pri ruci.</p>
             <ProjectLink type="tool" className="text-link">Opišite što vam treba <Icon name="up-right" /></ProjectLink>
           </div>

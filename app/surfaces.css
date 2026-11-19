@@ -102,11 +102,8 @@
   .hero-copy h1 { font-size: clamp(2.55rem,5.8vw,3.1rem); }
   .hero-copy p { margin-top: 15px; font-size: 1.05rem; }
   .hero-actions { gap: 4px 16px; margin-top: 20px; }
-  .stage-space { height: clamp(180px,30vw,240px); }
-  .stage-model { width: 92%; }
   .stage-caption { padding: 0 10px 6px 15px; font-size: .87rem; }
   .service-index a { min-height: 78px; gap: 9px; padding-inline: 10px; }
-  .service-index .service-icon { width: 19px; }
   .service-index small { font-size: .82rem; }
   .index-arrow { width: 15px; }
   .featured-work { grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr); }
@@ -171,9 +168,12 @@
   .hero-copy h1 { color: #142b40; font-size: clamp(2.38rem, 12vw, 3.75rem); font-weight: 660; line-height: 1.04; }
   .hero-copy h1 span { color: var(--deep); }
   .hero-copy p { margin-top: 17px; max-width: 42ch; color: var(--ink); font-size: clamp(1rem, 4.7vw, 1.2rem); line-height: 1.46; }
-  .hero-actions, .service-stage { display: none; }
+  .hero-actions { display: none; }
+  .service-stage { margin-top: 20px; }
+  .stage-caption { padding: 0 12px 10px 15px; }
+  .stage-label { font-size: .75rem; }
 
-  .service-index { --line: #cfcfc6; grid-template-columns: minmax(0, 1fr); margin-top: clamp(23px, 6.4vw, 32px); gap: 10px; border: 0; }
+  .service-index { --line: #cfcfc6; grid-template-columns: minmax(0, 1fr); margin-top: 16px; gap: 10px; border: 0; }
   .service-index > a {
     min-height: clamp(68px, 20vw, 84px);
     padding: 13px clamp(12px, 4vw, 20px);
@@ -183,9 +183,7 @@
   }
   .service-index > a:hover { background-color: var(--paper); }
   .service-index > a:active { background-color: var(--mist); border-color: var(--teal); }
-  .service-index .service-icon { width: 26px; height: 26px; color: var(--deep); }
-  .service-index .tool-check { display: none; }
-  .service-index .tool-grid { display: inline; }
+  .service-index .feature-icon { width: 2.5rem; }
   .service-index strong { font-size: clamp(1.08rem, 4.8vw, 1.25rem); line-height: 1.25; }
   .service-index small { margin-top: 3px; font-size: .91rem; }
   .service-index .index-arrow { width: 19px; height: 19px; }

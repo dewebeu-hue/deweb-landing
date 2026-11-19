@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FeatureIcon } from "../feature-icon";
 import { Icon } from "../ui-icon";
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ export default function TechnicalReviewPage() {
       <div className="page-heading audit-heading">
         <div className="frame inner-hero-grid">
           <div>
-            <h1>Tehnička provjera weba</h1>
+            <h1 className="icon-heading"><FeatureIcon name="audit" /><span>Tehnička provjera weba</span></h1>
             <p className="lede">Za vlasnike WordPress stranica i agencije koje ih održavaju. Saznajte gdje stranica zapinje i što prvo vrijedi popraviti.</p>
             <div className="hero-actions">
               <a href="mailto:dinko@deweb.hr?subject=Tehni%C4%8Dka%20provjera%20weba" className="button">Pošaljite adresu weba <Icon name="up-right" /></a>

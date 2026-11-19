@@ -39,6 +39,50 @@ h2 { font-size: clamp(2.05rem, 4.3vw, 4.2rem); font-weight: 570; line-height: 1.
 h3 { font-size: clamp(1.35rem, 2.25vw, 2.15rem); font-weight: 610; line-height: 1.16; letter-spacing: -.032em; }
 img { display: block; max-width: 100%; }
 svg { flex-shrink: 0; }
+[data-feature-theme] {
+  --feature-color: #236b6d;
+  --feature-bright: #006f62;
+  --feature-light: #f1f9f6;
+  --feature-surface: #d7ebe4;
+  --feature-edge: #a8cfc5;
+}
+[data-feature-theme="web"], [data-feature-theme="audit"] {
+  --feature-color: #184557;
+  --feature-bright: #246b93;
+  --feature-light: #ecf5f8;
+  --feature-surface: #d3e5eb;
+  --feature-edge: #a6c2ca;
+}
+[data-feature-theme="tool"], [data-feature-theme="price"] {
+  --feature-color: #9e512f;
+  --feature-bright: #b34c24;
+  --feature-light: #fbf4ed;
+  --feature-surface: #efe0d4;
+  --feature-edge: #d4b6a4;
+}
+.feature-icon {
+  display: inline-grid;
+  width: 2.75rem;
+  aspect-ratio: 1;
+  flex: none;
+  place-items: center;
+  border-radius: .75rem;
+  background: var(--feature-surface);
+  color: var(--feature-color);
+  vertical-align: middle;
+  transition: color 180ms ease, background-color 180ms ease;
+}
+.feature-icon svg { width: 67%; }
+.icon-heading { display: flex; align-items: center; gap: clamp(10px, 1.35vw, 18px); }
+.icon-heading > span:last-child { min-width: 0; }
+a:focus-visible .feature-icon { color: var(--feature-bright); background-color: var(--feature-light); }
+@media (hover: hover) {
+  a:hover .feature-icon, .feature-icon:hover {
+    color: var(--feature-bright);
+    background-color: var(--feature-light);
+  }
+}
+.review-link .feature-icon { width: 1.9rem; border-radius: .45rem; }
 .frame { width: min(calc(100% - 2 * var(--edge)), 1320px); margin-inline: auto; }
 .section { padding-block: var(--section); }
 .lede, .body-copy, .section-intro > p, .section-intro > div > p,
@@ -92,18 +136,17 @@ summary::marker { content: ""; }
 .hero-copy h1 { font-size: clamp(3.45rem, 6.05vw, 6.1rem); }
 .hero-copy p { max-width: 42ch; margin-top: 24px; color: var(--muted); font-size: clamp(1.08rem, 1.52vw, 1.4rem); line-height: 1.5; }
 .hero-actions { flex-wrap: wrap; gap: 8px 25px; margin-top: 28px; }
-.service-stage { min-width: 0; overflow: hidden; background: var(--mint); border-radius: 22px; color: #183d38; }
-.stage-space { height: clamp(245px, 25vw, 365px); position: relative; }
-.stage-model { position: absolute; pointer-events: none; top: 50%; left: 50%; width: min(82%, 460px); aspect-ratio: 1; transform: translate(-50%, -61%); }
+.service-stage { min-width: 0; overflow: hidden; background: radial-gradient(ellipse at 46% 20%, #e9f3ec, var(--mint) 78%); border-radius: 22px; color: #183d38; }
 .stage-caption { display: flex; position: relative; z-index: 2; min-height: 58px; justify-content: space-between; align-items: center; padding: 0 16px 10px 25px; font-size: .98rem; font-weight: 590; }
-.stage-controls { display: flex; gap: 5px; }
+.stage-label { display: block; color: var(--muted); font-size: .82rem; font-weight: 500; }
+.stage-caption strong { display: block; color: var(--ink); font-size: clamp(1.16rem, 1.7vw, 1.52rem); font-weight: 660; line-height: 1.2; }
+.stage-controls { display: flex; flex: none; gap: 5px; }
 .stage-controls button { border: 1px solid #89a99c; transition: background-color .16s; }
 .stage-controls button:hover, .stage-controls button:focus-visible { background: #f7fbf7; }
 .service-index { grid-column: 1/-1; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1px; margin-top: clamp(30px,3.6vw,58px); border-block: 1px solid var(--line); }
 .service-index > a { display: flex; min-width: 0; min-height: 95px; align-items: center; padding: 15px clamp(12px,1.6vw,27px); gap: clamp(12px,1.3vw,20px); transition: background-color .18s; }
 .service-index > a + a { border-left: 1px solid var(--line); }
 .service-index a:hover, .service-index a:focus-visible { background: var(--mist); }
-.service-index .service-icon { width: 25px; height: 25px; color: var(--teal); }
 .service-index strong { display: block; font-size: clamp(1.15rem,1.6vw,1.55rem); font-weight: 650; letter-spacing: -.035em; }
 .service-index small { display: block; margin-top: 2px; font-size: .9rem; color: var(--muted); line-height: 1.35; }
 .index-arrow { width: 18px; margin-left: auto; }
